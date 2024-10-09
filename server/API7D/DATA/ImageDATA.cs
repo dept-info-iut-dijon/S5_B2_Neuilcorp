@@ -9,7 +9,7 @@ namespace API7D.DATA
         public string GetImagesDATA(int ID)
         {
             //a connecter a la futur BDD en attandant mettre chemin image ici
-            string path = "";
+            string path = "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Image\\test.png";
             return path;
         }
 

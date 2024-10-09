@@ -10,5 +10,5 @@ import retrofit2.http.POST;
 public interface ApiService {
 
     @POST("coordonnees") // Chemin de l'endpoint du controleur
-    Call<ResponseBody> sendCoordinates(@Body List<Coordonnees> coordonneesList);
+    Call<Boolean> sendCoordinates(@Body Coordonnees coordonnees);
 }

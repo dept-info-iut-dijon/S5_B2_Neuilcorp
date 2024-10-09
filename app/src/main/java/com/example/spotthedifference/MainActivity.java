@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
     private float clickX;
     private float clickY;
     private ImageView circleImageView;
-    private List<Coordonnees> listeCoordonnees;
     private ApiService apiService;
 
     /// <summary>
@@ -40,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         ImageView imageView = findViewById(R.id.imageView);
         FrameLayout layout = findViewById(R.id.frameLayout);
-        listeCoordonnees = new ArrayList<>();
+
 
         circleImageView = new ImageView(this);
         circleImageView.setImageResource(R.drawable.cercle_rouge);
@@ -48,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         layout.addView(circleImageView, new FrameLayout.LayoutParams(50, 50));
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://url-serveur/") // Remplacer l'url
+                .baseUrl("https://localhost:7176/api/Differance/check?x=160&y=160") // Remplacer l'url
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -60,9 +59,6 @@ public class MainActivity extends AppCompatActivity {
                 clickX = event.getX();
                 clickY = event.getY();
 
-                Coordonnees coord = new Coordonnees(clickX, clickY);
-                listeCoordonnees.add(coord);
-
                 circleImageView.setX(clickX - 25);
                 circleImageView.setY(clickY - 25);
                 circleImageView.setVisibility(View.VISIBLE);
@@ -71,28 +67,36 @@ public class MainActivity extends AppCompatActivity {
 
                 Toast.makeText(MainActivity.this, "Clic détecté : X=" + clickX + ", Y=" + clickY, Toast.LENGTH_SHORT).show();
                 Coordonnees coordonnees = new Coordonnees(clickX, clickY);
-                EnvoieCoordonneesAServeur(listeCoordonnees);
+                EnvoieCoordonneesAServeur(coordonnees);
                 return true;
             }
             return false;
         });
     }
 
-    private void EnvoieCoordonneesAServeur(List<Coordonnees> coordonneesList) {
-        Call<ResponseBody> call = apiService.sendCoordinates(coordonneesList);
-        call.enqueue(new Callback<ResponseBody>() {
+    private void EnvoieCoordonneesAServeur(float clickX, float clickY) {
+         Coordonnees coordonnees = new Coordonnees(clickX, clickY);
+
+        Call<Boolean> call = apiService.sendCoordinates(coordonnees);
+        call.enqueue(new Callback<Boolean>() {
 
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, "Coordonnées envoyées au serveur", Toast.LENGTH_SHORT).show();
+            public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    boolean result = response.body();
+                    if (result) {
+                        Toast.makeText(MainActivity.this, "Coordonnée envoyée avec succès", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Erreur dans l'envoi de la coordonnée", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Toast.makeText(MainActivity.this, "Erreur lors de l'envoi des coordonnées", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Erreur lors de l'envoi de la coordonnée", Toast.LENGTH_SHORT).show();
                 }
             }
 
+
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(Call<Boolean> call, Throwable t) {
                 Toast.makeText(MainActivity.this, "Erreur lors de l'envoi des coordonnées", Toast.LENGTH_SHORT).show();
             }
         });

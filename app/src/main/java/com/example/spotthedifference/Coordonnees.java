@@ -4,30 +4,28 @@ package com.example.spotthedifference;
 /// Classe représentant les coordonnées X et Y.
 /// </summary>
 public class Coordonnees {
-    private int x;
-    private int y;
+    private float x;
+    private float y;
 
-    // Constructeur avec paramètres pour initialiser les coordonnées
-    public Coordonnees(int x, int y) {
+    /// <summary>
+    /// Constructeur pour initialiser les coordonnées.
+    /// </summary>
+    public Coordonnees(float x, float y) {
         this.x = x;
         this.y = y;
     }
 
-    // Getters
-    public int getX() {
+    /// <summary>
+    /// Récupérer la coordonnée X.
+    /// </summary>
+    public float getX() {
         return x;
     }
 
-    public int getY() {
+    /// <summary>
+    /// Récupérer la coordonnée Y.
+    /// </summary>
+    public float getY() {
         return y;
-    }
-
-    // Setters
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SpotTheDifference</string>
+    <string name="valider_la_difference">Valider la différence</string>
 </resources>

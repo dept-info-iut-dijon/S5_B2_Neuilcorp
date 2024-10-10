@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private float clickX;
     private float clickY;
     private ImageView circleImageView;
-    private List<Coordonnees> listeCoordonnees;
+    //private List<Coordonnees> listeCoordonnees;
     private Coordonnees coordTemp;
     private Button validerButton;
 
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         FrameLayout layout = findViewById(R.id.frameLayout);
         validerButton = findViewById(R.id.validateButton);
 
-        listeCoordonnees = new ArrayList<>();
+        //listeCoordonnees = new ArrayList<>();
         validerButton.setEnabled(false);
 
         circleImageView = new ImageView(this);
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
         validerButton.setOnClickListener(v -> {
             if (coordTemp != null) {
-                listeCoordonnees.add(coordTemp);
+                //listeCoordonnees.add(coordTemp);
 
                 Toast.makeText(MainActivity.this, "Coordonnées validées et ajoutées à la liste", Toast.LENGTH_SHORT).show();
 

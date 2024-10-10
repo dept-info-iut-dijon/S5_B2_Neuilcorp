@@ -1,0 +1,6 @@
+@API7D_HostAddress = http://localhost:5195
+
+GET {{API7D_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

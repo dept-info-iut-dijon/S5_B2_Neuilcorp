@@ -1,6 +1,8 @@
 package com.example.spotthedifference;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private float clickX;
     private float clickY;
     private ImageView circleImageView;
+    private ImageView imageView;
     private ApiService apiService;
 
     /// <summary>
@@ -47,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         layout.addView(circleImageView, new FrameLayout.LayoutParams(50, 50));
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://localhost:7176/api/Differance/check?x=160&y=160") // Remplacer l'url
+                .baseUrl("https://localhost:7176/") // Remplacer l'url
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -74,8 +77,28 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void EnvoieCoordonneesAServeur(float clickX, float clickY) {
-         Coordonnees coordonnees = new Coordonnees(clickX, clickY);
+    private void loadImage(int imageId) {
+        Call<byte[]> call = apiService.getImage(imageId);
+        call.enqueue(new Callback<byte[]>() {
+            @Override
+            public void onResponse(Call<byte[]> call, Response<byte[]> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    byte[] imageBytes = response.body();
+                    Bitmap bitmap = ImageConverter.convertBytesToBitmap(imageBytes);
+                    ImageDisplayer.displayImage(imageView, bitmap);
+                } else {
+                    Toast.makeText(MainActivity.this, "Erreur lors de la récupération de l'image", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<byte[]> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Échec de la connexion : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void EnvoieCoordonneesAServeur(Coordonnees coordonnees) {
 
         Call<Boolean> call = apiService.sendCoordinates(coordonnees);
         call.enqueue(new Callback<Boolean>() {

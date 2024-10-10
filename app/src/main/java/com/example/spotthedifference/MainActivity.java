@@ -1,6 +1,8 @@
 package com.example.spotthedifference;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -11,6 +13,16 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 /// <summary>
 /// Classe principale de l'application.
 /// Gère l'affichage principal, la détection des clics, la validation des différences, et l'affichage d'un cercle rouge.
@@ -20,9 +32,13 @@ public class MainActivity extends AppCompatActivity {
     private float clickX;
     private float clickY;
     private ImageView circleImageView;
+  
+    private ImageView imageView;
+    private ApiService apiService;
     //private List<Coordonnees> listeCoordonnees;
     private Coordonnees coordTemp;
     private Button validerButton;
+
 
     /// <summary>
     /// Méthode appelée à la création de l'activité.
@@ -39,10 +55,19 @@ public class MainActivity extends AppCompatActivity {
         //listeCoordonnees = new ArrayList<>();
         validerButton.setEnabled(false);
 
+
         circleImageView = new ImageView(this);
         circleImageView.setImageResource(R.drawable.cercle_rouge);
         circleImageView.setVisibility(View.INVISIBLE);
         layout.addView(circleImageView, new FrameLayout.LayoutParams(50, 50));
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://localhost:7176/") // Remplacer l'url
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        apiService = retrofit.create(ApiService.class);
+
 
         imageView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -56,7 +81,10 @@ public class MainActivity extends AppCompatActivity {
 
                 validerButton.setEnabled(true);
 
-                Toast.makeText(MainActivity.this, "Clic détecté, prêt à valider", Toast.LENGTH_SHORT).show();
+              Toast.makeText(MainActivity.this, "Clic détecté : X=" + clickX + ", Y=" + clickY, Toast.LENGTH_SHORT).show();
+                Coordonnees coordonnees = new Coordonnees(clickX, clickY);
+                EnvoieCoordonneesAServeur(coordonnees);
+
                 return true;
             }
             return false;
@@ -74,4 +102,53 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void loadImage(int imageId) {
+        Call<byte[]> call = apiService.getImage(imageId);
+        call.enqueue(new Callback<byte[]>() {
+            @Override
+            public void onResponse(Call<byte[]> call, Response<byte[]> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    byte[] imageBytes = response.body();
+                    Bitmap bitmap = ImageConverter.convertBytesToBitmap(imageBytes);
+                    ImageDisplayer.displayImage(imageView, bitmap);
+                } else {
+                    Toast.makeText(MainActivity.this, "Erreur lors de la récupération de l'image", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<byte[]> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Échec de la connexion : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void EnvoieCoordonneesAServeur(Coordonnees coordonnees) {
+
+        Call<Boolean> call = apiService.sendCoordinates(coordonnees);
+        call.enqueue(new Callback<Boolean>() {
+
+            @Override
+            public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    boolean result = response.body();
+                    if (result) {
+                        Toast.makeText(MainActivity.this, "Coordonnée envoyée avec succès", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Erreur dans l'envoi de la coordonnée", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Erreur lors de l'envoi de la coordonnée", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+
+            @Override
+            public void onFailure(Call<Boolean> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Erreur lors de l'envoi des coordonnées", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }
+

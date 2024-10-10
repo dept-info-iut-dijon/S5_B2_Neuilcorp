@@ -14,7 +14,7 @@ public class Coordonnees {
         this.x = x;
         this.y = y;
     }
-
+  
     /// <summary>
     /// Récupérer la coordonnée X.
     /// </summary>

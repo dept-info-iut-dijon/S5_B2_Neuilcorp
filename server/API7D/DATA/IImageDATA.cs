@@ -21,7 +21,7 @@ namespace API7D.DATA
         /// <param name="IdImage">Id de l'image</param>
         /// <param name="coordonnéeDiffTest">une coordonée</param>
         /// <returns></returns>
-        public bool ImageDifferanceChecker(int IdImage, Coordinate coordonnéeDiffTest);
+        public bool ImageDifferanceChecker(int IdImage, Coordonnees coordonnéeDiffTest);
 
     }
 }

@@ -10,6 +10,6 @@ namespace API7D.Metier
         /// <param name="x"> coordonée X </param>
         /// <param name="y"> coordonée Y </param>
         /// <returns></returns>
-        public bool IsWithinDifference(Coordinate coordinate);
+        public bool IsWithinDifference(Coordonnees coordinate);
     }
 }

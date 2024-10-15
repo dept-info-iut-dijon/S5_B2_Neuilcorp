@@ -3,19 +3,14 @@
     "ContainingType": "API7D.Controllers.DifferanceController",
     "Method": "CheckDifference",
     "RelativePath": "api/Differance/check",
-    "HttpMethod": "GET",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "x",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "y",
-        "Type": "System.Int32",
-        "IsRequired": false
+        "Name": "coordonnees",
+        "Type": "Coordonnees",
+        "IsRequired": true
       }
     ],
     "ReturnTypes": []
@@ -45,27 +40,6 @@
         "StatusCode": 200
       }
     ]
-  },
-  {
-    "ContainingType": "GameSessionController",
-    "Method": "CheckDifference",
-    "RelativePath": "api/GameSession/{sessionId}/check-difference",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "sessionId",
-        "Type": "System.String",
-        "IsRequired": true
-      },
-      {
-        "Name": "coordinate",
-        "Type": "API7D.objet.Coordinate",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
   },
   {
     "ContainingType": "GameSessionController",

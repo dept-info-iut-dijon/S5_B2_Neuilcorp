@@ -11,9 +11,9 @@ import retrofit2.http.Path;
 
 public interface ApiService {
 
-    @POST("coordonnees") // Chemin de l'endpoint du controleur
+    @POST("api/Differance/check") // Chemin de l'endpoint du controleur
     Call<Boolean> sendCoordinates(@Body Coordonnees coordonnees);
 
-    @GET("ImageController/{id}")
+    @GET("api/ImageController/{id}")
     Call<byte[]> getImage(@Path("id") int imageId);
 }

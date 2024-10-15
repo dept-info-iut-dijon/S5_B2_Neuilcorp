@@ -3,6 +3,7 @@ package com.example.spotthedifference;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
@@ -63,6 +64,15 @@ public class MainActivity extends AppCompatActivity {
         imageView = findViewById(R.id.imageView);
         FrameLayout layout = findViewById(R.id.frameLayout);
         validerButton = findViewById(R.id.validateButton);
+        Button exitButton = findViewById(R.id.exitButton);
+
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                startActivity(intent);
+            }
+        });
 
         //listeCoordonnees = new ArrayList<>();
         validerButton.setEnabled(false);

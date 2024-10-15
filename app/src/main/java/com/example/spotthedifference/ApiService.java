@@ -14,6 +14,6 @@ public interface ApiService {
     @POST("api/Differance/check") // Chemin de l'endpoint du controleur
     Call<Boolean> sendCoordinates(@Body Coordonnees coordonnees);
 
-    @GET("api/ImageController/{id}")
-    Call<byte[]> getImage(@Path("id") int imageId);
+    @GET("ImageControlleur/{id}")
+    Call<ResponseBody> getImage(@Path("id") int imageId);
 }

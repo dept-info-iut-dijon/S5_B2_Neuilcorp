@@ -1,15 +1,19 @@
 package com.example.spotthedifference;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private int clickX;
     private int clickY;
     private ImageView circleImageView;
-  
+
     private ImageView imageView;
     private ApiService apiService;
     //private List<Coordonnees> listeCoordonnees;
@@ -55,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ImageView imageView = findViewById(R.id.imageView);
+        imageView = findViewById(R.id.imageView);
         FrameLayout layout = findViewById(R.id.frameLayout);
         validerButton = findViewById(R.id.validateButton);
 
@@ -68,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         circleImageView.setImageResource(R.drawable.cercle_rouge);
         circleImageView.setVisibility(View.INVISIBLE);
         layout.addView(circleImageView, new FrameLayout.LayoutParams(50, 50));
+
 
         // Création de l'intercepteur de logs
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
@@ -82,7 +87,8 @@ public class MainActivity extends AppCompatActivity {
         Retrofit retrofit = RetrofitClient.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
 
-
+        int imageId = 1;
+        loadImage(imageId);
 
         imageView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -97,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
                 validerButton.setEnabled(true);
 
               Toast.makeText(MainActivity.this, "Clic détecté : X=" + clickX + ", Y=" + clickY, Toast.LENGTH_SHORT).show();
-                Coordonnees coordonnees = new Coordonnees(clickX, clickY);
-                EnvoieCoordonneesAServeur(coordonnees);
+                //Coordonnees coordonnees = new Coordonnees(clickX, clickY);
+                // EnvoieCoordonneesAServeur(coordonnees);
 
                 return true;
             }
@@ -109,37 +115,52 @@ public class MainActivity extends AppCompatActivity {
             if (coordTemp != null) {
                 //listeCoordonnees.add(coordTemp);
 
-                Toast.makeText(MainActivity.this, "Coordonnées validées et ajoutées à la liste", Toast.LENGTH_SHORT).show();
+               AlertDialog waitingDialog = new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Joueur en attente")
+                        .setMessage("En attente de la sélection des autres joueurs...")
+                       .setCancelable(false)
+                       .create();
+               waitingDialog.show();
 
-                validerButton.setEnabled(false);
-                imageView.setEnabled(false);
-                circleImageView.setVisibility(View.INVISIBLE);
+               EnvoieCoordonneesAServeur(coordTemp, waitingDialog);
+               validerButton.setEnabled(false);
+               imageView.setEnabled(false);
+               circleImageView.setVisibility(View.INVISIBLE);
+               imageView.setEnabled(true);
+
             }
         });
     }
 
     private void loadImage(int imageId) {
-        Call<byte[]> call = apiService.getImage(imageId);
-        call.enqueue(new Callback<byte[]>() {
+        Call<ResponseBody> call = apiService.getImage(imageId);
+        call.enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Call<byte[]> call, Response<byte[]> response) {
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    byte[] imageBytes = response.body();
-                    Bitmap bitmap = ImageConverter.convertBytesToBitmap(imageBytes);
-                    ImageDisplayer.displayImage(imageView, bitmap);
+                    try {
+                        byte[] imageBytes = response.body().bytes();
+                        Log.d("ImageLoad", "Image size : " + imageBytes.length);
+                        Bitmap bitmap = ImageConverter.convertBytesToBitmap(imageBytes);
+                        ImageDisplayer.displayImage(imageView, bitmap);
+                    }catch(IOException e)
+                    {
+                        Log.e("ImageLoad", "Erreur lors de la lecture de l'image : " + e.getMessage());
+                    }
                 } else {
-                    Toast.makeText(MainActivity.this, "1", Toast.LENGTH_SHORT).show();
+                    Log.e("ImageLoad", "Erreur lors du chargement de l'image : " + response.code());
+                    Toast.makeText(MainActivity.this, "Erreur lors du chargement de l'image : " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<byte[]> call, Throwable t) {
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e("ImageLoad", "Échec de la connexion : " + t.getMessage());
                 Toast.makeText(MainActivity.this, "Échec de la connexion : " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-    private void EnvoieCoordonneesAServeur(Coordonnees coordonnees) {
+    private void EnvoieCoordonneesAServeur(Coordonnees coordonnees, AlertDialog waitingDialog) {
 
         Call<Boolean> call = apiService.sendCoordinates(coordonnees);
         call.enqueue(new Callback<Boolean>() {
@@ -148,19 +169,39 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<Boolean> call, Response<Boolean> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     boolean result = response.body();
-                    if (result) {
-                        Toast.makeText(MainActivity.this, "Coordonnée envoyée avec succès", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(MainActivity.this, "1", Toast.LENGTH_SHORT).show();
-                    }
+                    String message = result ? "Bravo vous avez trouvé une différence !" : "Aie.. Il semblerait qu'au moins un joueur se soit trompé.";
+
+                    waitingDialog.dismiss();
+
+                    // Afficher un popup avec un AlertDialog
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setMessage(message)
+                            .setPositiveButton("OK", (dialog, which) -> {
+                                if(validerButton != null){
+                                    validerButton.setEnabled(false);
+                                }
+                               if (imageView != null){
+                                   imageView.setEnabled(true);
+                                 }
+                                if(circleImageView != null){
+                                    circleImageView.setVisibility(View.INVISIBLE);
+                                }
+                                coordTemp = null;
+                            })
+                            .show();
                 } else {
-                    Toast.makeText(MainActivity.this, "2", Toast.LENGTH_SHORT).show();
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("Erreur")
+                            .setMessage("Erreur lors de l'envoi de la coordonnée.")
+                            .setPositiveButton("OK", null)
+                            .show();
                 }
             }
 
 
             @Override
             public void onFailure(Call<Boolean> call, Throwable t) {
+                waitingDialog.dismiss();
                 Toast.makeText(MainActivity.this, "Erreur : " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });

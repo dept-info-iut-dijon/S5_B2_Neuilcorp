@@ -18,17 +18,21 @@ namespace API7D.Controllers
                 checker = new DifferanceChecker();
             }
 
-            // Endpoint pour vérifier si les coordonnées fournies sont dans la zone d'acceptation
-            // GET: api/difference/check?x=...&y=...
-            [HttpGet("check")]
-            public IActionResult CheckDifference([FromQuery] int x, [FromQuery] int y)
+        // Endpoint pour vérifier si les coordonnées fournies sont dans la zone d'acceptation
+        // GET: api/difference/check?x=...&y=...
+        [HttpPost("check")]
+        public IActionResult CheckDifference([FromBody] Coordonnees coordonnees)
+        {
+            try
             {
-            Coordinate coordinate = new Coordinate(x, y);
-                // Appel de la méthode IsWithinDifference pour vérifier si les coordonnées sont dans la zone d'acceptation
-                bool isInZone = checker.IsWithinDifference(coordinate);
-
-                // Retourne le résultat en tant que booléen (true si dans la zone, sinon false)
-                return Ok(isInZone);
+                bool isInZone = checker.IsWithinDifference(coordonnees);
+                return Ok(isInZone);  // Envoie la réponse correcte
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Erreur dans le traitement des coordonnées");  // Gestion d'erreurs
             }
         }
+
     }
+}

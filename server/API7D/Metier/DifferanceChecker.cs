@@ -8,7 +8,7 @@ using System.Collections.Generic;
 public class DifferanceChecker : IDifferanceChecker
 {
     // Liste des différences (exemple : chaque différence est un point avec des coordonnées x, y)
-    private List<Coordinate> differences;
+    private List<Coordonnees> differences;
     private const int AcceptanceRadius = 20; // Rayon d'acceptation en pixels
 
     public DifferanceChecker()
@@ -18,7 +18,7 @@ public class DifferanceChecker : IDifferanceChecker
     }
 
     // Méthode pour vérifier si les coordonnées fournies sont proches d'une des différences
-    public bool IsWithinDifference(Coordinate coordinate)
+    public bool IsWithinDifference(Coordonnees coordinate)
     {
         foreach (var difference in differences)
         {

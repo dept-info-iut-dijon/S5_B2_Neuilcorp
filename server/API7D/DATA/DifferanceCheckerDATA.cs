@@ -4,19 +4,19 @@ namespace API7D.DATA
 {
     public class DifferanceCheckerDATA : IDifferanceCheckerDATA
     {
-        public List<Coordinate> GetListDifferanceCoordinates()
+        public List<Coordonnees> GetListDifferanceCoordinates()
         {
-            List<Coordinate> list = new List<Coordinate>();
+            List<Coordonnees> list = new List<Coordonnees>();
             // a remplacer par un fur appelle a la BDD
-            Coordinate x = new Coordinate(128, 138);
+            Coordonnees x = new Coordonnees(128, 138);
             list.Add(x);
-            x = new Coordinate(341, 128);
+            x = new Coordonnees(341, 128);
             list.Add(x);
-            x = new Coordinate(196, 424);
+            x = new Coordonnees(196, 424);
             list.Add(x);
-            x = new Coordinate(577, 348);
+            x = new Coordonnees(577, 348);
             list.Add(x);
-            x = new Coordinate(503, 656);
+            x = new Coordonnees(503, 656);
             list.Add(x);
 
             return list;

@@ -13,7 +13,7 @@ namespace API7D.DATA
             return path;
         }
 
-        public bool ImageDifferanceChecker(int IdImage, Coordinate coordonnéeDiffTest)
+        public bool ImageDifferanceChecker(int IdImage, Coordonnees coordonnéeDiffTest)
         {
             throw new NotImplementedException();
         }

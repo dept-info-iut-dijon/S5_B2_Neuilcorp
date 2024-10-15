@@ -16,6 +16,12 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,12 +35,14 @@ import retrofit2.converter.gson.GsonConverterFactory;
 /// </summary>
 public class MainActivity extends AppCompatActivity {
 
-    private float clickX;
-    private float clickY;
+    private int clickX;
+    private int clickY;
     private ImageView circleImageView;
     //private List<Coordonnees> listeCoordonnees;
     private Coordonnees coordTemp;
     private Button validerButton;
+
+
 
     /// <summary>
     /// Méthode appelée à la création de l'activité.
@@ -52,23 +60,31 @@ public class MainActivity extends AppCompatActivity {
         validerButton.setEnabled(false);
 
 
+
         circleImageView = new ImageView(this);
         circleImageView.setImageResource(R.drawable.cercle_rouge);
         circleImageView.setVisibility(View.INVISIBLE);
         layout.addView(circleImageView, new FrameLayout.LayoutParams(50, 50));
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://localhost:7176/") // Remplacer l'url
-                .addConverterFactory(GsonConverterFactory.create())
+        // Création de l'intercepteur de logs
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);  // Afficher tout le corps des requêtes/réponses
+
+// Ajout de l'intercepteur au client OkHttp
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)  // Ajout du logging interceptor
                 .build();
 
+// Configuration de Retrofit avec OkHttp et Gson converter
+        Retrofit retrofit = RetrofitClient.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
+
 
 
         imageView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                clickX = event.getX();
-                clickY = event.getY();
+                int clickX = (int) event.getX();  // Conversion en int
+                int clickY = (int) event.getY();  // Conversion en int
                 coordTemp = new Coordonnees(clickX, clickY);
 
                 circleImageView.setX(clickX - 25);
@@ -106,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                     Bitmap bitmap = ImageConverter.convertBytesToBitmap(imageBytes);
                     ImageDisplayer.displayImage(imageView, bitmap);
                 } else {
-                    Toast.makeText(MainActivity.this, "Erreur lors de la récupération de l'image", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "1", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -129,17 +145,17 @@ public class MainActivity extends AppCompatActivity {
                     if (result) {
                         Toast.makeText(MainActivity.this, "Coordonnée envoyée avec succès", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(MainActivity.this, "Erreur dans l'envoi de la coordonnée", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "1", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(MainActivity.this, "Erreur lors de l'envoi de la coordonnée", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "2", Toast.LENGTH_SHORT).show();
                 }
             }
 
 
             @Override
             public void onFailure(Call<Boolean> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Erreur lors de l'envoi des coordonnées", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Erreur : " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }

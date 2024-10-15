@@ -62,27 +62,4 @@ public class GameSessionController : ControllerBase
         }
         return Ok(session);
     }
-
-    // Vérifie si une différence est correcte pour une session
-    [HttpPost("{sessionId}/check-difference")]
-    public ActionResult CheckDifference(string sessionId, [FromBody] Coordinate coordinate)
-    {
-        var session = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
-        if (session == null)
-        {
-            return NotFound();
-        }
-
-        var foundDifference = session.PlayerImages.Any(img => img.Differences
-            .Any(d => d.X == coordinate.X && d.Y == coordinate.Y));
-
-        if (foundDifference)
-        {
-            return Ok("Différence trouvée !");
-        }
-        else
-        {
-            return BadRequest("Pas de différence ici.");
-        }
-    }
 }

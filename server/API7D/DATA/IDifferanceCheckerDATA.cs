@@ -4,6 +4,6 @@ namespace API7D.DATA
 {
     public interface IDifferanceCheckerDATA
     {
-        public List<Coordinate> GetListDifferanceCoordinates();
+        public List<Coordonnees> GetListDifferanceCoordinates();
     }
 }

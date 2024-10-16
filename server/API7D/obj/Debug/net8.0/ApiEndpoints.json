@@ -17,7 +17,7 @@
   },
   {
     "ContainingType": "GameSessionController",
-    "Method": "GetSession",
+    "Method": "GetSessionById",
     "RelativePath": "api/GameSession/{sessionId}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -85,14 +85,14 @@
   {
     "ContainingType": "GameSessionController",
     "Method": "CreateSession",
-    "RelativePath": "api/GameSession/create",
+    "RelativePath": "api/GameSession/CreateSession",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "players",
-        "Type": "System.Collections.Generic.List\u00601[[API7D.objet.Player, API7D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Name": "gameSession",
+        "Type": "API7D.objet.GameSession",
         "IsRequired": true
       }
     ],

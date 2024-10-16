@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
@@ -21,52 +22,57 @@
         <!-- Partie haute gauche : Code de session, nom de la partie et nom du joueur -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="312dp"
+            android:layout_height="0dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
             <!-- Code de session et bouton copier -->
+
+            <!-- Nom de la partie -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="114dp"
+                android:layout_height="97dp"
                 android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/sessionCode"
-                    android:layout_width="160dp"
-                    android:layout_height="92dp"
+                    android:layout_width="0dp"
+                    android:layout_height="65dp"
                     android:layout_weight="1"
-                    android:text="Code de session : #######"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:text="@string/code_de_session"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp" />
 
                 <Button
                     android:id="@+id/copyButton"
-                    android:layout_width="100dp"
+                    android:layout_width="60dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="0.25"
                     android:background="@drawable/rounded_button"
-                    android:padding="16dp"
-                    android:text="Copier"
+                    android:padding="5dp"
+                    android:layout_marginEnd="15dp"
+                    android:layout_marginTop="15dp"
+                    android:text="@string/copier"
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Nom de la partie -->
-
-            <!-- Nom du joueur -->
             <TextView
                 android:id="@+id/partyName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Nom de la partie : Nom"
-                android:textStyle="bold" />
+                android:text="@string/nom_de_la_partie_nom"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
 
+            <!-- Nom du joueur -->
             <TextView
                 android:id="@+id/playerName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Joueur Hôte" />
+                android:text="@string/nom_joueur_hote"
+                android:textColor="@android:color/black" />
         </LinearLayout>
 
         <!-- Partie basse gauche : Paramètres de la partie -->
@@ -80,43 +86,75 @@
             <!-- Paramètres de la partie -->
             <TextView
                 android:id="@+id/gameParametersTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Paramètres de la partie :"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
                 android:layout_marginTop="12dp"
-                android:textStyle="bold"/>
+                android:text="@string/parametres_de_la_partie"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- Titre du nombre de joueurs -->
+
+            <!-- Nombre de joueurs -->
+            <TextView
+                android:id="@+id/numberOfPlayersTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/nombre_de_joueurs_titre"
+                android:textColor="@android:color/black"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/playerCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autofillHints="2"
+                android:hint="@string/nombre_de_joueurs_hint"
+                android:inputType="number"
+                android:maxLength="2"
+                android:textColor="@android:color/black"
+                android:layout_marginStart="-5dp"
+                android:textSize="13sp" />
 
             <!-- Toggle pour le mode chronométré -->
             <Switch
                 android:id="@+id/timerSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mode chronométré"
-                android:layout_marginTop="8dp"/>
-
-            <!-- Nombre de joueurs -->
-            <EditText
-                android:id="@+id/playerCount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Nombre de joueurs :"
-                android:inputType="number"
-                android:maxLength="2" />
+                android:text="@string/mode_chronometre"
+                android:textColor="@android:color/black"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
 
             <!-- Bouton Prêt ancré en bas -->
-            <Button
-                android:id="@+id/readyButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/rounded_button"
-                android:padding="16dp"
-                android:text="Prêt"
-                android:textColor="@color/button_text"
-                android:textStyle="bold" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/readyButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:layout_marginEnd="15dp"
+            android:background="@drawable/rounded_button"
+            android:padding="5dp"
+
+            android:text="@string/pret"
+            android:textColor="@color/button_text"
+            android:textStyle="bold" />
     </LinearLayout>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:background="@android:color/black"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/leftContainer"
+        app:layout_constraintEnd_toStartOf="@+id/rightContainer" />
 
     <!-- Section droite : Liste des joueurs -->
     <LinearLayout
@@ -131,6 +169,8 @@
         app:layout_constraintStart_toEndOf="@+id/leftContainer">
 
         <!-- Bouton Quitter ancré en haut -->
+
+        <!-- Exemple d'un joueur connecté : Joueur 1 -->
         <Button
             android:id="@+id/exitButton"
             android:layout_width="match_parent"
@@ -139,14 +179,10 @@
             android:background="@drawable/rounded_button"
             android:padding="5dp"
             android:text="@string/quitter_la_partie"
-            android:layout_marginBottom="16dp"/>
-
-        <!-- Espace entre le bouton et la liste des joueurs -->
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="11dp" />
-
-        <!-- Exemple d'un joueur connecté -->
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="15dp"
+            android:textColor="@color/button_text"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -158,18 +194,47 @@
                 android:id="@+id/playerName1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Joueur 1"
-                android:layout_weight="1"/>
+                android:text="@string/joueur_1"
+                android:layout_weight="1"
+                android:layout_marginStart="15dp"
+                android:textColor="@android:color/black" />
+
             <!-- Statut prêt ou pas prêt -->
             <TextView
                 android:id="@+id/playerStatus1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pas prêt"
-                android:textColor="@color/error_color"/>
+                android:text="@string/pas_pret"
+                android:textColor="@color/error_color" />
         </LinearLayout>
 
-        <!-- Autres joueurs... -->
+        <!-- Exemple d'un joueur connecté : Joueur 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <!-- Nom du joueur -->
+            <TextView
+                android:id="@+id/playerName2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/joueur_2"
+                android:layout_weight="1"
+                android:layout_marginStart="15dp"
+                android:textColor="@android:color/black" />
+
+            <!-- Statut prêt en vert -->
+            <TextView
+                android:id="@+id/playerStatus2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/pret"
+                android:textColor="@color/success_color" />
+        </LinearLayout>
+
+        <!-- Autres joueurs à ajouter dynamiquement... -->
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

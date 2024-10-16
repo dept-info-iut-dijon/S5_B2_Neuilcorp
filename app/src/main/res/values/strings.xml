@@ -23,4 +23,6 @@
     <string name="quitter_la_partie">Quitter la partie</string>
     <string name="nombre_de_joueurs_titre">Nombre de joueurs :</string>
     <string name="nombre_de_joueurs_hint">Saisir un nombre entre 2 et 10</string>
+    <string name="choisir_image">Choisir une image</string>
+
 </resources>

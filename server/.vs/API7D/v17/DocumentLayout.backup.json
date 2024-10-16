@@ -3,6 +3,54 @@
   "WorkspaceRootPath": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\objet\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\objet\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\controllers\\gamesessioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\controllers\\gamesessioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\objet\\gamesession.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\objet\\gamesession.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\metier\\sessioncodegenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\metier\\sessioncodegenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\objet\\imagedifferance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\objet\\imagedifferance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\image\\test.png||{58961B49-13E0-48C0-9258-13CBC4D40279}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\image\\test.png||{58961B49-13E0-48C0-9258-13CBC4D40279}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\data\\imagedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\data\\imagedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\metier\\idifferancechecker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\metier\\idifferancechecker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\metier\\iimage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\metier\\iimage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\controllers\\imagecontrolleur.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\controllers\\imagecontrolleur.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\data\\differancecheckerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\data\\differancecheckerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\controllers\\differancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\controllers\\differancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -13,10 +61,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\controllers\\differancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\controllers\\differancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\objet\\coordonnees.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -31,40 +75,12 @@
       "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\metier\\image.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\objet\\imagedifferance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\objet\\imagedifferance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\metier\\iimage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\metier\\iimage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\data\\imagedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\data\\imagedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\data\\iimagedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\data\\iimagedata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\controllers\\gamesessioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\controllers\\gamesessioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\controllers\\imagecontrolleur.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\controllers\\imagecontrolleur.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\data\\idifferancecheckerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\data\\idifferancecheckerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\data\\differancecheckerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\data\\differancecheckerdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\metier\\idifferancechecker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\metier\\idifferancechecker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -74,7 +90,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Bookmark",
@@ -82,33 +98,135 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Program.cs",
-              "RelativeDocumentMoniker": "API7D\\Program.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Program.cs",
-              "RelativeToolTip": "API7D\\Program.cs",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAqwCgAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-14T08:24:11.379Z",
+              "DocumentIndex": 5,
+              "Title": "test.png",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Image\\test.png",
+              "RelativeDocumentMoniker": "API7D\\Image\\test.png",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Image\\test.png",
+              "RelativeToolTip": "API7D\\Image\\test.png",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001533|",
+              "WhenOpened": "2024-10-16T07:03:33.925Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\appsettings.json",
-              "RelativeDocumentMoniker": "API7D\\appsettings.json",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\appsettings.json",
-              "RelativeToolTip": "API7D\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2024-10-10T20:04:05.863Z",
+              "DocumentIndex": 3,
+              "Title": "SessionCodeGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\SessionCodeGenerator.cs",
+              "RelativeDocumentMoniker": "API7D\\Metier\\SessionCodeGenerator.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\SessionCodeGenerator.cs",
+              "RelativeToolTip": "API7D\\Metier\\SessionCodeGenerator.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAxwBkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-16T06:58:47.337Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "GameSession.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\objet\\GameSession.cs",
+              "RelativeDocumentMoniker": "API7D\\objet\\GameSession.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\objet\\GameSession.cs",
+              "RelativeToolTip": "API7D\\objet\\GameSession.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-16T06:54:21.219Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ImageDATA.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\ImageDATA.cs",
+              "RelativeDocumentMoniker": "API7D\\DATA\\ImageDATA.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\ImageDATA.cs",
+              "RelativeToolTip": "API7D\\DATA\\ImageDATA.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAABDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-09T13:21:12.691Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ImageDifferance.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\objet\\ImageDifferance.cs",
+              "RelativeDocumentMoniker": "API7D\\objet\\ImageDifferance.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\objet\\ImageDifferance.cs",
+              "RelativeToolTip": "API7D\\objet\\ImageDifferance.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-10T19:27:01.326Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "GameSessionController.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\GameSessionController.cs",
+              "RelativeDocumentMoniker": "API7D\\Controllers\\GameSessionController.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\GameSessionController.cs",
+              "RelativeToolTip": "API7D\\Controllers\\GameSessionController.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAwBgAAABPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-10T19:23:39.294Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Player.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\objet\\Player.cs",
+              "RelativeDocumentMoniker": "API7D\\objet\\Player.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\objet\\Player.cs",
+              "RelativeToolTip": "API7D\\objet\\Player.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-16T06:52:59.076Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "IDifferanceChecker.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\IDifferanceChecker.cs",
+              "RelativeDocumentMoniker": "API7D\\Metier\\IDifferanceChecker.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\IDifferanceChecker.cs",
+              "RelativeToolTip": "API7D\\Metier\\IDifferanceChecker.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-09T12:48:22.671Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "IImage.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\IImage.cs",
+              "RelativeDocumentMoniker": "API7D\\Metier\\IImage.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\IImage.cs",
+              "RelativeToolTip": "API7D\\Metier\\IImage.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAD4vxcAAABHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-10T19:26:51.447Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "IImageDATA.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\IImageDATA.cs",
+              "RelativeDocumentMoniker": "API7D\\DATA\\IImageDATA.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\IImageDATA.cs",
+              "RelativeToolTip": "API7D\\DATA\\IImageDATA.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAD4vxcAAABDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-09T13:22:05.093Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
               "Title": "launchSettings.json",
               "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Properties\\launchSettings.json",
               "RelativeDocumentMoniker": "API7D\\Properties\\launchSettings.json",
@@ -121,66 +239,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 11,
-              "Title": "GameSessionController.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\GameSessionController.cs",
-              "RelativeDocumentMoniker": "API7D\\Controllers\\GameSessionController.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\GameSessionController.cs",
-              "RelativeToolTip": "API7D\\Controllers\\GameSessionController.cs",
-              "ViewState": "AgIAADoAAAAAAAAAAIAwwD8AAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-10T19:23:39.294Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "IImageDATA.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\IImageDATA.cs",
-              "RelativeDocumentMoniker": "API7D\\DATA\\IImageDATA.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\IImageDATA.cs",
-              "RelativeToolTip": "API7D\\DATA\\IImageDATA.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAAD4vxcAAABDAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-09T13:22:05.093Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "ImageDATA.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\ImageDATA.cs",
-              "RelativeDocumentMoniker": "API7D\\DATA\\ImageDATA.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\ImageDATA.cs",
-              "RelativeToolTip": "API7D\\DATA\\ImageDATA.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAD4vw8AAABDAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-09T13:21:12.691Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "DifferanceChecker.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\DifferanceChecker.cs",
-              "RelativeDocumentMoniker": "API7D\\Metier\\DifferanceChecker.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\DifferanceChecker.cs",
-              "RelativeToolTip": "API7D\\Metier\\DifferanceChecker.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAtwBkAAAA9AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-09T13:21:07.417Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "image.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\image.cs",
-              "RelativeDocumentMoniker": "API7D\\Metier\\image.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\image.cs",
-              "RelativeToolTip": "API7D\\Metier\\image.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwA8AAAAiAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-09T14:01:30.485Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
               "Title": "DifferanceController.cs",
               "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\DifferanceController.cs",
               "RelativeDocumentMoniker": "API7D\\Controllers\\DifferanceController.cs",
@@ -192,7 +250,81 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 10,
+              "Title": "DifferanceCheckerDATA.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\DifferanceCheckerDATA.cs",
+              "RelativeDocumentMoniker": "API7D\\DATA\\DifferanceCheckerDATA.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\DifferanceCheckerDATA.cs",
+              "RelativeToolTip": "API7D\\DATA\\DifferanceCheckerDATA.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-09T12:47:41.539Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ImageControlleur.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\ImageControlleur.cs",
+              "RelativeDocumentMoniker": "API7D\\Controllers\\ImageControlleur.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\ImageControlleur.cs",
+              "RelativeToolTip": "API7D\\Controllers\\ImageControlleur.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-09T13:30:45.553Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Program.cs",
+              "RelativeDocumentMoniker": "API7D\\Program.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Program.cs",
+              "RelativeToolTip": "API7D\\Program.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAACgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-14T08:24:11.379Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\appsettings.json",
+              "RelativeDocumentMoniker": "API7D\\appsettings.json",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\appsettings.json",
+              "RelativeToolTip": "API7D\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-10-10T20:04:05.863Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "DifferanceChecker.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\DifferanceChecker.cs",
+              "RelativeDocumentMoniker": "API7D\\Metier\\DifferanceChecker.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\DifferanceChecker.cs",
+              "RelativeToolTip": "API7D\\Metier\\DifferanceChecker.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAtwBkAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-09T13:21:07.417Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "image.cs",
+              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\image.cs",
+              "RelativeDocumentMoniker": "API7D\\Metier\\image.cs",
+              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\image.cs",
+              "RelativeToolTip": "API7D\\Metier\\image.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwA8AAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-09T14:01:30.485Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
               "Title": "Coordonnees.cs",
               "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\objet\\Coordonnees.cs",
               "RelativeDocumentMoniker": "API7D\\objet\\Coordonnees.cs",
@@ -204,67 +336,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "IImage.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\IImage.cs",
-              "RelativeDocumentMoniker": "API7D\\Metier\\IImage.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\IImage.cs",
-              "RelativeToolTip": "API7D\\Metier\\IImage.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAAD4vxcAAABHAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-10T19:26:51.447Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "ImageDifferance.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\objet\\ImageDifferance.cs",
-              "RelativeDocumentMoniker": "API7D\\objet\\ImageDifferance.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\objet\\ImageDifferance.cs",
-              "RelativeToolTip": "API7D\\objet\\ImageDifferance.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAfAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-10T19:27:01.326Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "ImageControlleur.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\ImageControlleur.cs",
-              "RelativeDocumentMoniker": "API7D\\Controllers\\ImageControlleur.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\ImageControlleur.cs",
-              "RelativeToolTip": "API7D\\Controllers\\ImageControlleur.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-09T13:30:45.553Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "DifferanceCheckerDATA.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\DifferanceCheckerDATA.cs",
-              "RelativeDocumentMoniker": "API7D\\DATA\\DifferanceCheckerDATA.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\DifferanceCheckerDATA.cs",
-              "RelativeToolTip": "API7D\\DATA\\DifferanceCheckerDATA.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAYAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-09T12:47:41.539Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 15,
-              "Title": "IDifferanceChecker.cs",
-              "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\IDifferanceChecker.cs",
-              "RelativeDocumentMoniker": "API7D\\Metier\\IDifferanceChecker.cs",
-              "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Metier\\IDifferanceChecker.cs",
-              "RelativeToolTip": "API7D\\Metier\\IDifferanceChecker.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAyAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-09T12:48:22.671Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 19,
               "Title": "IDifferanceCheckerDATA.cs",
               "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\DATA\\IDifferanceCheckerDATA.cs",
               "RelativeDocumentMoniker": "API7D\\DATA\\IDifferanceCheckerDATA.cs",

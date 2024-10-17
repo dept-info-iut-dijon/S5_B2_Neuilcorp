@@ -10,17 +10,31 @@ namespace API7D.Controllers
     [Route("[controller]")]
     public class ImageControlleur : ControllerBase
     {
-        IImage image = new image();
-        [HttpGet("{id}")]
-        public ActionResult<ImageDifference> GetImage(int id)
+        private readonly string _imageFolderPath;
+
+        public ImageControlleur()
         {
-            // a modif avec la BDD que j ai pas faite encore
-            byte[] image = this.image.GetImages(id);
-            if (image == null)
+            // Spécifie le chemin vers le dossier contenant les images
+            _imageFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Image");
+        }
+
+        [HttpGet("{id}")]
+        [Produces("application/octet-stream")]
+        public ActionResult<byte[]> GetImage(int id)
+        {
+            // Construit le nom de fichier basé sur l'ID
+            string fileName = $"{id}.png"; 
+            string filePath = Path.Combine(_imageFolderPath, fileName);
+
+            // Vérifie si le fichier existe
+            if (!System.IO.File.Exists(filePath))
             {
-                return NotFound();
+                return NotFound(); 
             }
-            return Ok(image);
+
+            // Lis le fichier et le convertit en tableau de bytes
+            byte[] imageBytes = System.IO.File.ReadAllBytes(filePath);
+            return File(imageBytes, "application/octet-stream");
         }
     }
 }

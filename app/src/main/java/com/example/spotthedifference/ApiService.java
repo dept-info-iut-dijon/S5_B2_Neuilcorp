@@ -14,6 +14,18 @@ public interface ApiService {
     @POST("api/Differance/check") // Chemin de l'endpoint du controleur
     Call<Boolean> sendCoordinates(@Body Coordonnees coordonnees);
 
-    @GET("api/ImageController/{id}")
-    Call<byte[]> getImage(@Path("id") int imageId);
+    @GET("ImageControlleur/{id}")
+    Call<ResponseBody> getImage(@Path("id") int imageId);
+
+    @POST("api/GameSession/CreateSession")
+    Call<GameSession> createSession(@Body GameSession gameSession);
+
+    @POST("api/GameSession/{sessionId}/join")
+    Call<Void> joinSession(@Path("sessionId") String sessionId, @Body Player player);
+
+    @GET("api/GameSession/all")
+    Call<List<GameSession>> getAllSessions();
+
+    @GET("api/GameSession/{sessionId}")
+    Call<GameSession> getSessionById(@Path("sessionId") String sessionId);
 }

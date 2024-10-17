@@ -18,7 +18,12 @@ namespace API7D.DATA
             list.Add(x);
             x = new Coordonnees(503, 656);
             list.Add(x);
-
+            x = new Coordonnees(527, 492);
+            list.Add(x);
+            x = new Coordonnees(423, 765);
+            list.Add(x);
+            x = new Coordonnees(339, 557);
+            list.Add(x);
             return list;
 
         }

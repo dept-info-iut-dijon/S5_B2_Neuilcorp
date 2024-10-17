@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import java.util.ArrayList;
@@ -203,6 +204,28 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call<Boolean> call, Throwable t) {
                 waitingDialog.dismiss();
                 Toast.makeText(MainActivity.this, "Erreur : " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void createGameSession(Player hostPlayer) {
+        GameSession newSession = new GameSession(Collections.singletonList(hostPlayer));
+
+        Call<GameSession> call = apiService.createSession(newSession);
+        call.enqueue(new Callback<GameSession>() {
+            @Override
+            public void onResponse(Call<GameSession> call, Response<GameSession> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    GameSession createdSession = response.body();
+                    Toast.makeText(MainActivity.this, "Session créée : " + createdSession.SessionId, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Erreur lors de la création de la session.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GameSession> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Erreur réseau : " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

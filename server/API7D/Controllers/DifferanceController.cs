@@ -12,7 +12,11 @@ namespace API7D.Controllers
             // Instance de DifferenceChecker avec la liste des différences
             private IDifferanceChecker checker;
 
-            public DifferanceController()
+        public DifferanceController(IDifferanceChecker checker)
+        {
+            this.checker = checker;
+        }
+        public DifferanceController()
             {
            
                 checker = new DifferanceChecker();

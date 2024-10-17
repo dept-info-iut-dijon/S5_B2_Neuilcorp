@@ -2,9 +2,11 @@
     <string name="app_name">SpotTheDifference</string>
     <string name="valider_la_difference">Valider la différence</string>
     <string name="copier">Copier</string>
-    <string name="code_de_session">Code de session : #######</string>
-    <string name="nom_de_la_partie_nom">Nom de la partie : Nom de partie</string>
-    <string name="nom_joueur_hote">Nom du joueur Hôte : nom du joueur Hote</string>
+    <string name="code_de_session">Code de session : </string>
+    <string name="nom_de_la_partie_nom">Partie de : </string>
+    <string name="error_no_session_id">Error: No session ID</string>
+    <string name="error_no_party_name">Error: No party name</string>
+    <string name="nom_joueur_hote">Nom du joueur Hôte : </string>
     <string name="parametres_de_la_partie"><u>Paramètres de la partie :</u></string>
     <string name="mode_chronometre">Mode chronométré</string>
     <string name="nombre_de_joueurs">Nombre de joueurs :</string>

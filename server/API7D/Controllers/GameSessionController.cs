@@ -1,4 +1,5 @@
-﻿using API7D.objet;
+﻿using API7D.Metier;
+using API7D.objet;
 using Microsoft.AspNetCore.Mvc;
 using System.Numerics;
 
@@ -7,42 +8,80 @@ using System.Numerics;
 public class GameSessionController : ControllerBase
 {
     private static List<GameSession> _sessions = new List<GameSession>();
+    private SessionCodeGenerator _CodeGenerator = new SessionCodeGenerator();
 
     // Crée une nouvelle session avec une liste de joueurs
-    [HttpPost("create")]
-    public ActionResult<GameSession> CreateSession([FromBody] List<Player> players)
+    [HttpPost("CreateSession")]
+    public ActionResult<GameSession> CreateSession([FromBody] GameSession gameSession)
     {
-        var session = new GameSession
+        if (gameSession == null || gameSession.Players == null || gameSession.Players.Count == 0)
         {
-            SessionId = Guid.NewGuid().ToString(),
-            Players = players,
-            PlayerImages = new List<ImageDifference>(), // Tu pourrais initialiser avec des images
-            GameCompleted = false
-        };
+            return BadRequest("Les données de session ou les informations sur l'hôte sont invalides.");
+        }
 
-        _sessions.Add(session);
-        return Ok(session);
+        // Génération d'un code de session unique
+
+        // Affecter le code de session
+        gameSession.SessionId = _CodeGenerator.GenerateUniqueCode().ToString();
+
+        // S'assurer que la liste des joueurs ne contient que l'hôte au début
+        Player host = gameSession.Players[0];
+        gameSession.Players = new List<Player> { host };
+
+        // Le jeu n'est pas terminé à la création
+        gameSession.GameCompleted = false;
+
+        // Timer de jeu (true ou false, mais ne fait rien pour l'instant)
+        gameSession.GameTimer = false;
+        _sessions.Add(gameSession);
+
+        // Retourner la session de jeu créée
+        return Ok(gameSession);
     }
+
 
     // Permet à un joueur de rejoindre une session en cours
     [HttpPost("{sessionId}/join")]
     public ActionResult JoinSession(string sessionId, [FromBody] Player player)
     {
-        var session = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
-        if (session == null)
+        // Vérifier si le joueur est bien passé en paramètre
+        if (player == null || string.IsNullOrEmpty(player.PlayerId))
         {
-            return NotFound("Session introuvable.");
+            return BadRequest("Informations du joueur invalides.");
         }
 
-        // Vérifie si le joueur est déjà dans la session
-        if (session.Players.Any(p => p.PlayerId == player.PlayerId))
+        // Chercher la session de jeu correspondante à l'ID
+        GameSession existingSession = FindSessionById(sessionId);
+        if (existingSession == null)
+        {
+            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+        }
+
+        // Vérifier si le joueur est déjà dans la session
+        bool playerAlreadyInSession = existingSession.Players.Any(p => p.PlayerId == player.PlayerId);
+        if (playerAlreadyInSession)
         {
             return BadRequest("Le joueur est déjà dans la session.");
         }
 
-        session.Players.Add(player);
-        return Ok($"Joueur {player.Name} ajouté à la session.");
+        // Ajouter le joueur à la session
+        existingSession.Players.Add(player);
+
+        // Retourner un message de succès
+        return Ok($"Le joueur {player.Name} a rejoint la session {sessionId}.");
     }
+
+    // Méthode fict ive pour retrouver la session de jeu par son ID
+    private GameSession FindSessionById(string sessionId)
+    {
+        var gameSession = _sessions.FirstOrDefault(p => p.SessionId == sessionId);
+        if (gameSession == null)
+        {
+            throw new Exception("session does not exist");
+        }
+        return gameSession;
+    }
+
 
     // Récupère toutes les sessions en cours
     [HttpGet("all")]
@@ -50,16 +89,20 @@ public class GameSessionController : ControllerBase
     {
         return Ok(_sessions);
     }
-
-    // Récupère une session spécifique par son ID
+    // Récupère une session de jeu par son ID
     [HttpGet("{sessionId}")]
-    public ActionResult<GameSession> GetSession(string sessionId)
+    public ActionResult<GameSession> GetSessionById(string sessionId)
     {
-        var session = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
-        if (session == null)
+        // Chercher la session de jeu correspondante à l'ID
+        GameSession existingSession = FindSessionById(sessionId);
+
+        if (existingSession == null)
         {
-            return NotFound();
+            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
         }
-        return Ok(session);
+
+        // Retourner la session de jeu trouvée
+        return Ok(existingSession);
     }
+
 }

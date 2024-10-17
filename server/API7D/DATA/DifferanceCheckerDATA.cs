@@ -22,7 +22,7 @@ namespace API7D.DATA
             list.Add(x);
             x = new Coordonnees(423, 765);
             list.Add(x);
-            x = new Coordonnees(339, 557);
+            x = new Coordonnees(338, 870);
             list.Add(x);
             return list;
 

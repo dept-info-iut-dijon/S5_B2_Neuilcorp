@@ -1,3 +1,4 @@
+// WaitingRoomActivity.java
 package com.example.spotthedifference;
 
 import android.content.Intent;
@@ -39,7 +40,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
 
         String sessionId = getIntent().getStringExtra("sessionId");
         String playerName = getIntent().getStringExtra("playerName");
-        String partyName = getIntent().getStringExtra("partyName");
+        String hostName = getIntent().getStringExtra("hostName");
 
         if (sessionId != null) {
             String fullText = getString(R.string.code_de_session) + " " + sessionId;
@@ -48,22 +49,21 @@ public class WaitingRoomActivity extends AppCompatActivity {
             sessionCodeTextView.setText(R.string.error_no_session_id);
         }
 
-        if (partyName != null) {
-            String fullTextParty = getString(R.string.nom_de_la_partie_nom) + " " + partyName;
-            partyNameTextView.setText(fullTextParty);
+        if (hostName != null) {
+            String fullTextHost = getString(R.string.nom_joueur_hote) + " " + hostName;
+            playerNameTextView.setText(fullTextHost);
         } else {
-            partyNameTextView.setText(R.string.error_no_party_name);
+            playerNameTextView.setText(R.string.error_no_host_name);
         }
 
         if (playerName != null) {
-            String fullTextPlayer = getString(R.string.nom_joueur_hote) + " " + playerName;
-            playerNameTextView.setText(fullTextPlayer);
+            String fullTextName = getString(R.string.nom_du_joueur) + " " + playerName;
+            playerNameTextView.setText(fullTextName);
         } else {
-            playerNameTextView.setText(R.string.error_no_player_name);
+            playerNameTextView.setText(R.string.error_no_host_name);
         }
 
-        loadPlayers(sessionId);
-        initializeSignalR(sessionId);
+        loadSessionDetails(sessionId);
 
         Button exitButton = findViewById(R.id.exitButton);
         Button readyButton = findViewById(R.id.readyButton);
@@ -85,15 +85,23 @@ public class WaitingRoomActivity extends AppCompatActivity {
         });
     }
 
-    private void loadPlayers(String sessionId) {
+    private void loadSessionDetails(String sessionId) {
         apiService.getSessionById(sessionId).enqueue(new Callback<GameSession>() {
             @Override
             public void onResponse(Call<GameSession> call, Response<GameSession> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Player> players = response.body().getPlayers();
+                    GameSession session = response.body();
+                    List<Player> players = session.getPlayers();
                     displayPlayers(players);
+
+                    // Set the party name and host name
+                    if (!players.isEmpty()) {
+                        String hostName = players.get(0).getName();
+                        String fullTextParty = getString(R.string.nom_de_la_partie_nom) + " " + hostName;
+                        partyNameTextView.setText(fullTextParty);
+                    }
                 } else {
-                    Log.e("WaitingRoom", "Erreur lors de la récupération des joueurs : " + response.code());
+                    Log.e("WaitingRoom", "Erreur lors de la récupération des détails de la session : " + response.code());
                 }
             }
 
@@ -120,7 +128,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 Log.d("WaitingRoom", "Player joined: " + playerName);
                 // Update the UI when a new player joins
-                loadPlayers(sessionId);
+                loadSessionDetails(sessionId);
             });
         }, String.class);
         signalRClient.start();

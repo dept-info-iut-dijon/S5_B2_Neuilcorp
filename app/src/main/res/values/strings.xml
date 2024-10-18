@@ -4,7 +4,7 @@
     <string name="copier">Copier</string>
     <string name="code_de_session">Code de session : </string>
     <string name="nom_de_la_partie_nom">Partie de : </string>
-    <string name="nom_du_joueur">Nom du joueur :</string>
+    <string name="nom_du_joueur">Votre nom :</string>
     <string name="error_no_session_id">Error: No session ID</string>
     <string name="error_no_party_name">Error: No party name</string>
     <string name="error_no_player_name">Error: No player name</string>

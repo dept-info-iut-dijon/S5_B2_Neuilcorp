@@ -1,3 +1,4 @@
+// JoinSessionActivity.java
 package com.example.spotthedifference;
 
 import android.content.Intent;

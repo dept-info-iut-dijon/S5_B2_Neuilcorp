@@ -19,9 +19,9 @@
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="1024px"
-            android:layout_height="1024px"
+            android:layout_height="1650px"
             android:contentDescription="@string/app_name"
-            android:scaleType="fitCenter"/>
+            android:scaleType="fitCenter" />
             <!--android:src="@drawable/test" /> -->
     </FrameLayout>
 
@@ -30,14 +30,14 @@
         android:id="@+id/validateButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="100dp"
-        android:background="@drawable/rounded_button"
+        android:layout_marginStart="85dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/rounded_button_valider"
         android:padding="16dp"
         android:text="@string/valider_la_difference"
         android:textColor="@color/button_text"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Bouton Quitter la partie -->
@@ -45,16 +45,14 @@
         android:id="@+id/exitButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="234dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/rounded_button"
+        android:layout_marginEnd="85dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/rounded_button_quitter"
         android:padding="16dp"
-        android:text="Quitter la partie"
+        android:text="@string/quitter_la_partie"
         android:textColor="@color/button_text"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,12 +1,16 @@
-// WaitingRoomActivity.java
 package com.example.spotthedifference;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.List;
 import retrofit2.Call;
@@ -23,6 +27,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
     private TextView playerName2TextView;
     private ApiService apiService;
     private SignalRClient signalRClient;
+    private String sessionId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +43,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
         Retrofit retrofit = RetrofitClient.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
 
-        String sessionId = getIntent().getStringExtra("sessionId");
+        sessionId = getIntent().getStringExtra("sessionId");
         String playerName = getIntent().getStringExtra("playerName");
         String hostName = getIntent().getStringExtra("hostName");
 
@@ -67,12 +72,12 @@ public class WaitingRoomActivity extends AppCompatActivity {
 
         Button exitButton = findViewById(R.id.exitButton);
         Button readyButton = findViewById(R.id.readyButton);
+        Button copyButton = findViewById(R.id.copyButton);
 
         exitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(WaitingRoomActivity.this, HomeActivity.class);
-                startActivity(intent);
+                deleteSessionAndExit();
             }
         });
 
@@ -81,6 +86,13 @@ public class WaitingRoomActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        copyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                copyToClipboard(sessionId);
             }
         });
     }
@@ -94,7 +106,6 @@ public class WaitingRoomActivity extends AppCompatActivity {
                     List<Player> players = session.getPlayers();
                     displayPlayers(players);
 
-                    // Set the party name and host name
                     if (!players.isEmpty()) {
                         String hostName = players.get(0).getName();
                         String fullTextParty = getString(R.string.nom_de_la_partie_nom) + " " + hostName;
@@ -119,7 +130,6 @@ public class WaitingRoomActivity extends AppCompatActivity {
         if (players.size() > 1) {
             playerName2TextView.setText(players.get(1).getName());
         }
-        // Add more TextViews or handle more players as needed
     }
 
     private void initializeSignalR(String sessionId) {
@@ -127,11 +137,39 @@ public class WaitingRoomActivity extends AppCompatActivity {
         signalRClient.getHubConnection().on("PlayerJoined", (playerName) -> {
             runOnUiThread(() -> {
                 Log.d("WaitingRoom", "Player joined: " + playerName);
-                // Update the UI when a new player joins
                 loadSessionDetails(sessionId);
             });
         }, String.class);
         signalRClient.start();
+    }
+
+    private void copyToClipboard(String text) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("Session ID", text);
+        clipboard.setPrimaryClip(clip);
+        Toast.makeText(this, "Code de session copié dans le presse-papier", Toast.LENGTH_SHORT).show();
+    }
+
+    private void deleteSessionAndExit() {
+        apiService.destructiondeSession(sessionId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.d("WaitingRoom", "Session deleted successfully");
+                    Intent intent = new Intent(WaitingRoomActivity.this, HomeActivity.class);
+                    startActivity(intent);
+                } else {
+                    Log.e("WaitingRoom", "Error deleting session: " + response.code() + " " + response.message());
+                    Toast.makeText(WaitingRoomActivity.this, "Erreur lors de la suppression de la session", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("WaitingRoom", "Request failed: " + t.getMessage());
+                Toast.makeText(WaitingRoomActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

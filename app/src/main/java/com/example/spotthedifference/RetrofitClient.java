@@ -43,7 +43,7 @@ public class RetrofitClient {
             OkHttpClient client = clientBuilder.build();
 
             return new Retrofit.Builder()
-                    .baseUrl("https://10.0.2.2:7176/") // URL avec HTTPS
+                    .baseUrl("https://203.55.81.18:7176/") // URL avec HTTPS
                     .client(client) // Utilise le client OkHttp personnalisé
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();

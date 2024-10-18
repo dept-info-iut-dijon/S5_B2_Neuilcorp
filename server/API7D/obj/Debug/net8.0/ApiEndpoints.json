@@ -17,7 +17,7 @@
   },
   {
     "ContainingType": "GameSessionController",
-    "Method": "GetSessionById",
+    "Method": "GetSession",
     "RelativePath": "api/GameSession/{sessionId}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -40,22 +40,6 @@
         "StatusCode": 200
       }
     ]
-  },
-  {
-    "ContainingType": "GameSessionController",
-    "Method": "destructiondeSession",
-    "RelativePath": "api/GameSession/{sessionId}",
-    "HttpMethod": "DELETE",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "sessionId",
-        "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
   },
   {
     "ContainingType": "GameSessionController",
@@ -101,14 +85,14 @@
   {
     "ContainingType": "GameSessionController",
     "Method": "CreateSession",
-    "RelativePath": "api/GameSession/CreateSession",
+    "RelativePath": "api/GameSession/create",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "gameSession",
-        "Type": "API7D.objet.GameSession",
+        "Name": "players",
+        "Type": "System.Collections.Generic.List\u00601[[API7D.objet.Player, API7D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "IsRequired": true
       }
     ],
@@ -140,9 +124,11 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Byte[]",
+        "Type": "API7D.objet.ImageDifference",
         "MediaTypes": [
-          "application/octet-stream"
+          "text/plain",
+          "application/json",
+          "text/json"
         ],
         "StatusCode": 200
       }

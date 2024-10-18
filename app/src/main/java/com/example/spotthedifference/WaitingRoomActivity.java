@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -26,8 +27,13 @@ public class WaitingRoomActivity extends AppCompatActivity {
     private TextView playerName1TextView;
     private TextView playerName2TextView;
     private ApiService apiService;
-    private SignalRClient signalRClient;
     private String sessionId;
+    private String playerName;
+    private String hostName;
+
+    // Handler and Runnable for periodic player refresh
+    private Handler handler = new Handler();
+    private Runnable refreshPlayerListRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +50,8 @@ public class WaitingRoomActivity extends AppCompatActivity {
         apiService = retrofit.create(ApiService.class);
 
         sessionId = getIntent().getStringExtra("sessionId");
-        String playerName = getIntent().getStringExtra("playerName");
-        String hostName = getIntent().getStringExtra("hostName");
+        playerName = getIntent().getStringExtra("playerName");
+        hostName = getIntent().getStringExtra("hostName");
 
         if (sessionId != null) {
             String fullText = getString(R.string.code_de_session) + " " + sessionId;
@@ -84,8 +90,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
         readyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
-                startActivity(intent);
+                addPlayerToSession(playerName);
             }
         });
 
@@ -95,6 +100,30 @@ public class WaitingRoomActivity extends AppCompatActivity {
                 copyToClipboard(sessionId);
             }
         });
+
+        // Periodic task to refresh player list every 5 seconds
+        startPeriodicPlayerListRefresh();
+    }
+
+    private void startPeriodicPlayerListRefresh() {
+        // Runnable that refreshes the player list periodically
+        refreshPlayerListRunnable = new Runnable() {
+            @Override
+            public void run() {
+                loadSessionDetails(sessionId);
+                // Re-run the task after 5 seconds
+                handler.postDelayed(this, 5000);  // 5000 ms = 5 seconds
+            }
+        };
+        // Start the periodic task
+        handler.post(refreshPlayerListRunnable);
+    }
+
+    private void stopPeriodicPlayerListRefresh() {
+        // Remove the pending refresh task when the activity is destroyed
+        if (refreshPlayerListRunnable != null) {
+            handler.removeCallbacks(refreshPlayerListRunnable);
+        }
     }
 
     private void loadSessionDetails(String sessionId) {
@@ -132,15 +161,27 @@ public class WaitingRoomActivity extends AppCompatActivity {
         }
     }
 
-    private void initializeSignalR(String sessionId) {
-        signalRClient = new SignalRClient("https://10.0.2.2:7176/gamehub");
-        signalRClient.getHubConnection().on("PlayerJoined", (playerName) -> {
-            runOnUiThread(() -> {
-                Log.d("WaitingRoom", "Player joined: " + playerName);
-                loadSessionDetails(sessionId);
-            });
-        }, String.class);
-        signalRClient.start();
+    private void addPlayerToSession(String playerName) {
+        Player player = new Player(java.util.UUID.randomUUID().toString(), playerName); // ID généré ici
+
+        apiService.joinSession(sessionId, player).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.d("WaitingRoom", "Player added to session successfully");
+                    loadSessionDetails(sessionId);
+                } else {
+                    Log.e("WaitingRoom", "Failed to add player to session: " + response.code());
+                    Toast.makeText(WaitingRoomActivity.this, "Erreur lors de l'ajout du joueur", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("WaitingRoom", "Request failed: " + t.getMessage());
+                Toast.makeText(WaitingRoomActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void copyToClipboard(String text) {
@@ -175,8 +216,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (signalRClient != null) {
-            signalRClient.stop();
-        }
+        // Stop the periodic refresh when the activity is destroyed
+        stopPeriodicPlayerListRefresh();
     }
 }

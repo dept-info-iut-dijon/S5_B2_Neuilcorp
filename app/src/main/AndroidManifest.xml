@@ -30,6 +30,8 @@
             android:theme="@style/Theme.SpotTheDifference" />
         <activity
             android:name=".WaitingRoomActivity" />
+        <activity
+            android:name=".JoinSessionActivity" />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

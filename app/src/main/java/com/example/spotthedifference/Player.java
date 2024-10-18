@@ -6,7 +6,7 @@ public class Player {
 
     // Constructeur
     public Player(String playerId, String name) {
-        this.playerId = playerId;
+        this.playerId = java.util.UUID.randomUUID().toString();
         this.name = name;
     }
 

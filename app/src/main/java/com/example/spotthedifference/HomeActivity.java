@@ -50,7 +50,7 @@ public class HomeActivity extends AppCompatActivity {
         joinGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, WaitingRoomActivity.class);
+                Intent intent = new Intent(HomeActivity.this, JoinSessionActivity.class);
                 startActivity(intent);
             }
         });
@@ -108,6 +108,7 @@ public class HomeActivity extends AppCompatActivity {
                     Intent intent = new Intent(HomeActivity.this, WaitingRoomActivity.class);
                     intent.putExtra("sessionId", response.body().getSessionId());
                     intent.putExtra("playerName", hostPlayer.getName());
+                    intent.putExtra("partyName", hostPlayer.getName()); // Passez le nom du joueur comme nom de la partie
                     startActivity(intent);
                 } else {
                     Log.e("API Error", "Code: " + response.code() + ", Message: " + response.message());

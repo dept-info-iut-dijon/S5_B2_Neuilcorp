@@ -135,4 +135,15 @@ public class GameSessionController : ControllerBase
         return Ok("session destroyed");
     }
 
+    [HttpGet]
+    public ActionResult getAllPlayerFromSession(string sessionId)
+    {
+        var gameSession = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
+        if (gameSession == null)
+        {
+            return BadRequest();
+        }
+        return Ok(gameSession.Players);
+    }
+
 }

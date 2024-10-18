@@ -7,13 +7,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,14 +27,13 @@ public class WaitingRoomActivity extends AppCompatActivity {
     private TextView sessionCodeTextView;
     private TextView partyNameTextView;
     private TextView playerNameTextView;
-    private TextView playerName1TextView;
-    private TextView playerName2TextView;
+    private LinearLayout playersContainer;
     private ApiService apiService;
     private String sessionId;
     private String playerName;
     private String hostName;
-
-    // Handler and Runnable for periodic player refresh
+    private String playerId;
+    private boolean isReady = false;
     private Handler handler = new Handler();
     private Runnable refreshPlayerListRunnable;
 
@@ -43,8 +45,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
         sessionCodeTextView = findViewById(R.id.sessionCode);
         partyNameTextView = findViewById(R.id.partyName);
         playerNameTextView = findViewById(R.id.playerName);
-        playerName1TextView = findViewById(R.id.playerName1);
-        playerName2TextView = findViewById(R.id.playerName2);
+        playersContainer = findViewById(R.id.playersContainer);
 
         Retrofit retrofit = RetrofitClient.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
@@ -52,6 +53,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
         sessionId = getIntent().getStringExtra("sessionId");
         playerName = getIntent().getStringExtra("playerName");
         hostName = getIntent().getStringExtra("hostName");
+        playerId = getIntent().getStringExtra("playerId");
 
         if (sessionId != null) {
             String fullText = getString(R.string.code_de_session) + " " + sessionId;
@@ -90,7 +92,9 @@ public class WaitingRoomActivity extends AppCompatActivity {
         readyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addPlayerToSession(playerName);
+                isReady = !isReady;
+                Log.d("WaitingRoom", "Ready button clicked, new state: " + isReady);
+                updatePlayerReadyStatus(playerId, playerName, isReady);
             }
         });
 
@@ -101,28 +105,46 @@ public class WaitingRoomActivity extends AppCompatActivity {
             }
         });
 
-        // Periodic task to refresh player list every 5 seconds
         startPeriodicPlayerListRefresh();
     }
 
-    private void startPeriodicPlayerListRefresh() {
-        // Runnable that refreshes the player list periodically
-        refreshPlayerListRunnable = new Runnable() {
+    private void updatePlayerReadyStatus(String playerId, String playerName, boolean isReady) {
+        Log.d("WaitingRoom", "Sending ready status: " + isReady + " for playerId: " + playerId);
+        Player player = new Player(playerId, playerName);
+        player.setReady(isReady);
+
+        apiService.setPlayerReadyStatus(sessionId, playerId, player).enqueue(new Callback<Void>() {
             @Override
-            public void run() {
-                loadSessionDetails(sessionId);
-                // Re-run the task after 5 seconds
-                handler.postDelayed(this, 5000);  // 5000 ms = 5 seconds
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.d("WaitingRoom", "Statut de préparation mis à jour avec succès");
+                    loadSessionDetails(sessionId);
+                } else {
+                    Log.e("WaitingRoom", "Erreur lors de la mise à jour du statut : " + response.code());
+                    Log.e("WaitingRoom", "Message: " + response.message());
+                }
             }
-        };
-        // Start the periodic task
-        handler.post(refreshPlayerListRunnable);
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("WaitingRoom", "Échec de la requête : " + t.getMessage());
+            }
+        });
     }
 
-    private void stopPeriodicPlayerListRefresh() {
-        // Remove the pending refresh task when the activity is destroyed
-        if (refreshPlayerListRunnable != null) {
-            handler.removeCallbacks(refreshPlayerListRunnable);
+
+    private void updatePlayerStatusUI(Player player) {
+        for (int i = 0; i < playersContainer.getChildCount(); i++) {
+            View playerView = playersContainer.getChildAt(i);
+            TextView playerNameView = playerView.findViewById(R.id.playerName);
+            TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
+
+            if (playerNameView.getText().toString().equals(player.getName())) {
+                playerStatusView.setText(player.isReady() ? "Prêt" : "Pas prêt");
+                playerStatusView.setTextColor(player.isReady() ?
+                        getResources().getColor(R.color.success_color) :
+                        getResources().getColor(R.color.error_color));
+            }
         }
     }
 
@@ -153,35 +175,21 @@ public class WaitingRoomActivity extends AppCompatActivity {
     }
 
     private void displayPlayers(List<Player> players) {
-        if (players.size() > 0) {
-            playerName1TextView.setText(players.get(0).getName());
+        playersContainer.removeAllViews();
+
+        for (Player player : players) {
+            View playerView = LayoutInflater.from(this).inflate(R.layout.player_item, playersContainer, false);
+            TextView playerNameView = playerView.findViewById(R.id.playerName);
+            TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
+
+            playerNameView.setText(player.getName());
+            playerStatusView.setText(player.isReady() ? "Prêt" : "Pas prêt");
+            playerStatusView.setTextColor(player.isReady() ?
+                    getResources().getColor(R.color.success_color) :
+                    getResources().getColor(R.color.error_color));
+
+            playersContainer.addView(playerView);
         }
-        if (players.size() > 1) {
-            playerName2TextView.setText(players.get(1).getName());
-        }
-    }
-
-    private void addPlayerToSession(String playerName) {
-        Player player = new Player(java.util.UUID.randomUUID().toString(), playerName); // ID généré ici
-
-        apiService.joinSession(sessionId, player).enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    Log.d("WaitingRoom", "Player added to session successfully");
-                    loadSessionDetails(sessionId);
-                } else {
-                    Log.e("WaitingRoom", "Failed to add player to session: " + response.code());
-                    Toast.makeText(WaitingRoomActivity.this, "Erreur lors de l'ajout du joueur", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Log.e("WaitingRoom", "Request failed: " + t.getMessage());
-                Toast.makeText(WaitingRoomActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void copyToClipboard(String text) {
@@ -216,7 +224,23 @@ public class WaitingRoomActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Stop the periodic refresh when the activity is destroyed
         stopPeriodicPlayerListRefresh();
+    }
+
+    private void startPeriodicPlayerListRefresh() {
+        refreshPlayerListRunnable = new Runnable() {
+            @Override
+            public void run() {
+                loadSessionDetails(sessionId);
+                handler.postDelayed(this, 5000);
+            }
+        };
+        handler.post(refreshPlayerListRunnable);
+    }
+
+    private void stopPeriodicPlayerListRefresh() {
+        if (refreshPlayerListRunnable != null) {
+            handler.removeCallbacks(refreshPlayerListRunnable);
+        }
     }
 }

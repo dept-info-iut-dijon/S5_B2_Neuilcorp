@@ -80,6 +80,58 @@
   },
   {
     "ContainingType": "GameSessionController",
+    "Method": "SetPlayerReadyStatus",
+    "RelativePath": "api/GameSession/{sessionId}/player/{playerId}/ready",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sessionId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "playerId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "isReady",
+        "Type": "System.Boolean",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameSessionController",
+    "Method": "GetAllPlayersFromSession",
+    "RelativePath": "api/GameSession/{sessionId}/players",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sessionId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[API7D.objet.Player, API7D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "GameSessionController",
     "Method": "GetAllSessions",
     "RelativePath": "api/GameSession/all",
     "HttpMethod": "GET",

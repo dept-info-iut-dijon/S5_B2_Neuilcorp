@@ -32,4 +32,7 @@ public interface ApiService {
 
     @DELETE("api/GameSession/{sessionId}")
     Call<Void> destructiondeSession(@Path("sessionId") String sessionId);
+
+    @POST("api/GameSession/{sessionId}/player/{playerId}/ready")
+    Call<Void> setPlayerReadyStatus(@Path("sessionId") String sessionId, @Path("playerId") String playerId, @Body Player player);
 }

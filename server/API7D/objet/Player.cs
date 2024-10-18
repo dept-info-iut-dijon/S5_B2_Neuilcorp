@@ -4,6 +4,7 @@
     {
         public string PlayerId { get; set; } // Identifiant unique du joueur
         public string Name { get; set; } // Nom du joueur
+        public bool IsReady { get; set; } // Statut prêt/pas prêt
 
         // Constructeur sans paramètre requis pour la désérialisation JSON
         public Player() { }
@@ -13,6 +14,7 @@
         {
             PlayerId = playerId;
             Name = name;
+            IsReady = false;
         }
     }
 }

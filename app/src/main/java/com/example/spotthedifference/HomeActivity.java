@@ -127,6 +127,8 @@ public class HomeActivity extends AppCompatActivity {
 
     private void createGameSession(String playerName) {
         Player hostPlayer = new Player(playerName, playerName);
+        String playerId = UUID.randomUUID().toString();
+        Player hostPlayer = new Player(playerId, playerName);
         List<Player> players = new ArrayList<>();
         players.add(hostPlayer);
 
@@ -141,6 +143,7 @@ public class HomeActivity extends AppCompatActivity {
                     Intent intent = new Intent(HomeActivity.this, WaitingRoomActivity.class);
                     intent.putExtra("sessionId", response.body().getSessionId());
                     intent.putExtra("playerName", hostPlayer.getName());
+                    intent.putExtra("playerId", hostPlayer.getPlayerId());
                     intent.putExtra("partyName", hostPlayer.getName());
                     startActivity(intent);
                 } else {
@@ -173,6 +176,7 @@ public class HomeActivity extends AppCompatActivity {
                                 Intent intent = new Intent(HomeActivity.this, WaitingRoomActivity.class);
                                 intent.putExtra("sessionId", sessionId);
                                 intent.putExtra("playerName", playerName);
+                                intent.putExtra("playerId", playerId);
                                 intent.putExtra("hostName", hostName);
                                 startActivity(intent);
                             } else {

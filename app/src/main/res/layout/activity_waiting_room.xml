@@ -192,53 +192,18 @@
             android:textStyle="bold" />
 
         <!-- Liste des joueurs connectés -->
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <TextView
-                android:id="@+id/playerName1"
-                android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="8dp">
+            <LinearLayout
+                android:id="@+id/playersContainer"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/joueur_1"
-                android:layout_weight="1"
-                android:layout_marginStart="15dp"
-                android:textColor="@android:color/black" />
+                android:orientation="vertical"/>
+        </ScrollView>
 
-            <TextView
-                android:id="@+id/playerStatus1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/pas_pret"
-                android:textColor="@color/error_color" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <TextView
-                android:id="@+id/playerName2"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="@string/joueur_2"
-                android:layout_weight="1"
-                android:layout_marginStart="15dp"
-                android:textColor="@android:color/black" />
-
-            <TextView
-                android:id="@+id/playerStatus2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/pret"
-                android:textColor="@color/success_color" />
-        </LinearLayout>
-
-        <!-- Autres joueurs à ajouter dynamiquement... -->
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

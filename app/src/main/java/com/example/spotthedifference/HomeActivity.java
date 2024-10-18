@@ -126,7 +126,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void createGameSession(String playerName) {
-        Player hostPlayer = new Player(playerName, playerName);
         String playerId = UUID.randomUUID().toString();
         Player hostPlayer = new Player(playerId, playerName);
         List<Player> players = new ArrayList<>();

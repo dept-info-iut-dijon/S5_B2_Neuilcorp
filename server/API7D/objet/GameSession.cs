@@ -4,7 +4,9 @@
     {
         public string SessionId { get; set; }
         public List<Player> Players { get; set; }
-        public List<ImageDifference> PlayerImages { get; set; }
         public bool GameCompleted { get; set; }
+
+        public bool GameTimer { get; set; }
+        public GameSession() { }
     }
 }

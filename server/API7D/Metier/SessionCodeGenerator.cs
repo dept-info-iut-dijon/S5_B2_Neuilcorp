@@ -14,23 +14,29 @@ namespace API7D.Metier
             random = new Random();
         }
 
+        /// <summary>
+        /// permet de genrer des code de session a 6 chiffre unique
+        /// </summary>
+        /// <returns></returns>
         public int GenerateUniqueCode()
         {
             int code;
 
-            // Continue generating until we find a unique code
             do
             {
-                code = random.Next(100000, 999999); // Génère un code à 6 chiffres
+                code = random.Next(100000, 999999);
             } while (generatedCodes.Contains(code));
 
-            generatedCodes.Add(code); // Ajoute le code à l'ensemble des codes générés
+            generatedCodes.Add(code);
             return code;
         }
 
+        /// <summary>
+        /// supprime ce code des code generer 
+        /// </summary>
+        /// <param name="code"> le code</param>
         public void InvalidateCode(int code)
         {
-            // Permet de libérer un code s'il n'est plus utilisé
             generatedCodes.Remove(code);
         }
     }

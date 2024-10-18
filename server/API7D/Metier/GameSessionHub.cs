@@ -3,6 +3,10 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 namespace API7D.Metier
 {
+
+    /// <summary>
+    /// web Socket pas terminer
+    /// </summary>
     public class GameSessionHub : Hub
     {
         // Méthode pour joindre un groupe de session (pour chaque session, un groupe est créé)

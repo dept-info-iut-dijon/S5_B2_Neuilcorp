@@ -4,6 +4,11 @@ namespace API7D.DATA
 {
     public class DifferanceCheckerDATA : IDifferanceCheckerDATA
     {
+
+        /// <summary>
+        /// une fausse base de donner a remplacer dans le futur
+        /// </summary>
+        /// <returns>retourne une lise de coordonées </returns>
         public List<Coordonnees> GetListDifferanceCoordinates()
         {
             List<Coordonnees> list = new List<Coordonnees>();

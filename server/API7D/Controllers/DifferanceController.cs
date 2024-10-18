@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace API7D.Controllers
 {
     [Route("api/[controller]")]
+
+
     [ApiController]
     public class DifferanceController : ControllerBase
     {
-            // Instance de DifferenceChecker avec la liste des différences
             private IDifferanceChecker checker;
 
         public DifferanceController(IDifferanceChecker checker)
@@ -22,8 +23,11 @@ namespace API7D.Controllers
                 checker = new DifferanceChecker();
             }
 
-        // Endpoint pour vérifier si les coordonnées fournies sont dans la zone d'acceptation
-        // GET: api/difference/check?x=...&y=...
+        /// <summary>
+        /// permet de veifier les différance
+        /// </summary>
+        /// <param name="coordonnees">une coordonée X Y</param>
+        /// <returns></returns>
         [HttpPost("check")]
         public IActionResult CheckDifference([FromBody] Coordonnees coordonnees)
         {

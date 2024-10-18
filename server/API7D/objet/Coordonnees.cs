@@ -5,14 +5,24 @@
 /// </summary>
 public class Coordonnees
 {
-    // Propriétés publiques pour X et Y
+    
+    private int x;
+    private int y;
+
     [JsonPropertyName("x")]
-    public int X { get; set; }
+    public int X 
+    {
+        get { return x; } 
+        set { x = value; }
+    }
 
     [JsonPropertyName("y")]
-    public int Y { get; set; }
+    public int Y 
+    { 
+        get { return y;}
+        set { y = value;}
+    }
 
-    // Constructeur avec paramètres pour initialiser les coordonnées
     public Coordonnees(int x, int y)
     {
         this.X = x;

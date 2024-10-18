@@ -18,6 +18,12 @@ namespace API7D.Controllers
             _imageFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Image");
         }
 
+        /// <summary>
+        /// permet de recuperer une image par son id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+
         [HttpGet("{id}")]
         [Produces("application/octet-stream")]
         public ActionResult<byte[]> GetImage(int id)

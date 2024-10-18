@@ -1,7 +1,12 @@
+using API7D.Metier;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Ajout de SignalR pour la communication en temps réel
+builder.Services.AddSignalR();
 
 // Ajout du CORS
 builder.Services.AddCors(options =>
@@ -34,6 +39,9 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAllOrigins");
 
 app.UseAuthorization();
+
+// Configurer le Hub SignalR
+app.MapHub<GameSessionHub>("/gameSessionHub");
 
 app.MapControllers();
 

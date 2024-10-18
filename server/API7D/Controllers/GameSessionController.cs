@@ -1,16 +1,29 @@
 ﻿using API7D.Metier;
 using API7D.objet;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using System.Diagnostics.Eventing.Reader;
 using System.Numerics;
 
 [ApiController]
 [Route("api/[controller]")]
 public class GameSessionController : ControllerBase
 {
-    private static List<GameSession> _sessions = new List<GameSession>();
-    private SessionCodeGenerator _CodeGenerator = new SessionCodeGenerator();
 
-    // Crée une nouvelle session avec une liste de joueurs
+    //crée une nouvelle list de session
+    private static List<GameSession> _sessions = new List<GameSession>();
+    //crée le generateur de code
+    private SessionCodeGenerator _CodeGenerator = new SessionCodeGenerator();
+    private readonly IHubContext<GameSessionHub> _hubContext;
+
+    // Injection du HubContext
+    public GameSessionController(IHubContext<GameSessionHub> hubContext)
+    {
+        _hubContext = hubContext;
+    }
+
+
+
     [HttpPost("CreateSession")]
     public ActionResult<GameSession> CreateSession([FromBody] GameSession gameSession)
     {
@@ -40,10 +53,12 @@ public class GameSessionController : ControllerBase
     }
 
 
-    // Permet à un joueur de rejoindre une session en cours
+
+
     [HttpPost("{sessionId}/join")]
-    public ActionResult JoinSession(string sessionId, [FromBody] Player player)
+    public async Task<ActionResult> JoinSession(string sessionId, [FromBody] Player player)
     {
+
         // Vérifier si le joueur est bien passé en paramètre
         if (player == null || string.IsNullOrEmpty(player.PlayerId))
         {
@@ -67,24 +82,24 @@ public class GameSessionController : ControllerBase
         // Ajouter le joueur à la session
         existingSession.Players.Add(player);
 
+        // Notifier tous les joueurs dans cette session via SignalR
+        await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player.Name);
+
         // Retourner un message de succès
         return Ok($"Le joueur {player.Name} a rejoint la session {sessionId}.");
     }
 
-    // Méthode fict ive pour retrouver la session de jeu par son ID
+    // Méthode pour retrouver la session de jeu par son ID
     private GameSession FindSessionById(string sessionId)
     {
-        var gameSession = _sessions.FirstOrDefault(p => p.SessionId == sessionId);
-        if (gameSession == null)
-        {
-            throw new Exception("session does not exist");
-        }
-        return gameSession;
+        return _sessions.FirstOrDefault(p => p.SessionId == sessionId);
     }
 
 
-    // Récupère toutes les sessions en cours
-    [HttpGet("all")]
+
+
+// Récupère toutes les sessions en cours
+[HttpGet("all")]
     public ActionResult<List<GameSession>> GetAllSessions()
     {
         return Ok(_sessions);
@@ -103,6 +118,21 @@ public class GameSessionController : ControllerBase
 
         // Retourner la session de jeu trouvée
         return Ok(existingSession);
+    }
+    [HttpDelete("{sessionId}")]
+    public ActionResult destructiondeSession(string sessionId)
+    {
+        var gameSession = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
+        if (gameSession == null)
+        {
+            return BadRequest();
+        }
+        else
+        {
+            _CodeGenerator.InvalidateCode(int.Parse(sessionId));
+            _sessions.Remove(gameSession);
+        }
+        return Ok("session destroyed");
     }
 
 }

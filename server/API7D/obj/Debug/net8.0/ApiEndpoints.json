@@ -43,6 +43,22 @@
   },
   {
     "ContainingType": "GameSessionController",
+    "Method": "destructiondeSession",
+    "RelativePath": "api/GameSession/{sessionId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sessionId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameSessionController",
     "Method": "JoinSession",
     "RelativePath": "api/GameSession/{sessionId}/join",
     "HttpMethod": "POST",
@@ -124,11 +140,9 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "API7D.objet.ImageDifference",
+        "Type": "System.Byte[]",
         "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
+          "application/octet-stream"
         ],
         "StatusCode": 200
       }

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\API7D.csproj": {}
+    "C:\\Users\\savad\\Documents\\GitHub\\S5_B2_Neuilcorp\\server\\API7D\\API7D.csproj": {}
   },
   "projects": {
-    "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\API7D.csproj": {
+    "C:\\Users\\savad\\Documents\\GitHub\\S5_B2_Neuilcorp\\server\\API7D\\API7D.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\API7D.csproj",
+        "projectUniqueName": "C:\\Users\\savad\\Documents\\GitHub\\S5_B2_Neuilcorp\\server\\API7D\\API7D.csproj",
         "projectName": "API7D",
-        "projectPath": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\API7D.csproj",
-        "packagesPath": "C:\\Users\\antoi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\obj\\",
+        "projectPath": "C:\\Users\\savad\\Documents\\GitHub\\S5_B2_Neuilcorp\\server\\API7D\\API7D.csproj",
+        "packagesPath": "C:\\Users\\savad\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\savad\\Documents\\GitHub\\S5_B2_Neuilcorp\\server\\API7D\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\antoi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\savad\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -74,7 +74,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

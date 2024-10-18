@@ -22,11 +22,6 @@ namespace API7D.Metier
             }
         }
 
-        public bool ImageDifferanceChecker(int IdImage, Coordonnees coordonnéeDiffTest)
-        {
-            return _data.ImageDifferanceChecker(IdImage, coordonnéeDiffTest);
-        }
-
         public void SetImages(ImageDifference image)
         {
             throw new NotImplementedException();

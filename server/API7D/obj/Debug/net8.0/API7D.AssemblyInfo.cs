@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("API7D")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a7f99b430631334b4a6606d0e4ddad09f4f15749")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eec6c0e3de0fb77fce97f49983193dd389512620")]
 [assembly: System.Reflection.AssemblyProductAttribute("API7D")]
 [assembly: System.Reflection.AssemblyTitleAttribute("API7D")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

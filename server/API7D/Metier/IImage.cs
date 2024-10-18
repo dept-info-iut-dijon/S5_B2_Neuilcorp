@@ -15,13 +15,7 @@ namespace API7D.Metier
             /// </summary>
             /// <param name="image"></param>
             public void SetImages(ImageDifference image);
-            /// <summary>
-            /// permet de verifier si les differance trouver pas l'utilisateur est bonne
-            /// </summary>
-            /// <param name="IdImage">Id de l'image</param>
-            /// <param name="coordonnéeDiffTest">une coordonée</param>
-            /// <returns></returns>
-            public bool ImageDifferanceChecker(int IdImage, Coordonnees coordonnéeDiffTest);
+
 
     }
     

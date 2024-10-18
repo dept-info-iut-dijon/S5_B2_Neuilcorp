@@ -5,32 +5,33 @@
         private string playerId;
         private string name;
         private bool isReady;
-        public string PlayerId 
+
+        public string PlayerId
         {
-            get {return playerId;} 
-            set {playerId = value;}
+            get { return playerId; }
+            set { playerId = value; }
         }
         public string Name
         {
-            get { return Name; }
-            set { Name = value; }
+            get { return name; }  // Utiliser la variable privée `name`
+            set { name = value; }  // Utiliser la variable privée `name`
         }
         public bool IsReady
         {
-            get { return IsReady; }
-            set { IsReady = value; }
+            get { return isReady; }  // Utiliser la variable privée `isReady`
+            set { isReady = value; }  // Utiliser la variable privée `isReady`
         }
 
         /// <summary>
-        /// ce constructeur n'est ici que pour deserialiser les JSON
+        /// Ce constructeur n'est ici que pour désérialiser les JSON.
         /// </summary>
         public Player() { }
 
         /// <summary>
-        /// constructeur de player
+        /// Constructeur de player.
         /// </summary>
         /// <param name="playerId">Id du joueur</param>
-        /// <param name="name">nom du joueur</param>
+        /// <param name="name">Nom du joueur</param>
         public Player(string playerId, string name)
         {
             PlayerId = playerId;

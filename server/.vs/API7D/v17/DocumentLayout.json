@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\controllers\\gamesessioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\controllers\\gamesessioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|solutionrelative:api7d\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{81485041-2DAB-4136-A9D7-D2864532C42E}|API7D\\API7D.csproj|c:\\users\\antoi\\desktop\\android2\\s5_b2_neuilcorp\\server\\api7d\\metier\\gamesessionhub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -97,6 +97,10 @@
           "SelectedChildIndex": 6,
           "Children": [
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "GameSessionHub.cs",
@@ -106,8 +110,7 @@
               "RelativeToolTip": "API7D\\Metier\\GameSessionHub.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-18T06:58:30.374Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-10-18T06:58:30.374Z"
             },
             {
               "$type": "Document",
@@ -119,8 +122,7 @@
               "RelativeToolTip": "API7D\\Metier\\SessionCodeGenerator.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-16T06:58:47.337Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-10-16T06:58:47.337Z"
             },
             {
               "$type": "Document",
@@ -160,20 +162,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "GameSessionController.cs",
               "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\GameSessionController.cs",
               "RelativeDocumentMoniker": "API7D\\Controllers\\GameSessionController.cs",
               "ToolTip": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Controllers\\GameSessionController.cs",
               "RelativeToolTip": "API7D\\Controllers\\GameSessionController.cs",
-              "ViewState": "AgIAAEYAAAAAAAAAAAAkwBYAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAACUAAAAAAAAAAAAuwDYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-10T19:23:39.294Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\antoi\\Desktop\\android2\\S5_B2_Neuilcorp\\server\\API7D\\Program.cs",
               "RelativeDocumentMoniker": "API7D\\Program.cs",
@@ -194,10 +196,6 @@
               "RelativeToolTip": "API7D\\Image\\test.png",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001533|",
               "WhenOpened": "2024-10-16T07:03:33.925Z"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             },
             {
               "$type": "Document",

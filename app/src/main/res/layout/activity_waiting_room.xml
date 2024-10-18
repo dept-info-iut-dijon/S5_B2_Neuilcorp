@@ -94,8 +94,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!-- Titre du nombre de joueurs -->
-
             <!-- Nombre de joueurs -->
             <TextView
                 android:id="@+id/numberOfPlayersTitle"
@@ -152,7 +150,6 @@
             android:layout_marginEnd="15dp"
             android:background="@drawable/rounded_button"
             android:padding="5dp"
-
             android:text="@string/pret"
             android:textColor="@color/button_text"
             android:textStyle="bold" />
@@ -181,8 +178,6 @@
         app:layout_constraintStart_toEndOf="@+id/leftContainer">
 
         <!-- Bouton Quitter ancré en haut -->
-
-        <!-- Exemple d'un joueur connecté : Joueur 1 -->
         <Button
             android:id="@+id/exitButton"
             android:layout_width="match_parent"
@@ -196,13 +191,13 @@
             android:textColor="@color/button_text"
             android:textStyle="bold" />
 
+        <!-- Liste des joueurs connectés -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginBottom="8dp">
 
-            <!-- Nom du joueur -->
             <TextView
                 android:id="@+id/playerName1"
                 android:layout_width="0dp"
@@ -212,7 +207,6 @@
                 android:layout_marginStart="15dp"
                 android:textColor="@android:color/black" />
 
-            <!-- Statut prêt ou pas prêt -->
             <TextView
                 android:id="@+id/playerStatus1"
                 android:layout_width="wrap_content"
@@ -221,14 +215,12 @@
                 android:textColor="@color/error_color" />
         </LinearLayout>
 
-        <!-- Exemple d'un joueur connecté : Joueur 2 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginBottom="8dp">
 
-            <!-- Nom du joueur -->
             <TextView
                 android:id="@+id/playerName2"
                 android:layout_width="0dp"
@@ -238,7 +230,6 @@
                 android:layout_marginStart="15dp"
                 android:textColor="@android:color/black" />
 
-            <!-- Statut prêt en vert -->
             <TextView
                 android:id="@+id/playerStatus2"
                 android:layout_width="wrap_content"

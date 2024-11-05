@@ -18,11 +18,16 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="1024px"
-            android:layout_height="1650px"
+            android:layout_width="385dp"
+            android:layout_height="wrap_content"
+            android:maxHeight="1650dp"
+            android:adjustViewBounds="true"
             android:contentDescription="@string/app_name"
-            android:scaleType="fitCenter" />
-            <!--android:src="@drawable/test" /> -->
+            android:scaleType="fitCenter"
+            android:src="@drawable/Medhi_1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
     </FrameLayout>
 
     <!-- Bouton Valider la différence -->

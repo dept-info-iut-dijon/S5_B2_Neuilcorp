@@ -32,7 +32,41 @@ google-services.json
 # Android Profiling
 *.hprof
 
-# --- Visual Studio Code specific ---
-.vscode/              # VSCode settings folder
-*.code-workspace      # VSCode workspace file
-.history/             # VSCode local history
+# Visual Studio specific files
+.vs/
+*.user
+*.rsuser
+*.suo
+*.VC.db
+*.VC.VC.opendb
+
+# DotNet specific
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.mdb
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+project.assets.json
+project.nuget.cache
+
+# Debug and generated files
+*.generated.cs
+*.cache
+*.ide
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Test files
+TestResults/
+*.trx
+*.coverage
+.coverage

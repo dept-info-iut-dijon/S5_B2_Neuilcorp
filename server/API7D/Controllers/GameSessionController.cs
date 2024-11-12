@@ -1,26 +1,27 @@
 ﻿using API7D.Metier;
 using API7D.objet;
+using API7D.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
 public class GameSessionController : ControllerBase
 {
-    private static List<GameSession> _sessions = new List<GameSession>();
-    private SessionCodeGenerator _CodeGenerator = new SessionCodeGenerator();
+    private readonly SessionService _sessionService;
     private readonly IHubContext<GameSessionHub> _hubContext;
+    private readonly SessionCodeGenerator _codeGenerator = new SessionCodeGenerator();
 
-    public GameSessionController(IHubContext<GameSessionHub> hubContext)
+    public GameSessionController(IHubContext<GameSessionHub> hubContext, SessionService sessionService)
     {
         _hubContext = hubContext;
+        _sessionService = sessionService;
     }
 
     /// <summary>
-    /// Crée une nouvelle session de jeu avec les joueurs fournis.
+    /// Crée une nouvelle session de jeu avec l'hôte en tant que premier joueur.
     /// </summary>
     /// <param name="gameSession">L'objet GameSession contenant les informations initiales sur les joueurs.</param>
     /// <returns>La session de jeu créée ou un résultat BadRequest si les données de session sont invalides.</returns>
@@ -32,12 +33,12 @@ public class GameSessionController : ControllerBase
             return BadRequest("Les données de session ou les informations sur l'hôte sont invalides.");
         }
 
-        gameSession.SessionId = _CodeGenerator.GenerateUniqueCode().ToString();
+        gameSession.SessionId = _codeGenerator.GenerateUniqueCode().ToString();
         Player host = gameSession.Players[0];
         gameSession.Players = new List<Player> { host };
         gameSession.GameCompleted = false;
         gameSession.GameTimer = false;
-        _sessions.Add(gameSession);
+        _sessionService.AddSession(gameSession);
 
         return Ok(gameSession);
     }
@@ -56,13 +57,13 @@ public class GameSessionController : ControllerBase
             return BadRequest("Informations du joueur invalides.");
         }
 
-        GameSession existingSession = FindSessionById(sessionId);
+        GameSession existingSession = _sessionService.GetSessionById(sessionId);
         if (existingSession == null)
         {
             return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
         }
 
-        bool playerAlreadyInSession = existingSession.Players.Any(p => p.PlayerId == player.PlayerId);
+        bool playerAlreadyInSession = existingSession.Players.Exists(p => p.PlayerId == player.PlayerId);
         if (playerAlreadyInSession)
         {
             return BadRequest("Le joueur est déjà dans la session.");
@@ -74,39 +75,13 @@ public class GameSessionController : ControllerBase
     }
 
     /// <summary>
-    /// Définit le statut de préparation d'un joueur dans une session de jeu.
-    /// </summary>
-    /// <param name="sessionId">L'ID de la session de jeu.</param>
-    /// <param name="playerId">L'ID du joueur dont le statut de préparation est mis à jour.</param>
-    /// <param name="isReady">Le nouveau statut de préparation du joueur.</param>
-    /// <returns>Un résultat Ok si le statut est mis à jour, ou un résultat NotFound si la session ou le joueur est introuvable.</returns>
-    [HttpPost("{sessionId}/player/{playerId}/ready")]
-    public ActionResult SetPlayerReadyStatus(string sessionId, string playerId, [FromBody] bool isReady)
-    {
-        GameSession existingSession = FindSessionById(sessionId);
-        if (existingSession == null)
-        {
-            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
-        }
-
-        Player player = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
-        if (player == null)
-        {
-            return NotFound($"Le joueur avec l'ID {playerId} n'a pas été trouvé dans cette session.");
-        }
-
-        player.IsReady = isReady;
-        return Ok($"Le statut de préparation du joueur {player.Name} a été mis à jour à {(isReady ? "prêt" : "pas prêt")}.");
-    }
-
-    /// <summary>
     /// Récupère toutes les sessions de jeu actives.
     /// </summary>
     /// <returns>Une liste de toutes les sessions de jeu en cours.</returns>
     [HttpGet("all")]
     public ActionResult<List<GameSession>> GetAllSessions()
     {
-        return Ok(_sessions);
+        return Ok(_sessionService.GetAllSessions());
     }
 
     /// <summary>
@@ -117,7 +92,7 @@ public class GameSessionController : ControllerBase
     [HttpGet("{sessionId}")]
     public ActionResult<GameSession> GetSessionById(string sessionId)
     {
-        GameSession existingSession = FindSessionById(sessionId);
+        GameSession existingSession = _sessionService.GetSessionById(sessionId);
         if (existingSession == null)
         {
             return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
@@ -134,15 +109,14 @@ public class GameSessionController : ControllerBase
     [HttpDelete("{sessionId}")]
     public ActionResult destructiondeSession(string sessionId)
     {
-        var gameSession = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
-        if (gameSession == null)
+        bool sessionDeleted = _sessionService.RemoveSession(sessionId);
+        if (!sessionDeleted)
         {
-            return BadRequest();
+            return BadRequest("La session n'existe pas ou n'a pas pu être supprimée.");
         }
 
-        _CodeGenerator.InvalidateCode(int.Parse(sessionId));
-        _sessions.Remove(gameSession);
-        return Ok("session destroyed");
+        _codeGenerator.InvalidateCode(int.Parse(sessionId));
+        return Ok("Session détruite");
     }
 
     /// <summary>
@@ -153,22 +127,12 @@ public class GameSessionController : ControllerBase
     [HttpGet("{sessionId}/players")]
     public ActionResult<List<Player>> GetAllPlayersFromSession(string sessionId)
     {
-        var gameSession = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
+        var gameSession = _sessionService.GetSessionById(sessionId);
         if (gameSession == null)
         {
             return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
         }
 
         return Ok(gameSession.Players);
-    }
-
-    /// <summary>
-    /// Trouve une session de jeu par son ID.
-    /// </summary>
-    /// <param name="sessionId">L'ID de la session de jeu à trouver.</param>
-    /// <returns>La session de jeu si elle est trouvée, ou null si elle n'existe pas.</returns>
-    private GameSession FindSessionById(string sessionId)
-    {
-        return _sessions.FirstOrDefault(p => p.SessionId == sessionId);
     }
 }

@@ -10,7 +10,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Nom du joueur"
         android:textColor="@android:color/black"
         android:textSize="16sp" />
 
@@ -18,7 +17,7 @@
         android:id="@+id/playerStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Pas prêt"
+        android:text="@string/pas_pret"
         android:textColor="@color/error_color"
         android:textSize="16sp" />
 </LinearLayout>

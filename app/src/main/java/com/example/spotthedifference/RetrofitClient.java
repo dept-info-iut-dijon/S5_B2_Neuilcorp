@@ -1,7 +1,6 @@
 package com.example.spotthedifference;
 
 import java.security.cert.CertificateException;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -9,9 +8,10 @@ import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class RetrofitClient {
+public class RetrofitClient implements IRetrofitClient {
 
-    public static Retrofit getUnsafeRetrofit() {
+    @Override
+    public Retrofit getUnsafeRetrofit() {
         try {
             // Création d'un trust manager qui ignore les erreurs SSL
             final TrustManager[] trustAllCerts = new TrustManager[]{

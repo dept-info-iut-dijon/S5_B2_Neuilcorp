@@ -1,6 +1,6 @@
 package com.example.spotthedifference;
 
-public class Player {
+public class Player implements IPlayer {
     private String playerId;
     private String name;
     private boolean isReady;
@@ -16,27 +16,32 @@ public class Player {
         this.isReady = false;
     }
 
-    // Getters et setters
+    @Override
     public String getPlayerId() {
         return playerId;
     }
 
+    @Override
     public void setPlayerId(String playerId) {
         this.playerId = playerId;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @Override
     public boolean isReady() {
         return isReady;
     }
 
+    @Override
     public void setReady(boolean ready) {
         isReady = ready;
     }

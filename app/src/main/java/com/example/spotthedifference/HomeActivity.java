@@ -23,7 +23,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity implements IHomeActivity {
 
     private ApiService apiService;
 
@@ -32,7 +32,8 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        Retrofit retrofit = RetrofitClient.getUnsafeRetrofit();
+        IRetrofitClient client = new RetrofitClient();
+        Retrofit retrofit = client.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
 
         Button createGameButton = findViewById(R.id.createGameButton);
@@ -53,7 +54,8 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private void showCreateGameDialog() {
+    @Override
+    public void showCreateGameDialog() {
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.dialog_create_game, null);
 
@@ -88,7 +90,8 @@ public class HomeActivity extends AppCompatActivity {
         playerNameInput.requestFocus();
     }
 
-    private void showJoinGameDialog() {
+    @Override
+    public void showJoinGameDialog() {
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.dialog_join_game, null);
 
@@ -125,7 +128,8 @@ public class HomeActivity extends AppCompatActivity {
         sessionCodeInput.requestFocus();
     }
 
-    private void createGameSession(String playerName) {
+    @Override
+    public void createGameSession(String playerName) {
         String playerId = UUID.randomUUID().toString();
         Player hostPlayer = new Player(playerId, playerName);
         List<Player> players = new ArrayList<>();
@@ -158,7 +162,8 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private void joinGameSession(String sessionId, String playerName) {
+    @Override
+    public void joinGameSession(String sessionId, String playerName) {
         String playerId = UUID.randomUUID().toString();
         Player player = new Player(playerId, playerName);
 
@@ -204,7 +209,8 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private void handleApiError(Response<?> response) {
+    @Override
+    public void handleApiError(Response<?> response) {
         Log.e("API Error", "Code: " + response.code() + ", Message: " + response.message());
         try {
             if (response.errorBody() != null) {

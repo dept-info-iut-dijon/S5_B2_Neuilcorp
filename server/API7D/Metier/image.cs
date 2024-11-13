@@ -11,14 +11,32 @@ namespace API7D.Metier
             try
             {
                 string path = _data.GetImagesDATA(ID);
-                // Lire l'image et la convertir en byte[]
                 byte[] imageBytes = System.IO.File.ReadAllBytes(path);
                 return imageBytes;
             }
             catch (Exception ex)
             {
-                // faire une exception plutard
-                return null;
+                throw new Exception(ex.ToString());
+            }
+        }
+
+        public List<byte[]> GetAllImages()
+        {
+            try
+            {
+                List<string> path = _data.GetAllImagesDATA();
+                List<byte[]> image = new List<byte[]>();
+                foreach (string pathItem in path)
+                {
+                    byte[] imageBytes = System.IO.File.ReadAllBytes(pathItem);
+                    image.Add(imageBytes);
+                }
+                
+                return image;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.ToString());
             }
         }
 

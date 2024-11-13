@@ -11,6 +11,7 @@ namespace API7D.Controllers
     public class ImageControlleur : ControllerBase
     {
         private readonly string _imageFolderPath;
+        private IImage image = new image();
 
         public ImageControlleur()
         {
@@ -24,23 +25,18 @@ namespace API7D.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
 
-        [HttpGet("{id}")]
-        [Produces("application/octet-stream")]
+        [HttpPost("{id}")]
         public ActionResult<byte[]> GetImage(int id)
         {
-            // Construit le nom de fichier basé sur l'ID
-            string fileName = $"{id}.png"; 
-            string filePath = Path.Combine(_imageFolderPath, fileName);
+            byte[] returnedImage = image.GetImages(id);
+            return returnedImage;
+        }
 
-            // Vérifie si le fichier existe
-            if (!System.IO.File.Exists(filePath))
-            {
-                return NotFound(); 
-            }
-
-            // Lis le fichier et le convertit en tableau de bytes
-            byte[] imageBytes = System.IO.File.ReadAllBytes(filePath);
-            return File(imageBytes, "application/octet-stream");
+        [HttpGet("{id}")]
+        public ActionResult<byte[]> GetAllImage(int id)
+        {
+            byte[] returnedImage = image.GetAllImages();
+            return returnedImage;
         }
     }
 }

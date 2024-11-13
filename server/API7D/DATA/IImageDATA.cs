@@ -16,5 +16,13 @@ namespace API7D.DATA
         /// <param name="image"></param>
         public void SetImagesDATA(ImageDifference image);
 
+
+        public List<string> GetAllImagesDATA();
+
+        public (byte[] Image1, byte[] Image2) GetImagePair(int imagePaireId);
+
+
+
+
     }
 }

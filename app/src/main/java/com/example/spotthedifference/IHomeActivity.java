@@ -3,9 +3,9 @@ package com.example.spotthedifference;
 import android.content.Intent;
 import retrofit2.Response;
 
-/// <summary>
-/// Interface contenant toutes les méthodes de HomeActivity.
-/// </summary>
+/**
+ * Interface contenant toutes les méthodes de HomeActivity.
+ */
 public interface IHomeActivity {
 
     /**
@@ -22,6 +22,7 @@ public interface IHomeActivity {
      * Crée une session de jeu avec le nom du joueur.
      *
      * @param playerName Nom du joueur qui crée la session.
+     * @return true si la création de session est initiée avec succès, false sinon.
      */
     void createGameSession(String playerName);
 
@@ -30,6 +31,7 @@ public interface IHomeActivity {
      *
      * @param sessionId  Identifiant de la session à rejoindre.
      * @param playerName Nom du joueur qui rejoint la session.
+     * @return true si la tentative de rejoindre est initiée avec succès, false sinon.
      */
     void joinGameSession(String sessionId, String playerName);
 
@@ -46,4 +48,14 @@ public interface IHomeActivity {
      * @param intent Intent pour lancer l'activité.
      */
     void startActivity(Intent intent);
+
+    /**
+     * Affiche un message Toast pour informer l'utilisateur.
+     *
+     * @param message Le message à afficher.
+     */
+    void showToast(String message);
+
+    void showErrorToast(String message);
+
 }

@@ -2,9 +2,10 @@ package com.example.spotthedifference;
 
 import java.util.List;
 
-/// <summary>
-/// Interface contenant toutes les méthodes de GameSession.
-/// </summary>
+/**
+ * Interface représentant une session de jeu, avec des méthodes pour gérer
+ * l'identifiant de la session et la liste des joueurs.
+ */
 public interface IGameSession {
 
     /**
@@ -27,4 +28,11 @@ public interface IGameSession {
      * @return Liste des joueurs.
      */
     List<Player> getPlayers();
+
+    /**
+     * Supprime un joueur de la session de jeu. (en prévision de la suppression d'un joueur par l'hôte)
+     *
+     * @param player Le joueur à supprimer.
+     */
+    void removePlayer(Player player);
 }

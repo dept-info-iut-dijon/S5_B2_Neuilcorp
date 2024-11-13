@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     private Coordonnees coordTemp;
     private ImageView circleImageView;
     private ApiService apiService;
+    private AlertDialog waitingDialog;  // Pour gérer la boîte de dialogue d'attente
+    private ImageDisplayer imageDisplayer = new ImageDisplayer();  // Utilisation de ImageDisplayer pour afficher l'image
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,11 +90,14 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         byte[] imageBytes = response.body().bytes();
-                        Bitmap bitmap = ImageConverter.Companion.convertBytesToBitmap(imageBytes);
-                        displayImage(imageView, bitmap);
+                        Bitmap bitmap = new ImageConverter().convertBytesToBitmap(imageBytes);  // Utilisation directe de ImageConverter
+                        imageDisplayer.displayImage(imageView, bitmap);  // Utilisation de ImageDisplayer pour afficher l'image
                     } catch (IOException e) {
                         e.printStackTrace();
+                        Toast.makeText(MainActivity.this, "Erreur lors de la conversion de l'image", Toast.LENGTH_SHORT).show();
                     }
+                } else {
+                    Toast.makeText(MainActivity.this, "Erreur lors du chargement de l'image", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -101,11 +106,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                 Toast.makeText(MainActivity.this, "Erreur lors du chargement de l'image", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    @Override
-    public void displayImage(ImageView imageView, Bitmap bitmap) {
-        imageView.setImageBitmap(bitmap);
     }
 
     @Override
@@ -131,17 +131,21 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
 
     @Override
     public void showWaitingDialog() {
-        AlertDialog waitingDialog = new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Joueur en attente")
-                .setMessage("En attente de la sélection des autres joueurs...")
-                .setCancelable(false)
-                .create();
+        if (waitingDialog == null) {
+            waitingDialog = new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Joueur en attente")
+                    .setMessage("En attente de la sélection des autres joueurs...")
+                    .setCancelable(false)
+                    .create();
+        }
         waitingDialog.show();
     }
 
     @Override
     public void hideWaitingDialog() {
-        // Code pour cacher la boîte de dialogue
+        if (waitingDialog != null && waitingDialog.isShowing()) {
+            waitingDialog.dismiss();
+        }
     }
 
     @Override

@@ -1,8 +1,9 @@
 package com.example.spotthedifference;
 
-/// <summary>
-/// Interface contenant toutes les méthodes de Coordonnees.
-/// </summary>
+/**
+ * Interface représentant les coordonnées X et Y dans un système de coordonnées.
+ * Fournit des méthodes pour obtenir et définir les valeurs des coordonnées.
+ */
 public interface ICoordonnees {
 
     /**

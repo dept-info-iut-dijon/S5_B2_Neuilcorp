@@ -1,8 +1,8 @@
 package com.example.spotthedifference;
 
-/// <summary>
-/// Interface contenant toutes les méthodes de Player.
-/// </summary>
+/**
+ * Interface contenant toutes les méthodes de Player.
+ */
 public interface IPlayer {
 
     /**

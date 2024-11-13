@@ -1,11 +1,10 @@
 package com.example.spotthedifference;
 
-import android.graphics.Bitmap;
 import android.widget.ImageView;
 
-/// <summary>
-/// Interface contenant toutes les méthodes de MainActivity.
-/// </summary>
+/**
+ * Interface contenant toutes les méthodes de MainActivity.
+ */
 public interface IMainActivity {
 
     /**
@@ -14,14 +13,6 @@ public interface IMainActivity {
      * @param imageId Identifiant de l'image à charger.
      */
     void loadImage(int imageId);
-
-    /**
-     * Affiche une image dans un ImageView donné.
-     *
-     * @param imageView ImageView dans lequel afficher l'image.
-     * @param bitmap    Bitmap de l'image à afficher.
-     */
-    void displayImage(ImageView imageView, Bitmap bitmap);
 
     /**
      * Envoie les coordonnées au serveur.

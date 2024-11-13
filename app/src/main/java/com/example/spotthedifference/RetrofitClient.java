@@ -8,12 +8,22 @@ import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/**
+ * Classe RetrofitClient configurée pour fournir un client Retrofit avec des certificats SSL non vérifiés.
+ * Note : Utiliser uniquement pour des environnements de développement ou de test.
+ */
 public class RetrofitClient implements IRetrofitClient {
 
+    private static final String BASE_URL = "https://203.55.81.18:7176/";
+
+    /**
+     * Fournit une instance de Retrofit configurée pour ignorer les vérifications SSL.
+     *
+     * @return Instance de Retrofit sans vérification SSL.
+     */
     @Override
     public Retrofit getUnsafeRetrofit() {
         try {
-            // Création d'un trust manager qui ignore les erreurs SSL
             final TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
                         @Override
@@ -31,25 +41,24 @@ public class RetrofitClient implements IRetrofitClient {
                     }
             };
 
-            // Installer le trust manager dans un contexte SSL
             final SSLContext sslContext = SSLContext.getInstance("SSL");
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
 
-            // Créer un client OkHttp qui utilise ce trust manager
             OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
             clientBuilder.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCerts[0]);
-            clientBuilder.hostnameVerifier((hostname, session) -> true); // Accepter tous les noms d'hôte
+            clientBuilder.hostnameVerifier((hostname, session) -> true);
 
             OkHttpClient client = clientBuilder.build();
 
             return new Retrofit.Builder()
-                    .baseUrl("https://203.55.81.18:7176/") // URL avec HTTPS
-                    .client(client) // Utilise le client OkHttp personnalisé
+                    .baseUrl(BASE_URL)
+                    .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.err.println("Erreur lors de la configuration du client Retrofit non sécurisé : " + e.getMessage());
+            throw new RuntimeException("Erreur lors de la configuration du client Retrofit non sécurisé", e);
         }
     }
 }

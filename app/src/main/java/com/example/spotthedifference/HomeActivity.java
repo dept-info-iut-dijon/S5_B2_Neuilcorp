@@ -23,6 +23,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
+/**
+ * Activité principale permettant de créer ou de rejoindre une session de jeu.
+ */
 public class HomeActivity extends AppCompatActivity implements IHomeActivity {
 
     private ApiService apiService;
@@ -39,95 +42,69 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
         Button createGameButton = findViewById(R.id.createGameButton);
         Button joinGameButton = findViewById(R.id.joinGameButton);
 
-        createGameButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showCreateGameDialog();
-            }
-        });
-
-        joinGameButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showJoinGameDialog();
-            }
-        });
+        createGameButton.setOnClickListener(v -> showCreateGameDialog());
+        joinGameButton.setOnClickListener(v -> showJoinGameDialog());
     }
 
+    /**
+     * Affiche une boîte de dialogue permettant de créer une nouvelle session de jeu.
+     */
     @Override
     public void showCreateGameDialog() {
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View dialogView = inflater.inflate(R.layout.dialog_create_game, null);
-
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-        dialogBuilder.setView(dialogView);
-
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_create_game, null);
         final EditText playerNameInput = dialogView.findViewById(R.id.editPlayerName);
 
-        dialogBuilder
+        new AlertDialog.Builder(this)
                 .setTitle("Créer une partie")
-                .setPositiveButton("Créer", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String playerName = playerNameInput.getText().toString().trim();
-
-                        if (playerName.isEmpty()) {
-                            Toast.makeText(HomeActivity.this, "Veuillez entrer un nom de joueur.", Toast.LENGTH_SHORT).show();
-                        } else {
-                            createGameSession(playerName);
-                        }
+                .setView(dialogView)
+                .setPositiveButton("Créer", (dialog, which) -> {
+                    String playerName = playerNameInput.getText().toString().trim();
+                    if (playerName.isEmpty()) {
+                        showToast("Veuillez entrer un nom de joueur.");
+                    } else {
+                        createGameSession(playerName);
                     }
                 })
-                .setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
+                .setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
 
-        AlertDialog dialog = dialogBuilder.create();
-        dialog.show();
         playerNameInput.requestFocus();
     }
 
+    /**
+     * Affiche une boîte de dialogue permettant de rejoindre une session de jeu existante.
+     */
     @Override
     public void showJoinGameDialog() {
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View dialogView = inflater.inflate(R.layout.dialog_join_game, null);
-
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-        dialogBuilder.setView(dialogView);
-
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_join_game, null);
         final EditText sessionCodeInput = dialogView.findViewById(R.id.sessionCodeEditText);
         final EditText playerNameInput = dialogView.findViewById(R.id.playerNameEditText);
 
-        dialogBuilder
+        new AlertDialog.Builder(this)
                 .setTitle("Rejoindre une partie")
-                .setPositiveButton("Rejoindre", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String sessionId = sessionCodeInput.getText().toString().trim();
-                        String playerName = playerNameInput.getText().toString().trim();
-
-                        if (sessionId.isEmpty() || playerName.isEmpty()) {
-                            Toast.makeText(HomeActivity.this, "Veuillez entrer un code de session et un nom de joueur.", Toast.LENGTH_SHORT).show();
-                        } else {
-                            joinGameSession(sessionId, playerName);
-                        }
+                .setView(dialogView)
+                .setPositiveButton("Rejoindre", (dialog, which) -> {
+                    String sessionId = sessionCodeInput.getText().toString().trim();
+                    String playerName = playerNameInput.getText().toString().trim();
+                    if (sessionId.isEmpty() || playerName.isEmpty()) {
+                        showToast("Veuillez entrer un code de session et un nom de joueur.");
+                    } else {
+                        joinGameSession(sessionId, playerName);
                     }
                 })
-                .setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
+                .setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
 
-        AlertDialog dialog = dialogBuilder.create();
-        dialog.show();
         sessionCodeInput.requestFocus();
     }
 
+    /**
+     * Crée une nouvelle session de jeu avec le nom du joueur hôte.
+     *
+     * @param playerName Nom du joueur qui crée la session.
+     */
     @Override
     public void createGameSession(String playerName) {
         String playerId = UUID.randomUUID().toString();
@@ -138,17 +115,11 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
         GameSession newGameSession = new GameSession(players);
         newGameSession.setSessionId(UUID.randomUUID().toString());
 
-        Call<GameSession> call = apiService.createSession(newGameSession);
-        call.enqueue(new Callback<GameSession>() {
+        apiService.createSession(newGameSession).enqueue(new Callback<GameSession>() {
             @Override
             public void onResponse(Call<GameSession> call, Response<GameSession> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    Intent intent = new Intent(HomeActivity.this, WaitingRoomActivity.class);
-                    intent.putExtra("sessionId", response.body().getSessionId());
-                    intent.putExtra("playerName", hostPlayer.getName());
-                    intent.putExtra("playerId", hostPlayer.getPlayerId());
-                    intent.putExtra("partyName", hostPlayer.getName());
-                    startActivity(intent);
+                    navigateToWaitingRoom(response.body(), hostPlayer);
                 } else {
                     handleApiError(response);
                 }
@@ -156,62 +127,83 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
 
             @Override
             public void onFailure(Call<GameSession> call, Throwable t) {
-                Log.e("API Failure", t.getMessage(), t);
-                Toast.makeText(HomeActivity.this, "Erreur de connexion : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                showErrorToast("Erreur de connexion : " + t.getMessage());
             }
         });
     }
 
+    /**
+     * Rejoint une session de jeu existante avec l'ID de session et le nom du joueur.
+     *
+     * @param sessionId  ID de la session à rejoindre.
+     * @param playerName Nom du joueur rejoignant la session.
+     */
     @Override
     public void joinGameSession(String sessionId, String playerName) {
         String playerId = UUID.randomUUID().toString();
         Player player = new Player(playerId, playerName);
 
-        Call<Void> call = apiService.joinSession(sessionId, player);
-        call.enqueue(new Callback<Void>() {
+        apiService.joinSession(sessionId, player).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    apiService.getSessionById(sessionId).enqueue(new Callback<GameSession>() {
-                        @Override
-                        public void onResponse(Call<GameSession> call, Response<GameSession> response) {
-                            if (response.isSuccessful() && response.body() != null) {
-                                String hostName = response.body().getPlayers().get(0).getName();
-                                Intent intent = new Intent(HomeActivity.this, WaitingRoomActivity.class);
-                                intent.putExtra("sessionId", sessionId);
-                                intent.putExtra("playerName", playerName);
-                                intent.putExtra("playerId", playerId);
-                                intent.putExtra("hostName", hostName);
-                                startActivity(intent);
-                            } else {
-                                Log.e("JoinSession", "Erreur lors de la récupération de la session : " + response.code());
-                                Toast.makeText(HomeActivity.this, "Erreur lors de la récupération de la session", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(Call<GameSession> call, Throwable t) {
-                            Log.e("JoinSession", "Échec de la requête : " + t.getMessage());
-                            Toast.makeText(HomeActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    fetchSessionAndNavigate(sessionId, playerName, playerId);
                 } else {
-                    Log.e("JoinSession", "Erreur lors de l'ajout à la session : " + response.code());
-                    Toast.makeText(HomeActivity.this, "Erreur lors de l'ajout à la session", Toast.LENGTH_SHORT).show();
+                    showErrorToast("Erreur lors de l'ajout à la session.");
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Log.e("JoinSession", "Échec de la requête : " + t.getMessage());
-                Toast.makeText(HomeActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                showErrorToast("Échec de la requête : " + t.getMessage());
             }
         });
     }
 
+    /**
+     * Navigue vers l'activité de salle d'attente.
+     */
+    private void navigateToWaitingRoom(GameSession session, Player hostPlayer) {
+        Intent intent = new Intent(HomeActivity.this, WaitingRoomActivity.class);
+        intent.putExtra("sessionId", session.getSessionId());
+        intent.putExtra("playerName", hostPlayer.getName());
+        intent.putExtra("playerId", hostPlayer.getPlayerId());
+        intent.putExtra("partyName", hostPlayer.getName());
+        startActivity(intent);
+    }
+
+    /**
+     * Récupère la session et navigue vers la salle d'attente.
+     */
+    private void fetchSessionAndNavigate(String sessionId, String playerName, String playerId) {
+        apiService.getSessionById(sessionId).enqueue(new Callback<GameSession>() {
+            @Override
+            public void onResponse(Call<GameSession> call, Response<GameSession> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String hostName = response.body().getPlayers().get(0).getName();
+                    Intent intent = new Intent(HomeActivity.this, WaitingRoomActivity.class);
+                    intent.putExtra("sessionId", sessionId);
+                    intent.putExtra("playerName", playerName);
+                    intent.putExtra("playerId", playerId);
+                    intent.putExtra("hostName", hostName);
+                    startActivity(intent);
+                } else {
+                    showErrorToast("Erreur lors de la récupération de la session.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GameSession> call, Throwable t) {
+                showErrorToast("Échec de la requête : " + t.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Gère les erreurs d'API en fonction de la réponse reçue.
+     */
     @Override
     public void handleApiError(Response<?> response) {
-        Log.e("API Error", "Code: " + response.code() + ", Message: " + response.message());
         try {
             if (response.errorBody() != null) {
                 Log.e("API Error Body", response.errorBody().string());
@@ -219,6 +211,19 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
         } catch (IOException e) {
             Log.e("IOException", e.getMessage(), e);
         }
-        Toast.makeText(HomeActivity.this, "Erreur lors de la création de la partie.", Toast.LENGTH_SHORT).show();
+        showErrorToast("Erreur lors de la création de la partie.");
     }
+
+    /**
+     * Affiche un message d'erreur toast pour l'utilisateur.
+     *
+     * @param message Message d'erreur à afficher.
+     */
+    public void showErrorToast(String message) {
+        Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT).show();
+    }
+    public void showToast(String message) {
+        Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT).show();
+    }
+
 }

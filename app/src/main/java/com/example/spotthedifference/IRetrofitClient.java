@@ -2,15 +2,15 @@ package com.example.spotthedifference;
 
 import retrofit2.Retrofit;
 
-/// <summary>
-/// Interface contenant toutes les méthodes de RetrofitClient.
-/// </summary>
+/**
+ * Interface contenant toutes les méthodes de RetrofitClient.
+ */
 public interface IRetrofitClient {
 
     /**
-     * Obtient une instance de Retrofit configurée pour des requêtes HTTP.
+     * Obtient une instance de Retrofit configurée pour des requêtes HTTP non sécurisées.
      *
-     * @return Une instance de Retrofit non sécurisée (sans vérification SSL).
+     * @return Une instance de Retrofit sans vérification SSL.
      */
     Retrofit getUnsafeRetrofit();
 }

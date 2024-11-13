@@ -14,20 +14,6 @@ public interface IWaitingRoomActivity {
      */
     void loadSessionDetails(String sessionId);
 
-    /**
-     * Met à jour le statut de préparation d'un joueur.
-     *
-     * @param playerId   Identifiant du joueur.
-     * @param playerName Nom du joueur.
-     * @param isReady    Statut de préparation du joueur.
-     */
-    void updatePlayerReadyStatus(String playerId, String playerName, boolean isReady);
-
-    /**
-     * Affiche la liste des joueurs.
-     *
-     * @param players Liste des joueurs à afficher.
-     */
     void displayPlayers(List<Player> players);
 
     /**

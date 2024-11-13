@@ -14,9 +14,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.spotthedifference.WebSocket.SignalRClient;
+
 import java.util.List;
 
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -34,6 +38,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
     private String playerId;
     private boolean isReady = false;
     private SignalRClient signalRClient;
+    private CompositeDisposable disposables = new CompositeDisposable();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,43 +76,41 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         Button copyButton = findViewById(R.id.copyButton);
 
         exitButton.setOnClickListener(v -> deleteSessionAndExit());
-
         readyButton.setOnClickListener(v -> toggleReadyStatus());
-
         copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
 
-        // Écouter les changements de statut de préparation via SignalR
-        signalRClient.getConnection().on("PlayerReadyStatusChanged", (changedPlayerId, newReadyStatus) -> {
-            Log.d("WaitingRoomActivity", "Statut de préparation changé pour " + changedPlayerId + ": " + newReadyStatus);
-            runOnUiThread(() -> updateReadyStatusUI(changedPlayerId, newReadyStatus));
-        }, String.class, Boolean.class);
+        // Gestion des observables de SignalR pour suivre les événements
+        disposables.add(signalRClient.getPlayerJoinedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .subscribe(playerName -> {
+                    Log.d("WaitingRoomActivity", playerName + " a rejoint la session");
+                    runOnUiThread(() -> loadSessionDetails(sessionId));
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerJoined observable", throwable)));
 
-        // Écouter les nouveaux joueurs qui rejoignent via SignalR
-        signalRClient.getConnection().on("PlayerJoined", (newPlayerName) -> {
-            Log.d("WaitingRoomActivity", newPlayerName + " a rejoint la session");
-            runOnUiThread(() -> loadSessionDetails(sessionId));  // Recharge les détails pour inclure le nouveau joueur
-        }, String.class);
+        disposables.add(signalRClient.getPlayerReadyStatusChangedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .subscribe(isReady -> {
+                    Log.d("WaitingRoomActivity", "Statut de préparation mis à jour : " + isReady);
+                    runOnUiThread(() -> updateReadyStatusUI(playerId, isReady));
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur ReadyStatus observable", throwable)));
     }
 
-    /// <summary>
-    /// Bascule le statut de préparation du joueur local et envoie l'information au serveur via SignalR.
-    /// </summary>
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        disposables.clear();  // Libère les observables quand l'activité est détruite
+        signalRClient.stopConnection();
+    }
+
     private void toggleReadyStatus() {
         isReady = !isReady;
-        Log.d("WaitingRoomActivity", "Bouton Prêt cliqué");
-        Log.d("WaitingRoomActivity", "Session ID: " + sessionId);
-        Log.d("WaitingRoomActivity", "Player ID: " + playerId);
-        Log.d("WaitingRoomActivity", "Nouvel état de préparation: " + isReady);
 
         signalRClient.sendReadyStatusUpdate(sessionId, playerId, isReady);
         updateReadyStatusUI(playerId, isReady);
     }
 
-    /// <summary>
-    /// Met à jour l'interface utilisateur pour afficher le statut de préparation d'un joueur.
-    /// </summary>
-    /// <param name="playerId">L'ID du joueur à mettre à jour.</param>
-    /// <param name="isReady">Le nouveau statut de préparation.</param>
     private void updateReadyStatusUI(String playerId, boolean isReady) {
         for (int i = 0; i < playersContainer.getChildCount(); i++) {
             View playerView = playersContainer.getChildAt(i);
@@ -122,10 +125,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         }
     }
 
-    /// <summary>
-    /// Charge les détails de la session, y compris les joueurs, et les affiche dans l'interface.
-    /// </summary>
-    private void loadSessionDetails(String sessionId) {
+    public void loadSessionDetails(String sessionId) {
         apiService.getSessionById(sessionId).enqueue(new Callback<GameSession>() {
             @Override
             public void onResponse(Call<GameSession> call, Response<GameSession> response) {
@@ -137,8 +137,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                         String fullTextParty = getString(R.string.nom_de_la_partie_nom) + " " + hostName;
                         partyNameTextView.setText(fullTextParty);
                     }
-                }
-                else {
+                } else {
                     Log.e("WaitingRoom", "Erreur lors de la récupération des détails de la session : " + response.code());
                 }
             }
@@ -150,10 +149,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         });
     }
 
-    /// <summary>
-    /// Affiche la liste des joueurs dans le conteneur d'interface utilisateur.
-    /// </summary>
-    private void displayPlayers(List<Player> players) {
+    public void displayPlayers(List<Player> players) {
         playersContainer.removeAllViews();
         for (Player player : players) {
             View playerView = LayoutInflater.from(this).inflate(R.layout.player_item, playersContainer, false);
@@ -170,21 +166,14 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         }
     }
 
-
-    /// <summary>
-    /// Copie le texte fourni dans le presse-papiers du téléphone.
-    /// </summary>
-    private void copyToClipboard(String text) {
+    public void copyToClipboard(String text) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Session ID", text);
         clipboard.setPrimaryClip(clip);
         Toast.makeText(this, "Code de session copié", Toast.LENGTH_SHORT).show();
     }
 
-    /// <summary>
-    /// Supprime la session et retourne à l'écran d'accueil.
-    /// </summary>
-    private void deleteSessionAndExit() {
+    public void deleteSessionAndExit() {
         apiService.destructiondeSession(sessionId).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {

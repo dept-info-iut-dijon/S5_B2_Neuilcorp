@@ -1,83 +1,130 @@
 package com.example.spotthedifference.WebSocket;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import com.microsoft.signalr.HubConnection;
 import com.microsoft.signalr.HubConnectionBuilder;
+import com.microsoft.signalr.HubConnectionState;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 
 public class SignalRClient {
 
     private static final String SERVER_URL = "http://203.55.81.18:5195/gameSessionHub";
-
     private HubConnection hubConnection;
+    private Disposable connectionDisposable;
+    private static final boolean DEBUG = true;
+    private int retryCount = 0;
 
-    /// <summary>
-    /// Constructeur de SignalRClient. Initialise la connexion au serveur SignalR.
-    /// </summary>
+    private PublishSubject<String> playerJoinedSubject = PublishSubject.create();
+    private PublishSubject<Boolean> playerReadyStatusChangedSubject = PublishSubject.create();
+
     public SignalRClient() {
-        hubConnection = HubConnectionBuilder.create(SERVER_URL)
-                .build();
+        hubConnection = HubConnectionBuilder.create(SERVER_URL).build();
 
-        // Écoute les événements "PlayerJoined" pour informer que le joueur a rejoint la session
         hubConnection.on("PlayerJoined", (playerName) -> {
-            Log.d("SignalRClient", playerName + " a rejoint la session");
+            playerJoinedSubject.onNext(playerName);
         }, String.class);
 
-        // Écoute les changements de statut "Prêt" pour mettre à jour les autres clients
         hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> {
-            Log.d("SignalRClient", "Statut de préparation mis à jour pour le joueur " + playerId + ": " + isReady);
+            playerReadyStatusChangedSubject.onNext(isReady);
         }, String.class, Boolean.class);
     }
 
-    /// <summary>
-    /// Démarre la connexion WebSocket au serveur SignalR.
-    /// </summary>
     public void startConnection() {
-        hubConnection.start()
-                .subscribeOn(Schedulers.io()) // Exécute la connexion en arrière-plan
-                .doOnComplete(() -> Log.d("SignalRClient", "Connexion WebSocket établie."))
-                .doOnError(error -> Log.e("SignalRClient", "Erreur lors de la connexion WebSocket : " + error.getMessage(), error))
-                .blockingAwait(); // Attendre que la connexion soit établie
+        disposeConnection(); // Nettoie les connexions précédentes
+        connectionDisposable = hubConnection.start()
+                .subscribeOn(Schedulers.io())
+                .doOnComplete(() -> {
+                    log("Connexion établie.", null);
+                    resetReconnectionAttempts();
+                })
+                .doOnError(error -> handleError(error, "startConnection"))
+                .subscribe();
     }
 
-    /// <summary>
-    /// Arrête la connexion WebSocket au serveur SignalR.
-    /// </summary>
+    private void attemptReconnection() {
+        if (!isConnected()) {
+            long delay = Math.min((long) Math.pow(2, retryCount), 60);
+            log("Tentative de reconnexion dans " + delay + " secondes...", null);
+
+            new Handler(Looper.getMainLooper()).postDelayed(this::startConnection, delay * 1000);
+            retryCount++;
+        }
+    }
+
+    private void resetReconnectionAttempts() {
+        retryCount = 0;
+    }
+
+    public boolean isConnected() {
+        return hubConnection != null && hubConnection.getConnectionState() == HubConnectionState.CONNECTED;
+    }
+
     public void stopConnection() {
+        disposeConnection();
         hubConnection.stop()
-                .subscribeOn(Schedulers.io()) // Assure que l'arrêt est aussi asynchrone
-                .doOnComplete(() -> Log.d("SignalRClient", "Connexion WebSocket fermée."))
+                .subscribeOn(Schedulers.io())
+                .doOnComplete(() -> log("Connexion fermée.", null))
                 .blockingAwait();
     }
 
-    /// <summary>
-    /// Rejoint un groupe de session spécifique sur le serveur.
-    /// </summary>
     public void joinSessionGroup(String sessionId) {
-        hubConnection.send("JoinSessionGroup", sessionId);
+        if (isConnected()) {
+            hubConnection.send("JoinSessionGroup", sessionId);
+        } else {
+            log("Connexion inactive, impossible de rejoindre le groupe.", null);
+            attemptReconnection();
+        }
     }
 
-    /// <summary>
-    /// Notifie le serveur que le joueur a rejoint la session.
-    /// </summary>
     public void notifyPlayerJoined(String sessionId, String playerName) {
-        hubConnection.send("PlayerJoined", sessionId, playerName);
+        if (isConnected()) {
+            hubConnection.send("PlayerJoined", sessionId, playerName);
+        } else {
+            log("Connexion inactive, impossible d'envoyer la notification.", null);
+            attemptReconnection();
+        }
     }
 
-    /**
-     * Envoie la mise à jour du statut de préparation d'un joueur au serveur.
-     *
-     * @param sessionId L'ID de la session de jeu.
-     * @param playerId  L'ID du joueur dont le statut est modifié.
-     * @param isReady   Le statut de préparation du joueur.
-     */
     public void sendReadyStatusUpdate(String sessionId, String playerId, boolean isReady) {
-        Log.d("SignalRClient", "Envoi de la mise à jour de préparation pour " + playerId + " à " + isReady);
-        hubConnection.send("SetPlayerReadyStatus", sessionId, playerId, isReady);
+        if (isConnected()) {
+            hubConnection.send("SetPlayerReadyStatus", sessionId, playerId, isReady);
+        } else {
+            log("Connexion inactive, impossible d'envoyer le statut de préparation.", null);
+            attemptReconnection();
+        }
     }
 
-
-    public HubConnection getConnection() {
-        return hubConnection;
+    private void handleError(Throwable error, String context) {
+        log("Erreur dans " + context + ": " + error.getMessage(), error);
+        attemptReconnection();
     }
+
+    private void log(String message, Throwable t) {
+        if (DEBUG) {
+            if (t != null) {
+                Log.e("SignalRClient", message, t);
+            } else {
+                Log.d("SignalRClient", message);
+            }
+        }
+    }
+
+    public PublishSubject<String> getPlayerJoinedObservable() {
+        return playerJoinedSubject;
+    }
+
+    public PublishSubject<Boolean> getPlayerReadyStatusChangedObservable() {
+        return playerReadyStatusChangedSubject;
+    }
+
+    private void disposeConnection() {
+        if (connectionDisposable != null && !connectionDisposable.isDisposed()) {
+            connectionDisposable.dispose();
+        }
+    }
+
 }

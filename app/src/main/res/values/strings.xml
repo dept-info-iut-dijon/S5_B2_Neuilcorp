@@ -14,6 +14,8 @@
     <string name="mode_chronometre">Mode chronométré</string>
     <string name="nombre_de_joueurs">Nombre de joueurs :</string>
     <string name="pret">Prêt</string>
+    <string name="pas_pret">Pas prêt</string>
+
     <string name="joueur_1">Joueur 1 : </string>
     <string name="joueur_2">Joueur 2 : </string>
     <string name="joueur_3">Joueur 3 : </string>
@@ -24,7 +26,7 @@
     <string name="joueur_8">Joueur 8 : </string>
     <string name="joueur_9">Joueur 9 : </string>
     <string name="joueur_10">Joueur 10 : </string>
-    <string name="pas_pret">Pas prêt</string>
+
     <string name="quitter_la_partie">Quitter</string>
     <string name="nombre_de_joueurs_titre">Nombre de joueurs :</string>
     <string name="nombre_de_joueurs_hint">Saisir un nombre entre 2 et 10</string>

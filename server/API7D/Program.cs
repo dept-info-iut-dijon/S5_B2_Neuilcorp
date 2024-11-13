@@ -1,9 +1,11 @@
 using API7D.Metier;
+using API7D.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddSingleton<SessionService>();
 
 // Ajout de SignalR pour la communication en temps réel
 builder.Services.AddSignalR();
@@ -33,7 +35,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 // Utilisation de CORS
 app.UseCors("AllowAllOrigins");

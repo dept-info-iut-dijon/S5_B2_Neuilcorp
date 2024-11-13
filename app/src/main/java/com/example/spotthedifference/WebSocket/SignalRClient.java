@@ -8,33 +8,36 @@ import com.microsoft.signalr.HubConnectionBuilder;
 import com.microsoft.signalr.HubConnectionState;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.BehaviorSubject;
 
 public class SignalRClient {
 
     private static final String SERVER_URL = "http://203.55.81.18:5195/gameSessionHub";
+    private static final boolean DEBUG = true;
+    private static final int MAX_RETRY_COUNT = 5;
+
     private HubConnection hubConnection;
     private Disposable connectionDisposable;
-    private static final boolean DEBUG = true;
     private int retryCount = 0;
 
-    private PublishSubject<String> playerJoinedSubject = PublishSubject.create();
-    private PublishSubject<Boolean> playerReadyStatusChangedSubject = PublishSubject.create();
+    private BehaviorSubject<String> playerJoinedSubject = BehaviorSubject.create();
+    private BehaviorSubject<Boolean> playerReadyStatusChangedSubject = BehaviorSubject.create();
 
+    /**
+     * Constructeur de SignalRClient. Initialise la connexion au serveur SignalR et
+     * configure les événements pour écouter les changements de statut des joueurs.
+     */
     public SignalRClient() {
         hubConnection = HubConnectionBuilder.create(SERVER_URL).build();
-
-        hubConnection.on("PlayerJoined", (playerName) -> {
-            playerJoinedSubject.onNext(playerName);
-        }, String.class);
-
-        hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> {
-            playerReadyStatusChangedSubject.onNext(isReady);
-        }, String.class, Boolean.class);
+        hubConnection.on("PlayerJoined", playerName -> playerJoinedSubject.onNext(playerName), String.class);
+        hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> playerReadyStatusChangedSubject.onNext(isReady), String.class, Boolean.class);
     }
 
+    /**
+     * Démarre la connexion WebSocket au serveur SignalR avec gestion de la reconnexion.
+     */
     public void startConnection() {
-        disposeConnection(); // Nettoie les connexions précédentes
+        disposeConnection();
         connectionDisposable = hubConnection.start()
                 .subscribeOn(Schedulers.io())
                 .doOnComplete(() -> {
@@ -45,24 +48,40 @@ public class SignalRClient {
                 .subscribe();
     }
 
+    /**
+     * Tente une reconnexion automatique en cas de déconnexion, avec un délai croissant.
+     */
     private void attemptReconnection() {
-        if (!isConnected()) {
-            long delay = Math.min((long) Math.pow(2, retryCount), 60);
+        if (!isConnected() && retryCount < MAX_RETRY_COUNT) {
+            long delay = Math.min((long) Math.pow(2, retryCount), 60); // délai max de 60sec
             log("Tentative de reconnexion dans " + delay + " secondes...", null);
 
             new Handler(Looper.getMainLooper()).postDelayed(this::startConnection, delay * 1000);
             retryCount++;
+        } else if (retryCount >= MAX_RETRY_COUNT) {
+            log("Échec de la reconnexion après " + MAX_RETRY_COUNT + " tentatives.", null);
         }
     }
 
+    /**
+     * Réinitialise le compteur de tentatives de reconnexion après une connexion réussie.
+     */
     private void resetReconnectionAttempts() {
         retryCount = 0;
     }
 
+    /**
+     * Vérifie si la connexion SignalR est active.
+     *
+     * @return true si la connexion est active, false sinon.
+     */
     public boolean isConnected() {
         return hubConnection != null && hubConnection.getConnectionState() == HubConnectionState.CONNECTED;
     }
 
+    /**
+     * Arrête la connexion WebSocket au serveur SignalR.
+     */
     public void stopConnection() {
         disposeConnection();
         hubConnection.stop()
@@ -71,6 +90,11 @@ public class SignalRClient {
                 .blockingAwait();
     }
 
+    /**
+     * Rejoint un groupe de session spécifique sur le serveur si la connexion est active.
+     *
+     * @param sessionId L'identifiant de la session à rejoindre.
+     */
     public void joinSessionGroup(String sessionId) {
         if (isConnected()) {
             hubConnection.send("JoinSessionGroup", sessionId);
@@ -80,6 +104,12 @@ public class SignalRClient {
         }
     }
 
+    /**
+     * Notifie le serveur que le joueur a rejoint la session, si la connexion est active.
+     *
+     * @param sessionId  L'identifiant de la session.
+     * @param playerName Le nom du joueur rejoignant la session.
+     */
     public void notifyPlayerJoined(String sessionId, String playerName) {
         if (isConnected()) {
             hubConnection.send("PlayerJoined", sessionId, playerName);
@@ -89,6 +119,13 @@ public class SignalRClient {
         }
     }
 
+    /**
+     * Envoie la mise à jour du statut de préparation d'un joueur au serveur, si la connexion est active.
+     *
+     * @param sessionId L'identifiant de la session de jeu.
+     * @param playerId  L'identifiant du joueur.
+     * @param isReady   Statut de préparation du joueur.
+     */
     public void sendReadyStatusUpdate(String sessionId, String playerId, boolean isReady) {
         if (isConnected()) {
             hubConnection.send("SetPlayerReadyStatus", sessionId, playerId, isReady);
@@ -98,11 +135,23 @@ public class SignalRClient {
         }
     }
 
+    /**
+     * Gère les erreurs survenant lors des tentatives de connexion et lance une reconnexion.
+     *
+     * @param error   L'erreur rencontrée.
+     * @param context Le contexte dans lequel l'erreur s'est produite (nom de la méthode).
+     */
     private void handleError(Throwable error, String context) {
         log("Erreur dans " + context + ": " + error.getMessage(), error);
         attemptReconnection();
     }
 
+    /**
+     * Méthode de log centralisée pour gérer les messages de débogage et d'erreur.
+     *
+     * @param message Le message à loguer.
+     * @param t       Une exception associée, si applicable.
+     */
     private void log(String message, Throwable t) {
         if (DEBUG) {
             if (t != null) {
@@ -113,18 +162,30 @@ public class SignalRClient {
         }
     }
 
-    public PublishSubject<String> getPlayerJoinedObservable() {
+    /**
+     * Retourne un observable pour les événements de joueurs rejoignant la session.
+     *
+     * @return Un BehaviorSubject émettant les noms des joueurs qui rejoignent.
+     */
+    public BehaviorSubject<String> getPlayerJoinedObservable() {
         return playerJoinedSubject;
     }
 
-    public PublishSubject<Boolean> getPlayerReadyStatusChangedObservable() {
+    /**
+     * Retourne un observable pour les changements de statut de préparation des joueurs.
+     *
+     * @return Un BehaviorSubject émettant les statuts de préparation des joueurs.
+     */
+    public BehaviorSubject<Boolean> getPlayerReadyStatusChangedObservable() {
         return playerReadyStatusChangedSubject;
     }
 
+    /**
+     * Libère les ressources de la connexion en arrêtant tout abonnement en cours.
+     */
     private void disposeConnection() {
         if (connectionDisposable != null && !connectionDisposable.isDisposed()) {
             connectionDisposable.dispose();
         }
     }
-
 }

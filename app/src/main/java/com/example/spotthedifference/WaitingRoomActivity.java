@@ -45,32 +45,41 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_waiting_room);
 
+        // Initialisation des éléments de l'interface utilisateur
         sessionCodeTextView = findViewById(R.id.sessionCode);
         partyNameTextView = findViewById(R.id.partyName);
         playerNameTextView = findViewById(R.id.playerName);
         playersContainer = findViewById(R.id.playersContainer);
 
+        // Configuration de Retrofit pour les appels API
         IRetrofitClient client = new RetrofitClient();
         Retrofit retrofit = client.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
 
+        // Récupération des informations passées via Intent
         sessionId = getIntent().getStringExtra("sessionId");
         playerName = getIntent().getStringExtra("playerName");
         playerId = getIntent().getStringExtra("playerId");
 
+        // Initialisation du client SignalR et démarrage de la connexion
         signalRClient = new SignalRClient();
         signalRClient.startConnection();
 
+        // Rejoindre le groupe de session SignalR
         signalRClient.joinSessionGroup(sessionId);
 
+        // Affichage du code de session
         if (sessionId != null) {
             sessionCodeTextView.setText(getString(R.string.code_de_session) + " " + sessionId);
         }
 
+        // Affichage du nom du joueur
         playerNameTextView.setText(getString(R.string.nom_du_joueur) + " " + playerName);
 
+        // Chargement des détails de la session
         loadSessionDetails(sessionId);
 
+        // Configuration des boutons
         Button exitButton = findViewById(R.id.exitButton);
         Button readyButton = findViewById(R.id.readyButton);
         Button copyButton = findViewById(R.id.copyButton);
@@ -104,13 +113,21 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         signalRClient.stopConnection();
     }
 
+    /**
+     * Bascule le statut de préparation du joueur local et envoie l'information via SignalR.
+     */
     private void toggleReadyStatus() {
         isReady = !isReady;
-
         signalRClient.sendReadyStatusUpdate(sessionId, playerId, isReady);
         updateReadyStatusUI(playerId, isReady);
     }
 
+    /**
+     * Met à jour l'interface utilisateur pour afficher le statut de préparation d'un joueur.
+     *
+     * @param playerId L'ID du joueur à mettre à jour.
+     * @param isReady  Le nouveau statut de préparation.
+     */
     private void updateReadyStatusUI(String playerId, boolean isReady) {
         for (int i = 0; i < playersContainer.getChildCount(); i++) {
             View playerView = playersContainer.getChildAt(i);
@@ -125,6 +142,11 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         }
     }
 
+    /**
+     * Charge les détails de la session, y compris la liste des joueurs.
+     *
+     * @param sessionId Identifiant de la session.
+     */
     public void loadSessionDetails(String sessionId) {
         apiService.getSessionById(sessionId).enqueue(new Callback<GameSession>() {
             @Override
@@ -149,6 +171,11 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         });
     }
 
+    /**
+     * Affiche la liste des joueurs dans l'interface utilisateur.
+     *
+     * @param players Liste des joueurs à afficher.
+     */
     public void displayPlayers(List<Player> players) {
         playersContainer.removeAllViews();
         for (Player player : players) {
@@ -166,6 +193,11 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         }
     }
 
+    /**
+     * Copie le texte dans le presse-papiers du téléphone.
+     *
+     * @param text Texte à copier.
+     */
     public void copyToClipboard(String text) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Session ID", text);
@@ -173,6 +205,9 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         Toast.makeText(this, "Code de session copié", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Supprime la session actuelle et retourne à l'écran d'accueil.
+     */
     public void deleteSessionAndExit() {
         apiService.destructiondeSession(sessionId).enqueue(new Callback<Void>() {
             @Override

@@ -1,5 +1,6 @@
 package com.example.spotthedifference
 
+import com.example.spotthedifference.data.model.Coordonnees
 import org.junit.Test
 import org.junit.Assert.*
 
@@ -11,7 +12,8 @@ class CoordonneesTest {
     /// </summary>
     @Test
     fun testCoordinateInitialization() {
-        val coordinates = Coordonnees(10, 20)
+        val coordinates =
+            Coordonnees(10, 20)
         assertEquals(10, coordinates.x)
         assertEquals(20, coordinates.y)
     }

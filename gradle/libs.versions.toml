@@ -13,6 +13,8 @@ constraintlayout = "2.1.4"
 junitJunit = "4.12"
 mockitoCore = "3.12.4"
 mockitoInline = "3.12.4"
+material = "1.10.0"
+activity = "1.8.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +36,8 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 junit-junit = { group = "junit", name = "junit", version.ref = "junitJunit" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInline" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

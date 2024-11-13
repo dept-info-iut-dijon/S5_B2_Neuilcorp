@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.ui.activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,6 +13,12 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.spotthedifference.R;
+import com.example.spotthedifference.data.model.GameSession;
+import com.example.spotthedifference.data.model.Player;
+import com.example.spotthedifference.data.network.ApiService;
+import com.example.spotthedifference.data.network.RetrofitClient;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +28,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-
+/**
+ * Activité principale de l'application, offrant les options pour créer ou rejoindre une session de jeu.
+ */
 public class HomeActivity extends AppCompatActivity {
 
     private ApiService apiService;
@@ -37,6 +45,7 @@ public class HomeActivity extends AppCompatActivity {
 
         Button createGameButton = findViewById(R.id.createGameButton);
         Button joinGameButton = findViewById(R.id.joinGameButton);
+        Button showScoresButton = findViewById(R.id.showScoresButton);
 
         createGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -49,6 +58,14 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 showJoinGameDialog();
+            }
+        });
+
+        showScoresButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, ImagesActivity.class);
+                startActivity(intent);
             }
         });
     }

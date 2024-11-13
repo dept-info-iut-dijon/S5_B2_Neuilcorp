@@ -1,7 +1,7 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.data.network;
 
 import java.security.cert.CertificateException;
-import javax.net.ssl.HostnameVerifier;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -9,8 +9,18 @@ import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/**
+ * Classe utilitaire pour configurer un client Retrofit permettant de se connecter à un serveur avec une gestion personnalisée de SSL.
+ * Permet de contourner les erreurs SSL en ignorant les certificats non vérifiés, à utiliser uniquement pour des tests.
+ */
 public class RetrofitClient {
 
+    /**
+     * Crée et retourne une instance de Retrofit qui ignore les erreurs SSL.
+     * Ce client accepte tous les certificats et noms d'hôte sans vérification de sécurité.
+     *
+     * @return Instance Retrofit configurée pour accepter les connexions non sécurisées.
+     */
     public static Retrofit getUnsafeRetrofit() {
         try {
             // Création d'un trust manager qui ignore les erreurs SSL

@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.ui.activity;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,26 +14,23 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.example.spotthedifference.ui.util.ImageConverter;
+import com.example.spotthedifference.ui.util.ImageDisplayer;
+import com.example.spotthedifference.R;
+import com.example.spotthedifference.data.model.Coordonnees;
+import com.example.spotthedifference.data.network.ApiService;
+import com.example.spotthedifference.data.network.RetrofitClient;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
-import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 /// <summary>
 /// Classe principale de l'application.

@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.data.network;
 
 import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLContext;
@@ -6,7 +6,19 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+
+/**
+ * Classe utilitaire fournissant un `SSLSocketFactory` non sécurisé,
+ * permettant d'ignorer les vérifications de certificats SSL.
+ */
 public class UnsafeSSLSocketFactory {
+
+    /**
+     * Retourne une instance de `SSLSocketFactory` qui ignore les erreurs SSL,
+     * acceptant ainsi tous les certificats sans vérification.
+     *
+     * @return SSLSocketFactory configuré pour accepter toutes les connexions SSL sans vérification de certificat.
+     */
     public static SSLSocketFactory getUnsafeSSLSocketFactory() {
         try {
             TrustManager[] trustAllCerts = new TrustManager[] {

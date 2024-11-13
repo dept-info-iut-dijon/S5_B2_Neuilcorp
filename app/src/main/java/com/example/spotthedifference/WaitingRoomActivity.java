@@ -5,7 +5,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import com.example.spotthedifference.WebSocket.SignalRClient;
 import java.util.List;
 
 import retrofit2.Call;
@@ -31,11 +31,9 @@ public class WaitingRoomActivity extends AppCompatActivity {
     private ApiService apiService;
     private String sessionId;
     private String playerName;
-    private String hostName;
     private String playerId;
     private boolean isReady = false;
-    private Handler handler = new Handler();
-    private Runnable refreshPlayerListRunnable;
+    private SignalRClient signalRClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,29 +50,18 @@ public class WaitingRoomActivity extends AppCompatActivity {
 
         sessionId = getIntent().getStringExtra("sessionId");
         playerName = getIntent().getStringExtra("playerName");
-        hostName = getIntent().getStringExtra("hostName");
         playerId = getIntent().getStringExtra("playerId");
 
+        signalRClient = new SignalRClient();
+        signalRClient.startConnection();
+
+        signalRClient.joinSessionGroup(sessionId);
+
         if (sessionId != null) {
-            String fullText = getString(R.string.code_de_session) + " " + sessionId;
-            sessionCodeTextView.setText(fullText);
-        } else {
-            sessionCodeTextView.setText(R.string.error_no_session_id);
+            sessionCodeTextView.setText(getString(R.string.code_de_session) + " " + sessionId);
         }
 
-        if (hostName != null) {
-            String fullTextHost = getString(R.string.nom_joueur_hote) + " " + hostName;
-            playerNameTextView.setText(fullTextHost);
-        } else {
-            playerNameTextView.setText(R.string.error_no_host_name);
-        }
-
-        if (playerName != null) {
-            String fullTextName = getString(R.string.nom_du_joueur) + " " + playerName;
-            playerNameTextView.setText(fullTextName);
-        } else {
-            playerNameTextView.setText(R.string.error_no_host_name);
-        }
+        playerNameTextView.setText(getString(R.string.nom_du_joueur) + " " + playerName);
 
         loadSessionDetails(sessionId);
 
@@ -82,86 +69,69 @@ public class WaitingRoomActivity extends AppCompatActivity {
         Button readyButton = findViewById(R.id.readyButton);
         Button copyButton = findViewById(R.id.copyButton);
 
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deleteSessionAndExit();
-            }
-        });
+        exitButton.setOnClickListener(v -> deleteSessionAndExit());
 
-        readyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isReady = !isReady;
-                Log.d("WaitingRoom", "Ready button clicked, new state: " + isReady);
-                updatePlayerReadyStatus(playerId, playerName, isReady);
-            }
-        });
+        readyButton.setOnClickListener(v -> toggleReadyStatus());
 
-        copyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                copyToClipboard(sessionId);
-            }
-        });
+        copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
 
-        startPeriodicPlayerListRefresh();
+        // Écouter les changements de statut de préparation via SignalR
+        signalRClient.getConnection().on("PlayerReadyStatusChanged", (changedPlayerId, newReadyStatus) -> {
+            Log.d("WaitingRoomActivity", "Statut de préparation changé pour " + changedPlayerId + ": " + newReadyStatus);
+            runOnUiThread(() -> updateReadyStatusUI(changedPlayerId, newReadyStatus));
+        }, String.class, Boolean.class);
+
+        // Écouter les nouveaux joueurs qui rejoignent via SignalR
+        signalRClient.getConnection().on("PlayerJoined", (newPlayerName) -> {
+            Log.d("WaitingRoomActivity", newPlayerName + " a rejoint la session");
+            runOnUiThread(() -> loadSessionDetails(sessionId));  // Recharge les détails pour inclure le nouveau joueur
+        }, String.class);
     }
 
-    private void updatePlayerReadyStatus(String playerId, String playerName, boolean isReady) {
-        Log.d("WaitingRoom", "Sending ready status: " + isReady + " for playerId: " + playerId);
-        Player player = new Player(playerId, playerName);
-        player.setReady(isReady);
+    /// <summary>
+    /// Bascule le statut de préparation du joueur local et envoie l'information au serveur via SignalR.
+    /// </summary>
+    private void toggleReadyStatus() {
+        isReady = !isReady;
+        Log.d("WaitingRoomActivity", "Bouton Prêt cliqué");
+        Log.d("WaitingRoomActivity", "Session ID: " + sessionId);
+        Log.d("WaitingRoomActivity", "Player ID: " + playerId);
+        Log.d("WaitingRoomActivity", "Nouvel état de préparation: " + isReady);
 
-        apiService.setPlayerReadyStatus(sessionId, playerId, player).enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    Log.d("WaitingRoom", "Statut de préparation mis à jour avec succès");
-                    loadSessionDetails(sessionId);
-                } else {
-                    Log.e("WaitingRoom", "Erreur lors de la mise à jour du statut : " + response.code());
-                    Log.e("WaitingRoom", "Message: " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Log.e("WaitingRoom", "Échec de la requête : " + t.getMessage());
-            }
-        });
+        signalRClient.sendReadyStatusUpdate(sessionId, playerId, isReady);
+        updateReadyStatusUI(playerId, isReady);
     }
 
 
-    private void updatePlayerStatusUI(Player player) {
+    /// <summary>
+    /// Met à jour l'interface utilisateur pour afficher le statut de préparation d'un joueur.
+    /// </summary>
+    /// <param name="playerId">L'ID du joueur à mettre à jour.</param>
+    /// <param name="isReady">Le nouveau statut de préparation.</param>
+    private void updateReadyStatusUI(String playerId, boolean isReady) {
         for (int i = 0; i < playersContainer.getChildCount(); i++) {
             View playerView = playersContainer.getChildAt(i);
             TextView playerNameView = playerView.findViewById(R.id.playerName);
             TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
 
-            if (playerNameView.getText().toString().equals(player.getName())) {
-                playerStatusView.setText(player.isReady() ? "Prêt" : "Pas prêt");
-                playerStatusView.setTextColor(player.isReady() ?
-                        getResources().getColor(R.color.success_color) :
-                        getResources().getColor(R.color.error_color));
+            if (playerNameView.getTag().equals(playerId)) {
+                playerStatusView.setText(isReady ? R.string.pret : R.string.pas_pret);
+                playerStatusView.setTextColor(isReady ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
+                break;
             }
         }
     }
 
+    /// <summary>
+    /// Charge les détails de la session, y compris les joueurs, et les affiche dans l'interface.
+    /// </summary>
     private void loadSessionDetails(String sessionId) {
         apiService.getSessionById(sessionId).enqueue(new Callback<GameSession>() {
             @Override
             public void onResponse(Call<GameSession> call, Response<GameSession> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    GameSession session = response.body();
-                    List<Player> players = session.getPlayers();
+                    List<Player> players = response.body().getPlayers();
                     displayPlayers(players);
-
-                    if (!players.isEmpty()) {
-                        String hostName = players.get(0).getName();
-                        String fullTextParty = getString(R.string.nom_de_la_partie_nom) + " " + hostName;
-                        partyNameTextView.setText(fullTextParty);
-                    }
                 } else {
                     Log.e("WaitingRoom", "Erreur lors de la récupération des détails de la session : " + response.code());
                 }
@@ -174,6 +144,9 @@ public class WaitingRoomActivity extends AppCompatActivity {
         });
     }
 
+    /// <summary>
+    /// Affiche la liste des joueurs dans le conteneur d'interface utilisateur.
+    /// </summary>
     private void displayPlayers(List<Player> players) {
         playersContainer.removeAllViews();
 
@@ -183,15 +156,17 @@ public class WaitingRoomActivity extends AppCompatActivity {
             TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
 
             playerNameView.setText(player.getName());
-            playerStatusView.setText(player.isReady() ? "Prêt" : "Pas prêt");
-            playerStatusView.setTextColor(player.isReady() ?
-                    getResources().getColor(R.color.success_color) :
-                    getResources().getColor(R.color.error_color));
+            playerNameView.setTag(player.getPlayerId());
+            playerStatusView.setText(player.isReady() ? R.string.pret : R.string.pas_pret);
+            playerStatusView.setTextColor(player.isReady() ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
 
             playersContainer.addView(playerView);
         }
     }
 
+    /// <summary>
+    /// Copie le texte fourni dans le presse-papiers du téléphone.
+    /// </summary>
     private void copyToClipboard(String text) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Session ID", text);
@@ -199,48 +174,24 @@ public class WaitingRoomActivity extends AppCompatActivity {
         Toast.makeText(this, "Code de session copié dans le presse-papier", Toast.LENGTH_SHORT).show();
     }
 
+    /// <summary>
+    /// Supprime la session et retourne à l'écran d'accueil.
+    /// </summary>
     private void deleteSessionAndExit() {
         apiService.destructiondeSession(sessionId).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Log.d("WaitingRoom", "Session deleted successfully");
-                    Intent intent = new Intent(WaitingRoomActivity.this, HomeActivity.class);
-                    startActivity(intent);
+                    startActivity(new Intent(WaitingRoomActivity.this, HomeActivity.class));
                 } else {
-                    Log.e("WaitingRoom", "Error deleting session: " + response.code() + " " + response.message());
                     Toast.makeText(WaitingRoomActivity.this, "Erreur lors de la suppression de la session", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Log.e("WaitingRoom", "Request failed: " + t.getMessage());
                 Toast.makeText(WaitingRoomActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        stopPeriodicPlayerListRefresh();
-    }
-
-    private void startPeriodicPlayerListRefresh() {
-        refreshPlayerListRunnable = new Runnable() {
-            @Override
-            public void run() {
-                loadSessionDetails(sessionId);
-                handler.postDelayed(this, 5000);
-            }
-        };
-        handler.post(refreshPlayerListRunnable);
-    }
-
-    private void stopPeriodicPlayerListRefresh() {
-        if (refreshPlayerListRunnable != null) {
-            handler.removeCallbacks(refreshPlayerListRunnable);
-        }
     }
 }

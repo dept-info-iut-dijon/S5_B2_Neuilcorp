@@ -22,7 +22,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class WaitingRoomActivity extends AppCompatActivity {
+public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRoomActivity {
 
     private TextView sessionCodeTextView;
     private TextView partyNameTextView;
@@ -45,7 +45,8 @@ public class WaitingRoomActivity extends AppCompatActivity {
         playerNameTextView = findViewById(R.id.playerName);
         playersContainer = findViewById(R.id.playersContainer);
 
-        Retrofit retrofit = RetrofitClient.getUnsafeRetrofit();
+        IRetrofitClient client = new RetrofitClient();
+        Retrofit retrofit = client.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
 
         sessionId = getIntent().getStringExtra("sessionId");
@@ -102,7 +103,6 @@ public class WaitingRoomActivity extends AppCompatActivity {
         updateReadyStatusUI(playerId, isReady);
     }
 
-
     /// <summary>
     /// Met à jour l'interface utilisateur pour afficher le statut de préparation d'un joueur.
     /// </summary>
@@ -155,13 +155,13 @@ public class WaitingRoomActivity extends AppCompatActivity {
     /// </summary>
     private void displayPlayers(List<Player> players) {
         playersContainer.removeAllViews();
-
         for (Player player : players) {
             View playerView = LayoutInflater.from(this).inflate(R.layout.player_item, playersContainer, false);
             TextView playerNameView = playerView.findViewById(R.id.playerName);
             TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
 
             playerNameView.setText(player.getName());
+
             playerNameView.setTag(player.getPlayerId());
             playerStatusView.setText(player.isReady() ? R.string.pret : R.string.pas_pret);
             playerStatusView.setTextColor(player.isReady() ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
@@ -170,6 +170,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
         }
     }
 
+
     /// <summary>
     /// Copie le texte fourni dans le presse-papiers du téléphone.
     /// </summary>
@@ -177,7 +178,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Session ID", text);
         clipboard.setPrimaryClip(clip);
-        Toast.makeText(this, "Code de session copié dans le presse-papier", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Code de session copié", Toast.LENGTH_SHORT).show();
     }
 
     /// <summary>

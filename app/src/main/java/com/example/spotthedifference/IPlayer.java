@@ -1,22 +1,49 @@
 package com.example.spotthedifference;
 
+/// <summary>
+/// Interface contenant toutes les méthodes de Player.
+/// </summary>
 public interface IPlayer {
 
-    // Méthode pour obtenir l'ID du joueur
+    /**
+     * Obtient l'identifiant du joueur.
+     *
+     * @return L'ID du joueur.
+     */
     String getPlayerId();
 
-    // Méthode pour définir l'ID du joueur
+    /**
+     * Définit l'identifiant du joueur.
+     *
+     * @param playerId L'ID du joueur.
+     */
     void setPlayerId(String playerId);
 
-    // Méthode pour obtenir le nom du joueur
+    /**
+     * Obtient le nom du joueur.
+     *
+     * @return Le nom du joueur.
+     */
     String getName();
 
-    // Méthode pour définir le nom du joueur
+    /**
+     * Définit le nom du joueur.
+     *
+     * @param name Le nom du joueur.
+     */
     void setName(String name);
 
-    // Méthode pour vérifier si le joueur est prêt
+    /**
+     * Vérifie si le joueur est prêt.
+     *
+     * @return Vrai si le joueur est prêt, sinon faux.
+     */
     boolean isReady();
 
-    // Méthode pour définir l'état de préparation du joueur
+    /**
+     * Définit l'état de préparation du joueur.
+     *
+     * @param ready Vrai si le joueur est prêt, sinon faux.
+     */
     void setReady(boolean ready);
 }

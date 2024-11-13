@@ -2,6 +2,9 @@ package com.example.spotthedifference;
 
 import java.util.List;
 
+/// <summary>
+/// Interface contenant  toutes les méthodes de WaitingRoomActivity.
+/// </summary>
 public interface IWaitingRoomActivity {
 
     /**

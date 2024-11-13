@@ -79,6 +79,11 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             public void onResponse(Call<GameSession> call, Response<GameSession> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     GameSession session = response.body();
+
+                    sessionCodeTextView.setText("Code de session : " + session.getSessionId());
+                    partyNameTextView.setText("Partie de : " + hostName);
+                    playerNameTextView.setText("Votre nom : " + playerName);
+
                     displayPlayers(session.getPlayers());
                 } else {
                     Log.e("WaitingRoom", "Erreur lors de la récupération des détails de la session : " + response.code());

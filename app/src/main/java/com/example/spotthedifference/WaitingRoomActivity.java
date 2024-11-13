@@ -132,7 +132,13 @@ public class WaitingRoomActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Player> players = response.body().getPlayers();
                     displayPlayers(players);
-                } else {
+                    if (!players.isEmpty()) {
+                        String hostName = players.get(0).getName();
+                        String fullTextParty = getString(R.string.nom_de_la_partie_nom) + " " + hostName;
+                        partyNameTextView.setText(fullTextParty);
+                    }
+                }
+                else {
                     Log.e("WaitingRoom", "Erreur lors de la récupération des détails de la session : " + response.code());
                 }
             }

@@ -11,11 +11,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Image\2.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Database\" />
   </ItemGroup>
 
 </Project>

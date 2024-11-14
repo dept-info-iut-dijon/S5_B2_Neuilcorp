@@ -3,6 +3,10 @@ using System.Threading.Tasks;
 using API7D.objet;
 using API7D.Services;
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using API7D.DATA;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API7D.Metier
 {
@@ -12,63 +16,78 @@ namespace API7D.Metier
     public class GameSessionHub : Hub
     {
         private readonly SessionService _sessionService;
+        private readonly ImageDATA _imageService;
+        private static readonly Dictionary<string, (byte[] Image1, byte[] Image2)> ImagePairs = new();
 
         /// <summary>
         /// Initialise une nouvelle instance de <see cref="GameSessionHub"/>.
         /// </summary>
-        /// <param name="sessionService">Service de gestion des sessions de jeu.</param>
-        public GameSessionHub(SessionService sessionService)
+        public GameSessionHub(SessionService sessionService, ImageDATA imageService)
         {
             _sessionService = sessionService;
+            _imageService = imageService;
         }
 
         /// <summary>
-        /// Permet à un client de rejoindre un groupe de session spécifique.
+        /// Permet à l'hôte de choisir une paire d'images pour la session.
         /// </summary>
-        /// <param name="sessionId">L'ID de la session de jeu à rejoindre.</param>
-        public async Task JoinSessionGroup(string sessionId)
+        public void ChooseImagePair(string sessionId, int imagePaireId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
+            var imagePair = _imageService.GetImagePair(imagePaireId);
+            ImagePairs[sessionId] = imagePair;
         }
 
         /// <summary>
-        /// Notifie tous les clients d'une session que le joueur a rejoint la session.
+        /// Vérifie si tous les joueurs sont prêts, puis envoie une image aléatoire de la paire à chaque joueur.
         /// </summary>
-        /// <param name="sessionId">L'ID de la session de jeu.</param>
-        /// <param name="playerName">Le nom du joueur qui a rejoint.</param>
-        public async Task PlayerJoined(string sessionId, string playerName)
+        public async Task SendImagesToPlayersIfAllReady(string sessionId)
         {
-            await Clients.Group(sessionId).SendAsync("PlayerJoined", playerName);
-        }
+            GameSession session = _sessionService.GetSessionById(sessionId);
 
-        /// <summary>
-        /// Définit le statut de préparation d'un joueur et notifie les clients.
-        /// </summary>
-        /// <param name="sessionId">L'ID de la session de jeu.</param>
-        /// <param name="playerId">L'ID du joueur dont le statut est mis à jour.</param>
-        /// <param name="isReady">Le statut de préparation.</param>
-        public async Task SetPlayerReadyStatus(string sessionId, string playerId, bool isReady)
-        {
-            Console.WriteLine($"Requête reçue : Changer statut de préparation pour session {sessionId}, joueur {playerId} à {isReady}");
+            if (session == null || !session.Players.All(p => p.IsReady))
+                return;
 
-            GameSession existingSession = _sessionService.GetSessionById(sessionId);
-            if (existingSession == null)
+            if (!ImagePairs.ContainsKey(sessionId))
             {
-                Console.WriteLine($"Session {sessionId} non trouvée.");
+                Console.WriteLine("Erreur : La paire d'images n'a pas été sélectionnée.");
                 return;
             }
 
-            Player player = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
-            if (player == null)
+            var (image1, image2) = ImagePairs[sessionId];
+            bool toggleImage = true;  // Variable pour alterner les images
+
+            foreach (var player in session.Players)
             {
-                Console.WriteLine($"Joueur {playerId} non trouvé dans la session.");
-                return;
+                var imageToSend = toggleImage ? image1 : image2;
+                toggleImage = !toggleImage;
+
+                // Envoi de l'image spécifique à chaque joueur
+                await Clients.Client(player.PlayerId).SendAsync("ReceiveImage", imageToSend);
             }
+        }
 
-            player.IsReady = isReady;
-            Console.WriteLine($"Statut de préparation du joueur {player.Name} mis à jour à {(isReady ? "prêt" : "pas prêt")}");
+        /// <summary>
+        /// Vérifie si tous les joueurs ont sélectionné la même différence et valide ou invalide la tentative.
+        /// </summary>
+        public async Task VerifyPlayerSelection(string sessionId, string playerId, Coordonnees selection)
+        {
+            // a faire apres
+            /*GameSession session = _sessionService.GetSessionById(sessionId);
+            if (session == null)
+                return;
 
-            await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
+            var currentSelection = selection;
+            var allPlayersSelectedSame = session.Players.All(p => p.CurrentSelection.Equals(currentSelection));
+
+            if (allPlayersSelectedSame)
+            {
+                await Clients.Group(sessionId).SendAsync("SelectionValidated", currentSelection);
+                // Ajouter logique pour passer à la différence suivante, si nécessaire.
+            }
+            else
+            {
+                await Clients.Group(sessionId).SendAsync("SelectionFailed", currentSelection);
+            }*/
         }
     }
 }

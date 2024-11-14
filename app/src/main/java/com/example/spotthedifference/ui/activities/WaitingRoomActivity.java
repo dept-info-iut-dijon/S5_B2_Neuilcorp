@@ -89,10 +89,12 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         Button exitButton = findViewById(R.id.exitButton);
         Button readyButton = findViewById(R.id.readyButton);
         Button copyButton = findViewById(R.id.copyButton);
+        Button chooseImageButton = findViewById(R.id.chooseImageButton);
 
         exitButton.setOnClickListener(v -> deleteSessionAndExit());
         readyButton.setOnClickListener(v -> toggleReadyStatus());
         copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
+        chooseImageButton.setOnClickListener(v -> startActivity(new Intent(WaitingRoomActivity.this, ImagesActivity.class)));
 
         // Gestion des observables de SignalR pour suivre les événements
         disposables.add(signalRClient.getPlayerJoinedObservable()

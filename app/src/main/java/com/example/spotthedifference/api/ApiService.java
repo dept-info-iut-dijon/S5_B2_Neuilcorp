@@ -39,4 +39,7 @@ public interface ApiService {
 
     @POST("api/GameSession/{sessionId}/player/{playerId}/ready")
     Call<Void> setPlayerReadyStatus(@Path("sessionId") String sessionId, @Path("playerId") String playerId, @Body Player player);
+
+    @GET("getAllImages")
+    Call<List<String>> getAllImages();
 }

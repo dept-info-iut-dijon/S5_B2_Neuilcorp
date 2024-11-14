@@ -16,7 +16,7 @@ namespace API7D.Metier
             /// <param name="image"></param>
             public void SetImages(ImageDifference image);
 
-        public List<string> GetAllImages();
+        public List<byte[]> GetAllImages();
 
         public (byte[] Image1, byte[] Image2) GetImagePair(int imagePaireId);
 

@@ -50,34 +50,31 @@ namespace API7D.DATA
             return imagePath ?? throw new Exception("Image not found.");
         }
 
-            public List<string> GetAllImagesDATA()
+        public List<string> GetAllImagesDATA()
+        {
+            List<string> imagePath = new List<string>();
+
+            using (var connection = new SqliteConnection(_connectionString))
             {
-                List<string> imagePath = null;
+                connection.Open();
 
-                using (var connection = new SqliteConnection(_connectionString))
+                string query = "SELECT ImageLink FROM images";
+                using (var command = new SqliteCommand(query, connection))
                 {
-                    connection.Open();
-
-                    string query = "SELECT ImageLink FROM images";
-                    using (var command = new SqliteCommand(query, connection))
+                    using (var reader = command.ExecuteReader())
                     {
-
-                        using (var reader = command.ExecuteReader())
+                        while (reader.Read())
                         {
-                        int i = 0;
-                        do
-                        {
-
-                            imagePath.Add(reader.GetString(i));
-
-                        }while (reader.NextResult() != false);
-                        return imagePath;
-                    }
+                            string read = reader.GetString(0); // Colonne "ImageLink" est à l'index 0
+                            imagePath.Add(read);
+                        }
                     }
                 }
+            }
 
-                return imagePath ?? throw new Exception("Image not found.");
+            return imagePath.Count > 0 ? imagePath : throw new Exception("Images not found.");
         }
+
 
         /// <summary>
         /// Récupère une paire d'images à partir de l'ID de la paire spécifiée.

@@ -44,5 +44,10 @@ namespace API7D.Metier
         {
             throw new NotImplementedException();
         }
+
+        public (byte[] Image1, byte[] Image2) GetImagePair(int imagePaireId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

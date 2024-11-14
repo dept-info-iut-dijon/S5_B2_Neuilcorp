@@ -4,6 +4,7 @@ using System.IO;
 using System.Collections.Generic;
 using API7D.objet;
 using Microsoft.Data.Sqlite;
+using API7D.Metier;
 
 namespace API7D.DATA
 {
@@ -148,6 +149,34 @@ namespace API7D.DATA
                     command.ExecuteNonQuery();
                 }
             }*/
+        }
+
+        public List<(int ImageId, int ImagePairId, string ImageLink)> GetAllImagesWithPairData()
+        {
+            var imagesWithPairs = new List<(int, int, string)>();
+
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT ImageID, ImagePaire, ImageLink FROM images";
+                using (var command = new SqliteCommand(query, connection))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            imagesWithPairs.Add((
+                                reader.GetInt32(0),  // ImageId
+                                reader.GetInt32(1),  // ImagePairId
+                                reader.GetString(2)  // ImageLink
+                            ));
+                        }
+                    }
+                }
+            }
+
+            return imagesWithPairs;
         }
     }
 }

@@ -51,5 +51,23 @@ namespace API7D.Services
             }
             return false;
         }
+
+        /// <summary>
+        /// Met à jour une session existante en fonction de son ID.
+        /// </summary>
+        /// <param name="updatedSession">La session de jeu mise à jour.</param>
+        public void UpdateSession(GameSession updatedSession)
+        {
+            int index = _sessions.FindIndex(s => s.SessionId == updatedSession.SessionId);
+
+            if (index >= 0)
+            {
+                _sessions[index] = updatedSession;
+            }
+            else
+            {
+                throw new KeyNotFoundException($"Session with ID {updatedSession.SessionId} not found.");
+            }
+        }
     }
 }

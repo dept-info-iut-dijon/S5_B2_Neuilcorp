@@ -49,5 +49,24 @@ namespace API7D.Metier
         {
             throw new NotImplementedException();
         }
+
+        public List<ImageWithPair> GetAllImagesWithPairs()
+        {
+            var imageData = _data.GetAllImagesWithPairData();
+            var imageWithPairs = new List<ImageWithPair>();
+
+            foreach (var (imageId, imagePairId, imageLink) in imageData)
+            {
+                var base64String = Convert.ToBase64String(File.ReadAllBytes(imageLink));
+                imageWithPairs.Add(new ImageWithPair
+                {
+                    ImageId = imageId,
+                    ImagePairId = imagePairId,
+                    Base64Image = base64String
+                });
+            }
+
+            return imageWithPairs;
+        }
     }
 }

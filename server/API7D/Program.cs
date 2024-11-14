@@ -1,3 +1,4 @@
+using API7D.DATA;
 using API7D.Metier;
 using API7D.Services;
 
@@ -6,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddSingleton<SessionService>();
+builder.Services.AddSingleton<ImageDATA>(); // Enregistrement de ImageDATA
 
 // Ajout de SignalR pour la communication en temps réel
 builder.Services.AddSignalR();

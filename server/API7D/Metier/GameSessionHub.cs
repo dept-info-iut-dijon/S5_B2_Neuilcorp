@@ -28,6 +28,19 @@ namespace API7D.Metier
             _imageService = imageService;
         }
 
+
+        // Méthode pour joindre un groupe de session (pour chaque session, un groupe est créé)
+        public async Task JoinSessionGroup(string sessionId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
+        }
+
+        // Méthode pour notifier que le joueur a rejoint la session
+        public async Task PlayerJoined(string sessionId, string playerName)
+        {
+            await Clients.Group(sessionId).SendAsync("PlayerJoined", playerName);
+        }
+
         /// <summary>
         /// Permet à l'hôte de choisir une paire d'images pour la session.
         /// </summary>
@@ -64,6 +77,49 @@ namespace API7D.Metier
                 // Envoi de l'image spécifique à chaque joueur
                 await Clients.Client(player.PlayerId).SendAsync("ReceiveImage", imageToSend);
             }
+        }
+
+        //ne marche probablement pas
+        public async Task SetPlayerReadyStatus(string sessionId, string playerId, bool isReady)
+        {
+            GameSession existingSession = _sessionService.GetSessionById(sessionId);
+            if (existingSession == null) return;
+
+            Player player = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
+            if (player == null) return;
+
+            player.IsReady = isReady;
+            await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
+
+            // Vérifie si tous les joueurs sont prêts
+            if (existingSession.Players.All(p => p.IsReady))
+            {
+                // Envoi des images une fois que tous les joueurs sont prêts
+                var images = _imageService.GetImagePair(existingSession.ImagePairId);
+                var players = existingSession.Players.ToList();
+
+                // Distribution alternée des images
+                for (int i = 0; i < players.Count; i++)
+                {
+                    byte[] imageToSend = (i % 2 == 0) ? images.Image1 : images.Image2;
+                    await Clients.Client(players[i].PlayerId).SendAsync("ReceiveImage", imageToSend);
+                }
+            }
+        }
+
+        public async Task SelectImagePair(string sessionId, int imagePairId)
+        {
+            GameSession existingSession = _sessionService.GetSessionById(sessionId);
+            if (existingSession == null)
+            {
+                await Clients.Caller.SendAsync("Error", "Session not found.");
+                return;
+            }
+
+            // L'hôte sélectionne la paire d'images pour la session
+            existingSession.ImagePairId = imagePairId;
+
+            await Clients.Group(sessionId).SendAsync("ImagePairSelected", imagePairId);
         }
 
         /// <summary>

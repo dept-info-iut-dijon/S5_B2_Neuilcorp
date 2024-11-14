@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.api;
 
 import java.security.cert.CertificateException;
 import javax.net.ssl.SSLContext;

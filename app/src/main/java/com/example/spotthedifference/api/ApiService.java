@@ -1,4 +1,8 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.api;
+
+import com.example.spotthedifference.models.Coordonnees;
+import com.example.spotthedifference.models.GameSession;
+import com.example.spotthedifference.models.Player;
 
 import java.util.List;
 

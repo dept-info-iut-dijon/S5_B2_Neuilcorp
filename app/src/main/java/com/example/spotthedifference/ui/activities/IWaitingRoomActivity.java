@@ -1,4 +1,6 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.ui.activities;
+
+import com.example.spotthedifference.models.Player;
 
 import java.util.List;
 

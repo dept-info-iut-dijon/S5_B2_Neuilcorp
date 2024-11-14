@@ -14,7 +14,7 @@
         android:theme="@style/Theme.SpotTheDifference"
         tools:targetApi="31">
         <activity
-            android:name=".HomeActivity"
+            android:name=".ui.activities.HomeActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.SpotTheDifference">
@@ -24,12 +24,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activities.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.SpotTheDifference" />
         <activity
-            android:name=".WaitingRoomActivity" />
+            android:name=".ui.activities.WaitingRoomActivity" />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

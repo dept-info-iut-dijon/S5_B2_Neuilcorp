@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.ui.activities;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -15,7 +15,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.spotthedifference.R;
 import com.example.spotthedifference.WebSocket.SignalRClient;
+import com.example.spotthedifference.api.ApiService;
+import com.example.spotthedifference.api.IRetrofitClient;
+import com.example.spotthedifference.api.RetrofitClient;
+import com.example.spotthedifference.models.GameSession;
+import com.example.spotthedifference.models.Player;
 
 import java.util.List;
 

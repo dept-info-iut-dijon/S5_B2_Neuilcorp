@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.ui.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,9 +7,8 @@ import android.graphics.BitmapFactory;
  * Classe utilitaire pour convertir un tableau d'octets en objet Bitmap.
  */
 public class ImageConverter implements IImageConverter {
-    public static final ImageConverter instance = new ImageConverter();
 
-    ImageConverter() {}
+    public ImageConverter() {}
 
     /**
      * Convertit un tableau d'octets en un objet Bitmap.

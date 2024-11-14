@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.ui.utils;
 
 import android.graphics.Bitmap;
 import android.util.Log;

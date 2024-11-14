@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.ui.activities;
 
 import android.content.Intent;
 import retrofit2.Response;

@@ -1,6 +1,6 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.ui.activities;
 
-import android.widget.ImageView;
+import com.example.spotthedifference.models.Coordonnees;
 
 /**
  * Interface contenant toutes les méthodes de MainActivity.

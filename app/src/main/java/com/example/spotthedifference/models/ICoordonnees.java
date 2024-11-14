@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.models;
 
 /**
  * Interface représentant les coordonnées X et Y dans un système de coordonnées.

@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.ui.activities;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -12,6 +12,14 @@ import android.content.Intent;
 import android.view.MotionEvent;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.spotthedifference.ui.utils.ImageConverter;
+import com.example.spotthedifference.ui.utils.ImageDisplayer;
+import com.example.spotthedifference.R;
+import com.example.spotthedifference.api.ApiService;
+import com.example.spotthedifference.api.IRetrofitClient;
+import com.example.spotthedifference.api.RetrofitClient;
+import com.example.spotthedifference.models.Coordonnees;
 
 import java.io.IOException;
 
@@ -28,8 +36,8 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     private Coordonnees coordTemp;
     private ImageView circleImageView;
     private ApiService apiService;
-    private AlertDialog waitingDialog;  // Pour gérer la boîte de dialogue d'attente
-    private ImageDisplayer imageDisplayer = new ImageDisplayer();  // Utilisation de ImageDisplayer pour afficher l'image
+    private AlertDialog waitingDialog;
+    private ImageDisplayer imageDisplayer = new ImageDisplayer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,8 +98,8 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         byte[] imageBytes = response.body().bytes();
-                        Bitmap bitmap = new ImageConverter().convertBytesToBitmap(imageBytes);  // Utilisation directe de ImageConverter
-                        imageDisplayer.displayImage(imageView, bitmap);  // Utilisation de ImageDisplayer pour afficher l'image
+                        Bitmap bitmap = new ImageConverter().convertBytesToBitmap(imageBytes);
+                        imageDisplayer.displayImage(imageView, bitmap);
                     } catch (IOException e) {
                         e.printStackTrace();
                         Toast.makeText(MainActivity.this, "Erreur lors de la conversion de l'image", Toast.LENGTH_SHORT).show();

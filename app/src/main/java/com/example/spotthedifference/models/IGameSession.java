@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.models;
 
 import java.util.List;
 

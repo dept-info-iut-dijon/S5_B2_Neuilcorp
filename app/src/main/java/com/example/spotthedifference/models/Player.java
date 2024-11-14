@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.models;
 
 public class Player implements IPlayer {
     private String playerId;

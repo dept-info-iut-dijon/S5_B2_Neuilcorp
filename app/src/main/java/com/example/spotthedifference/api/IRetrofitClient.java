@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.api;
 
 import retrofit2.Retrofit;
 

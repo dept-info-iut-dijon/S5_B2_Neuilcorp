@@ -1,4 +1,4 @@
-package com.example.spotthedifference;
+package com.example.spotthedifference.models;
 
 /**
  * Interface contenant toutes les méthodes de Player.

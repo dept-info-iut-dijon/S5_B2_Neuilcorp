@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         byte[] imageBytes = response.body().bytes();
-                        Bitmap bitmap = new ImageConverter().convertBytesToBitmap(imageBytes);
+                        Bitmap bitmap = ImageConverter.instance.convertBytesToBitmap(imageBytes);
                         imageDisplayer.displayImage(imageView, bitmap);
                     } catch (IOException e) {
                         e.printStackTrace();

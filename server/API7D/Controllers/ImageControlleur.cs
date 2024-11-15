@@ -47,6 +47,13 @@ namespace API7D.Controllers
             return returnedImage;
         }
 
+        [HttpGet("allImagesWithPairs")]
+        public ActionResult<List<ImageWithPair>> GetAllImagesWithPairs()
+        {
+            var images = _imageService.GetAllImagesWithPairs();
+            return images;
+        }
+
         [HttpPost("{sessionId}/sendImages")]
         public async Task<ActionResult> SendImagesToPlayers(string sessionId)
         {
@@ -73,6 +80,19 @@ namespace API7D.Controllers
             return Ok("Images envoyées aux joueurs.");
         }
 
+        [HttpPost("{sessionId}/selectImagePair")]
+        public ActionResult SelectImagePair(string sessionId, [FromBody] int imagePairId)
+        {
+            var session = _sessionService.GetSessionById(sessionId);
+            if (session == null)
+            {
+                return NotFound($"Session {sessionId} non trouvée.");
+            }
 
+            session.ImagePairId = imagePairId;
+            _sessionService.UpdateSession(session);
+
+            return Ok("Paire d'images sélectionnée pour la session.");
+        }
     }
 }

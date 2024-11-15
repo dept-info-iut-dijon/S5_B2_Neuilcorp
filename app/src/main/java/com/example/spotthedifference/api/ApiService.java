@@ -3,6 +3,7 @@ package com.example.spotthedifference.api;
 import com.example.spotthedifference.models.Coordonnees;
 import com.example.spotthedifference.models.GameSession;
 import com.example.spotthedifference.models.Player;
+import com.example.spotthedifference.models.ImageWithPair;
 
 import java.util.List;
 
@@ -39,4 +40,14 @@ public interface ApiService {
 
     @POST("api/GameSession/{sessionId}/player/{playerId}/ready")
     Call<Void> setPlayerReadyStatus(@Path("sessionId") String sessionId, @Path("playerId") String playerId, @Body Player player);
+
+    @GET("ImageControlleur/allImage")
+    Call<List<String>> getAllImages();
+
+    @GET("ImageControlleur/allImagesWithPairs")
+    Call<List<ImageWithPair>> getAllImagesWithPairs();
+
+    @POST("ImageControlleur/{sessionId}/selectImagePair")
+    Call<Void> selectImagePair(@Path("sessionId") String sessionId, @Body int imagePairId);
+
 }

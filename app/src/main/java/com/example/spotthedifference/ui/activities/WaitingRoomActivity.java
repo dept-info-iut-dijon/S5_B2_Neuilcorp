@@ -32,6 +32,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
+/**
+ * La classe WaitingRoomActivity représente l'activité de la salle d'attente
+ * dans l'application. Elle permet aux joueurs de se connecter à une session
+ * de jeu en attendant les autres participants avant de démarrer la partie.
+ */
 public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRoomActivity {
 
     private TextView sessionCodeTextView;
@@ -89,6 +94,17 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         Button exitButton = findViewById(R.id.exitButton);
         Button readyButton = findViewById(R.id.readyButton);
         Button copyButton = findViewById(R.id.copyButton);
+        Button chooseImageButton = findViewById(R.id.chooseImageButton);
+
+        chooseImageButton.setOnClickListener(v -> {
+            if (isHost()) {
+                Intent intent = new Intent(WaitingRoomActivity.this, ImagesActivity.class);
+                intent.putExtra("sessionId", sessionId);
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Seul l'hôte peut sélectionner une image.", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         exitButton.setOnClickListener(v -> deleteSessionAndExit());
         readyButton.setOnClickListener(v -> toggleReadyStatus());
@@ -230,5 +246,9 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 Toast.makeText(WaitingRoomActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+    private boolean isHost() {
+        //logique à définir
+        return true;
     }
 }

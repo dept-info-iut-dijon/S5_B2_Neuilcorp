@@ -4,16 +4,22 @@ using Microsoft.AspNetCore.Mvc;
 using API7D.Controllers;
 using API7D.objet;
 using System.Collections.Generic;
+using API7D.Metier;
+using API7D.Services;
+using Microsoft.AspNetCore.SignalR;
 
 namespace TestsUnitaires.TestsControllers
 {
     public class GameSessionControllerTests
     {
         private readonly GameSessionController _controller;
-
+        private readonly Mock<IHubContext<GameSessionHub>> _mockHubContext;
+        private readonly Mock<SessionService> _mockSessionService;
         public GameSessionControllerTests()
         {
-            _controller = new GameSessionController();
+            _mockHubContext = new Mock<IHubContext<GameSessionHub>>();
+            _mockSessionService = new Mock<SessionService>();
+            _controller = new GameSessionController(_mockHubContext.Object, _mockSessionService.Object);
         }
 
         [Fact]

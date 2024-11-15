@@ -1,5 +1,8 @@
 ﻿using API7D.Controllers;
+using API7D.Metier;
+using API7D.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Moq;
 using System.IO;
 using Xunit;
@@ -9,11 +12,18 @@ namespace TestsUnitaires.TestsControllers
     public class ImageControlleurTests
     {
         private readonly ImageControlleur _controller;
+        private readonly Mock<IImage> _mockImageService;
         private readonly string _testImagePath = Path.Combine(Directory.GetCurrentDirectory(), "Image");
+        private readonly Mock<SessionService> _mockSessionService;
+        private readonly Mock<IHubContext<GameSessionHub>> _mockHubContext;
 
         public ImageControlleurTests()
         {
-            _controller = new ImageControlleur();
+            _mockImageService = new Mock<IImage>();
+            _mockSessionService = new Mock<SessionService>();
+            _mockHubContext = new Mock<IHubContext<GameSessionHub>>();
+
+            _controller = new ImageControlleur(_mockHubContext.Object, _mockSessionService.Object, _mockImageService.Object);
 
             if (!Directory.Exists(_testImagePath))
             {

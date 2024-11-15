@@ -19,10 +19,11 @@ namespace API7D.Controllers
         private IImage _imageService = new image();
 
 
-        public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService)
+        public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService, IImage imageService)
         {
             _hubContext = hubContext;
             _sessionService = sessionService;
+            _imageService = imageService;
             // Spécifie le chemin vers le dossier contenant les images
             _imageFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Image");
         }

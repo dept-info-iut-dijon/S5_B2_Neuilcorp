@@ -137,7 +137,6 @@ public class ImagesActivity extends AppCompatActivity {
             GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams();
             layoutParams.width = imageWidth;
             layoutParams.height = imageHeight;
-            layoutParams.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
             frameLayout.setLayoutParams(layoutParams);
 
             ImageView imageView = new ImageView(this);

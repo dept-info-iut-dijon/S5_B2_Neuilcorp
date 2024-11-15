@@ -8,7 +8,9 @@ import android.graphics.BitmapFactory;
  */
 public class ImageConverter implements IImageConverter {
 
-    public ImageConverter() {}
+    public static final ImageConverter instance = new ImageConverter();
+
+    private ImageConverter() {}
 
     /**
      * Convertit un tableau d'octets en un objet Bitmap.

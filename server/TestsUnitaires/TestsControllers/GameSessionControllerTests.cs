@@ -22,6 +22,10 @@ namespace TestsUnitaires.TestsControllers
             _controller = new GameSessionController(_mockHubContext.Object, _mockSessionService.Object);
         }
 
+
+        /// <summary>
+        /// Vérifie que la méthode CreateSession retourne un BadRequest lorsque les données de session sont nulles.
+        /// </summary>
         [Fact]
         public void CreateSession_ReturnsBadRequest_WhenSessionIsNull()
         {
@@ -31,6 +35,9 @@ namespace TestsUnitaires.TestsControllers
             Assert.Equal("Les données de session ou les informations sur l'hôte sont invalides.", badRequestResult.Value);
         }
 
+        /// <summary>
+        /// Vérifie que la méthode CreateSession retourne un BadRequest lorsque la liste des joueurs dans la session est vide.
+        /// </summary>
         [Fact]
         public void CreateSession_ReturnsBadRequest_WhenPlayersListIsEmpty()
         {
@@ -41,6 +48,10 @@ namespace TestsUnitaires.TestsControllers
             Assert.Equal("Les données de session ou les informations sur l'hôte sont invalides.", badRequestResult.Value);
         }
 
+
+        /// <summary>
+        /// Vérifie que la méthode CreateSession retourne un OkObjectResult avec une session valide et correctement créée.
+        /// </summary>
         [Fact]
         public void CreateSession_ReturnsOk_WithValidGameSession()
         {
@@ -56,6 +67,10 @@ namespace TestsUnitaires.TestsControllers
             Assert.Single(createdSession.Players);
         }
 
+
+        /// <summary>
+        /// Vérifie que la méthode GetAllSessions retourne un OkObjectResult contenant la liste des sessions créées.
+        /// </summary>
         [Fact]
         public void GetAllSessions_ReturnsOk_WithSessionsList()
         {
@@ -71,6 +86,9 @@ namespace TestsUnitaires.TestsControllers
             Assert.NotEmpty(sessions);
         }
 
+        /// <summary>
+        /// Vérifie que la méthode GetSessionById retourne un OkObjectResult lorsqu'une session correspondante à l'ID fourni existe.
+        /// </summary>
         [Fact]
         public void GetSessionById_ReturnsOk_WhenSessionExists()
         {
@@ -91,7 +109,9 @@ namespace TestsUnitaires.TestsControllers
         }
 
 
-
+        /// <summary>
+        /// Vérifie que la méthode GetSessionById lève une exception avec un message d'erreur approprié lorsqu'une session avec l'ID fourni n'existe pas.
+        /// </summary>
 
         [Fact]
         public void GetSessionById_ReturnsNotFound_WhenSessionDoesNotExist()
@@ -109,10 +129,9 @@ namespace TestsUnitaires.TestsControllers
             Assert.Equal($"La session avec l'ID {nonExistingSessionId} n'a pas été trouvée.", notFoundResult.Value);
         }
 
-
-
-
-
+        /// <summary>
+        /// Vérifie que la méthode JoinSession retourne un BadRequest lorsque les informations du joueur sont nulles.
+        /// </summary>
         [Fact]
         public async Task JoinSession_ReturnsBadRequest_WhenPlayerIsNull()
         {
@@ -135,6 +154,9 @@ namespace TestsUnitaires.TestsControllers
         }
 
 
+        /// <summary>
+        /// Vérifie que la méthode JoinSession retourne un BadRequest lorsque le joueur est déjà présent dans la session.
+        /// </summary>
         [Fact]
         public async Task JoinSession_ReturnsBadRequest_WhenPlayerAlreadyInSession()
         {
@@ -157,7 +179,9 @@ namespace TestsUnitaires.TestsControllers
         }
 
 
-
+        /// <summary>
+        /// Vérifie que la méthode JoinSession retourne un OkObjectResult avec un message approprié lorsque le joueur rejoint la session avec succès.
+        /// </summary>
         [Fact]
         public async Task JoinSession_ReturnsOk_WhenPlayerJoinsSuccessfully()
         {

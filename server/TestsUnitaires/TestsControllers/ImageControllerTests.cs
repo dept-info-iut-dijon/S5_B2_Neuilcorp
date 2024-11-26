@@ -31,6 +31,10 @@ namespace TestsUnitaires.TestsControllers
             }
         }
 
+
+        /// <summary>
+        /// Vérifie que la méthode GetImage retourne un FileContentResult avec le contenu correctet le type MIME approprié ("application/octet-stream") lorsque l'image demandée existe.
+        /// </summary>
         [Fact]
         public void GetImage_ReturnsFile_WhenImageExists()
         {
@@ -50,7 +54,9 @@ namespace TestsUnitaires.TestsControllers
         }
 
 
-
+        /// <summary>
+        /// Vérifie que la méthode GetImage retourne un NotFoundObjectResult avec un message d'erreur approprié lorsque l'image demandée n'existe pas.
+        /// </summary>
 
         [Fact]
         public void GetImage_ReturnsNotFound_WhenImageDoesNotExist()

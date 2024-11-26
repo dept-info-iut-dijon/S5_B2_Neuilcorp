@@ -9,6 +9,9 @@ namespace TestsUnitaires.TestsControllers
 {
     public class DifferenceControllerTests
     {
+        /// <summary>
+        /// Vérifie que la méthode CheckDifference retourne un OkObjectResult avec une valeur vraie (true) lorsque les coordonnées fournies  se trouvent dans la zone de différence.
+        /// </summary>
         [Fact]
         public void CheckDifference_Found()
         {
@@ -24,6 +27,9 @@ namespace TestsUnitaires.TestsControllers
             Assert.True((bool)okResult.Value);
         }
 
+        /// <summary>
+        /// Vérifie que la méthode CheckDifference retourne un BadRequestObjectResult avec un message d'erreur approprié lorsqu'une exception est levée pendant le traitement des coordonnées.
+        /// </summary>
         [Fact]
         public void CheckDifference_ReturnsBadRequest()
         {

@@ -51,30 +51,36 @@ namespace API7D.DATA
             return imagePath ?? throw new Exception("Image not found.");
         }
 
-        public List<string> GetAllImagesDATA()
+        public List<(int ImageId, int ImagePairId, string ImageLink)> GetAllImagesWithPairData()
         {
-            List<string> imagePath = new List<string>();
+            var imagesWithPairs = new List<(int ImageId, int PairId, string ImageLink)>(); // Utilisation des noms correspondants
 
             using (var connection = new SqliteConnection(_connectionString))
             {
                 connection.Open();
 
-                string query = "SELECT ImageLink FROM images";
+                string query = @"SELECT i.ImageID,id.PairID,i.ImageLink FROM Image i LEFT JOIN ImageDifference id ON i.ImageID = id.Image1ID OR i.ImageID = id.Image2ID";
+
                 using (var command = new SqliteCommand(query, connection))
                 {
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            string read = reader.GetString(0); // Colonne "ImageLink" est à l'index 0
-                            imagePath.Add(read);
+                            imagesWithPairs.Add((
+                                reader.GetInt32(0),  // ImageID
+                                reader.IsDBNull(1) ? 0 : reader.GetInt32(1),  // PairID (null-safe)
+                                reader.GetString(2)  // ImageLink
+                            ));
                         }
                     }
                 }
             }
 
-            return imagePath.Count > 0 ? imagePath : throw new Exception("Images not found.");
+            return imagesWithPairs;
         }
+
+
 
 
         /// <summary>
@@ -82,52 +88,61 @@ namespace API7D.DATA
         /// </summary>
         /// <param name="imagePaireId">L'ID de la paire d'images.</param>
         /// <returns>Un tuple contenant les deux images sous forme de tableaux de bytes.</returns>
-        public (byte[] Image1, byte[] Image2) GetImagePair(int imagePaireId)
+        public (byte[] Image1, byte[] Image2) GetImagePair(int pairId)
         {
             using (var db = new SqliteConnection(_connectionString))
             {
                 db.Open();
 
-                // Requête pour récupérer les liens d'images correspondant à la paire
-                string query = "SELECT ImageID, ImageLink FROM images WHERE ImagePaire = @ImagePaire";
+                // Requête pour récupérer les deux images correspondant à la paire
+                string query = @"
+            SELECT 
+                i.ImageLink 
+            FROM 
+                ImageDifference id
+            INNER JOIN 
+                Image i 
+            ON 
+                id.Image1ID = i.ImageID OR id.Image2ID = i.ImageID
+            WHERE 
+                id.PairID = @PairID";
+
                 using (var command = new SqliteCommand(query, db))
                 {
-                    command.Parameters.AddWithValue("@ImagePaire", imagePaireId);
+                    command.Parameters.AddWithValue("@PairID", pairId);
 
                     using (var reader = command.ExecuteReader())
                     {
-                        var images = new List<(int ImageID, string ImageLink)>();
+                        var imageLinks = new List<string>();
 
                         while (reader.Read())
                         {
-                            images.Add((reader.GetInt32(0), reader.GetString(1))); // Récupère ImageID et ImageLink
+                            imageLinks.Add(reader.GetString(0)); // Récupère ImageLink
                         }
 
                         // Vérifier si la paire contient bien deux images
-                        if (images.Count != 2)
+                        if (imageLinks.Count != 2)
                         {
                             throw new Exception("La paire d'images est incomplète.");
                         }
 
-                        byte[] image1 = null;
-                        byte[] image2 = null;
-
                         try
                         {
                             // Charger les images à partir des liens de fichiers
-                            image1 = File.ReadAllBytes(images[0].ImageLink);
-                            image2 = File.ReadAllBytes(images[1].ImageLink);
+                            byte[] image1 = File.ReadAllBytes(imageLinks[0]);
+                            byte[] image2 = File.ReadAllBytes(imageLinks[1]);
+
+                            return (image1, image2);
                         }
                         catch (IOException ex)
                         {
                             throw new Exception("Erreur lors de la lecture des fichiers d'images.", ex);
                         }
-
-                        return (image1, image2);
                     }
                 }
             }
         }
+
 
         /// <summary>
         /// Ajoute une nouvelle image dans la base de données.
@@ -151,32 +166,29 @@ namespace API7D.DATA
             }*/
         }
 
-        public List<(int ImageId, int ImagePairId, string ImageLink)> GetAllImagesWithPairData()
+        public List<string> GetAllImagesDATA()
         {
-            var imagesWithPairs = new List<(int, int, string)>();
+            var imagePath = new List<string>();
 
             using (var connection = new SqliteConnection(_connectionString))
             {
                 connection.Open();
 
-                string query = "SELECT ImageID, ImagePaire, ImageLink FROM images";
+                string query = "SELECT ImageLink FROM Image";
                 using (var command = new SqliteCommand(query, connection))
                 {
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            imagesWithPairs.Add((
-                                reader.GetInt32(0),  // ImageId
-                                reader.GetInt32(1),  // ImagePairId
-                                reader.GetString(2)  // ImageLink
-                            ));
+                            imagePath.Add(reader.GetString(0)); // Récupère ImageLink
                         }
                     }
                 }
             }
 
-            return imagesWithPairs;
+            return imagePath.Count > 0 ? imagePath : throw new Exception("Images not found.");
         }
+
     }
 }

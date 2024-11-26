@@ -35,28 +35,40 @@ namespace TestsUnitaires.TestsControllers
         public void GetImage_ReturnsFile_WhenImageExists()
         {
             int imageId = 1;
-            string imagePath = Path.Combine(_testImagePath, $"{imageId}.png");
+            byte[] imageBytes = new byte[] { 0x01, 0x02, 0x03 }; 
 
-            byte[] imageBytes = new byte[] { 0x01, 0x02, 0x03 };
-            File.WriteAllBytes(imagePath, imageBytes);
+            var imageServiceMock = new Mock<IImage>();
+            imageServiceMock.Setup(service => service.GetImages(imageId)).Returns(imageBytes);
 
-            var result = _controller.GetImage(imageId);
+            var controller = new ImageControlleur(null, null, imageServiceMock.Object);
+            var result = controller.GetImage(imageId); 
+            var actionResult = Assert.IsType<ActionResult<byte[]>>(result);
+            var fileResult = Assert.IsType<FileContentResult>(actionResult.Result);
 
-            var fileResult = Assert.IsType<FileContentResult>(result.Result);
             Assert.Equal("application/octet-stream", fileResult.ContentType);
             Assert.Equal(imageBytes, fileResult.FileContents);
-
-            File.Delete(imagePath);
         }
+
+
+
 
         [Fact]
         public void GetImage_ReturnsNotFound_WhenImageDoesNotExist()
         {
             int imageId = 999;
 
-            var result = _controller.GetImage(imageId);
+            var imageServiceMock = new Mock<IImage>();
+            imageServiceMock.Setup(service => service.GetImages(imageId)).Returns((byte[])null);
 
-            Assert.IsType<NotFoundResult>(result.Result);
+            var controller = new ImageControlleur(null, null, imageServiceMock.Object);
+
+            var result = controller.GetImage(imageId);
+
+            Assert.IsType<NotFoundObjectResult>(result.Result);
+            var notFoundResult = result.Result as NotFoundObjectResult;
+            Assert.Equal($"Image {imageId} non trouvée.", notFoundResult.Value);
         }
+
+
     }
 }

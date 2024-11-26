@@ -3,17 +3,12 @@ package com.example.spotthedifference.WebSocket;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-
-import com.example.spotthedifference.models.Player;
 import com.microsoft.signalr.HubConnection;
 import com.microsoft.signalr.HubConnectionBuilder;
 import com.microsoft.signalr.HubConnectionState;
-
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
-
-import java.util.List;
 
 public class SignalRClient {
 
@@ -27,9 +22,6 @@ public class SignalRClient {
 
     private BehaviorSubject<String> playerJoinedSubject = BehaviorSubject.create();
     private BehaviorSubject<Boolean> playerReadyStatusChangedSubject = BehaviorSubject.create();
-    private BehaviorSubject<List<Player>> playerListSubject = BehaviorSubject.create();
-    private BehaviorSubject<String> alertSubject = BehaviorSubject.create(); // Pour les alertes
-    private BehaviorSubject<byte[]> imageSubject = BehaviorSubject.create(); // Pour les images
 
     /**
      * Constructeur de SignalRClient. Initialise la connexion au serveur SignalR et
@@ -37,35 +29,8 @@ public class SignalRClient {
      */
     public SignalRClient() {
         hubConnection = HubConnectionBuilder.create(SERVER_URL).build();
-
-        // Gestion de l'événement "PlayerJoined"
-        hubConnection.on("PlayerJoined", playerName -> {
-            log("Événement SignalR reçu : PlayerJoined avec le nom du joueur : " + playerName, null);
-            playerJoinedSubject.onNext(playerName);
-        }, String.class);
-
-        // Gestion de l'événement "PlayerReadyStatusChanged"
-        hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> {
-            playerReadyStatusChangedSubject.onNext(isReady);
-        }, String.class, Boolean.class);
-
-        // Gestion de l'événement "PlayerListUpdated"
-        hubConnection.on("PlayerListUpdated", players -> {
-            log("Événement SignalR reçu : mise à jour de la liste des joueurs", null);
-            playerListSubject.onNext(players); // Diffuse la liste complète des joueurs
-        }, List.class);
-
-        // Gestion de l'événement "Alert"
-        hubConnection.on("Alert", message -> {
-            log("Événement SignalR reçu : Alert - " + message, null);
-            alertSubject.onNext(message); // Diffuse le message d'alerte
-        }, String.class);
-
-        // Gestion de l'événement "ReceiveImage"
-        hubConnection.on("ReceiveImage", imageBytes -> {
-            log("Événement SignalR reçu : ReceiveImage", null);
-            imageSubject.onNext(imageBytes); // Diffuse l'image reçue
-        }, byte[].class);
+        hubConnection.on("PlayerJoined", playerName -> playerJoinedSubject.onNext(playerName), String.class);
+        hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> playerReadyStatusChangedSubject.onNext(isReady), String.class, Boolean.class);
     }
 
     /**
@@ -133,7 +98,6 @@ public class SignalRClient {
     public void joinSessionGroup(String sessionId) {
         if (isConnected()) {
             hubConnection.send("JoinSessionGroup", sessionId);
-            log("Requête envoyée au serveur : rejoindre le groupe avec sessionId : " + sessionId, null);
         } else {
             log("Connexion inactive, impossible de rejoindre le groupe.", null);
             attemptReconnection();
@@ -165,64 +129,9 @@ public class SignalRClient {
     public void sendReadyStatusUpdate(String sessionId, String playerId, boolean isReady) {
         if (isConnected()) {
             hubConnection.send("SetPlayerReadyStatus", sessionId, playerId, isReady);
-            log("Statut de préparation de " + playerId + " mis à jour.", null);
         } else {
             log("Connexion inactive, impossible d'envoyer le statut de préparation.", null);
             attemptReconnection();
-        }
-    }
-
-    /**
-     * Retourne un observable pour les événements de joueurs rejoignant la session.
-     *
-     * @return Un BehaviorSubject émettant les noms des joueurs qui rejoignent.
-     */
-    public BehaviorSubject<String> getPlayerJoinedObservable() {
-        return playerJoinedSubject;
-    }
-
-    /**
-     * Retourne un observable pour les changements de statut de préparation des joueurs.
-     *
-     * @return Un BehaviorSubject émettant les statuts de préparation des joueurs.
-     */
-    public BehaviorSubject<Boolean> getPlayerReadyStatusChangedObservable() {
-        return playerReadyStatusChangedSubject;
-    }
-
-    /**
-     * Retourne un observable pour la liste des joueurs mise à jour.
-     *
-     * @return Un BehaviorSubject émettant la liste complète des joueurs.
-     */
-    public BehaviorSubject<List<Player>> getPlayerListObservable() {
-        return playerListSubject;
-    }
-
-    /**
-     * Retourne un observable pour les messages d'alerte.
-     *
-     * @return Un BehaviorSubject émettant les messages d'alerte.
-     */
-    public BehaviorSubject<String> getAlertObservable() {
-        return alertSubject;
-    }
-
-    /**
-     * Retourne un observable pour les images reçues.
-     *
-     * @return Un BehaviorSubject émettant les images reçues sous forme de tableau d'octets.
-     */
-    public BehaviorSubject<byte[]> getImageObservable() {
-        return imageSubject;
-    }
-
-    /**
-     * Libère les ressources de la connexion en arrêtant tout abonnement en cours.
-     */
-    private void disposeConnection() {
-        if (connectionDisposable != null && !connectionDisposable.isDisposed()) {
-            connectionDisposable.dispose();
         }
     }
 
@@ -250,6 +159,33 @@ public class SignalRClient {
             } else {
                 Log.d("SignalRClient", message);
             }
+        }
+    }
+
+    /**
+     * Retourne un observable pour les événements de joueurs rejoignant la session.
+     *
+     * @return Un BehaviorSubject émettant les noms des joueurs qui rejoignent.
+     */
+    public BehaviorSubject<String> getPlayerJoinedObservable() {
+        return playerJoinedSubject;
+    }
+
+    /**
+     * Retourne un observable pour les changements de statut de préparation des joueurs.
+     *
+     * @return Un BehaviorSubject émettant les statuts de préparation des joueurs.
+     */
+    public BehaviorSubject<Boolean> getPlayerReadyStatusChangedObservable() {
+        return playerReadyStatusChangedSubject;
+    }
+
+    /**
+     * Libère les ressources de la connexion en arrêtant tout abonnement en cours.
+     */
+    private void disposeConnection() {
+        if (connectionDisposable != null && !connectionDisposable.isDisposed()) {
+            connectionDisposable.dispose();
         }
     }
 }

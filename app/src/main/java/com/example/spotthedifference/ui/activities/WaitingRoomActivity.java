@@ -5,8 +5,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,19 +17,33 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.spotthedifference.R;
 import com.example.spotthedifference.WebSocket.SignalRClient;
+import com.example.spotthedifference.api.ApiService;
+import com.example.spotthedifference.api.IRetrofitClient;
+import com.example.spotthedifference.api.RetrofitClient;
+import com.example.spotthedifference.models.GameSession;
 import com.example.spotthedifference.models.Player;
 
 import java.util.List;
 
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
-public class WaitingRoomActivity extends AppCompatActivity {
+/**
+ * La classe WaitingRoomActivity représente l'activité de la salle d'attente
+ * dans l'application. Elle permet aux joueurs de se connecter à une session
+ * de jeu en attendant les autres participants avant de démarrer la partie.
+ */
+public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRoomActivity {
 
     private TextView sessionCodeTextView;
     private TextView partyNameTextView;
     private TextView playerNameTextView;
     private LinearLayout playersContainer;
+    private ApiService apiService;
     private String sessionId;
     private String playerName;
     private String playerId;
@@ -50,6 +62,11 @@ public class WaitingRoomActivity extends AppCompatActivity {
         playerNameTextView = findViewById(R.id.playerName);
         playersContainer = findViewById(R.id.playersContainer);
 
+        // Configuration de Retrofit pour les appels API
+        IRetrofitClient client = new RetrofitClient();
+        Retrofit retrofit = client.getUnsafeRetrofit();
+        apiService = retrofit.create(ApiService.class);
+
         // Récupération des informations passées via Intent
         sessionId = getIntent().getStringExtra("sessionId");
         playerName = getIntent().getStringExtra("playerName");
@@ -63,8 +80,15 @@ public class WaitingRoomActivity extends AppCompatActivity {
         signalRClient.joinSessionGroup(sessionId);
 
         // Affichage du code de session
-        sessionCodeTextView.setText(getString(R.string.code_de_session) + " " + sessionId);
+        if (sessionId != null) {
+            sessionCodeTextView.setText(getString(R.string.code_de_session) + " " + sessionId);
+        }
+
+        // Affichage du nom du joueur
         playerNameTextView.setText(getString(R.string.nom_du_joueur) + " " + playerName);
+
+        // Chargement des détails de la session
+        loadSessionDetails(sessionId);
 
         // Configuration des boutons
         Button exitButton = findViewById(R.id.exitButton);
@@ -86,33 +110,28 @@ public class WaitingRoomActivity extends AppCompatActivity {
         readyButton.setOnClickListener(v -> toggleReadyStatus());
         copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
 
-// Création d'un Handler pour le thread principal
-        Handler mainThreadHandler = new Handler(Looper.getMainLooper());
-
-// Gestion des observables de SignalR
-        disposables.add(signalRClient.getPlayerListObservable()
+        // Gestion des observables de SignalR pour suivre les événements
+        disposables.add(signalRClient.getPlayerJoinedObservable()
                 .subscribeOn(Schedulers.io())
-                .subscribe(players -> mainThreadHandler.post(() -> displayPlayers(players)),
-                        throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerList observable", throwable)));
+                .observeOn(Schedulers.io())
+                .subscribe(playerName -> {
+                    Log.d("WaitingRoomActivity", playerName + " a rejoint la session");
+                    runOnUiThread(() -> loadSessionDetails(sessionId));
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerJoined observable", throwable)));
 
-        disposables.add(signalRClient.getAlertObservable()
+        disposables.add(signalRClient.getPlayerReadyStatusChangedObservable()
                 .subscribeOn(Schedulers.io())
-                .subscribe(alertMessage -> mainThreadHandler.post(() ->
-                                Toast.makeText(this, alertMessage, Toast.LENGTH_LONG).show()),
-                        throwable -> Log.e("WaitingRoomActivity", "Erreur Alert observable", throwable)));
-
-        disposables.add(signalRClient.getImageObservable()
-                .subscribeOn(Schedulers.io())
-                .subscribe(imageBytes -> mainThreadHandler.post(() ->
-                                redirectToMainActivity(imageBytes)),
-                        throwable -> Log.e("WaitingRoomActivity", "Erreur ReceiveImage observable", throwable)));
-
+                .observeOn(Schedulers.io())
+                .subscribe(isReady -> {
+                    Log.d("WaitingRoomActivity", "Statut de préparation mis à jour : " + isReady);
+                    runOnUiThread(() -> updateReadyStatusUI(playerId, isReady));
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur ReadyStatus observable", throwable)));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        disposables.clear();  // Libère les observables
+        disposables.clear();  // Libère les observables quand l'activité est détruite
         signalRClient.stopConnection();
     }
 
@@ -122,14 +141,64 @@ public class WaitingRoomActivity extends AppCompatActivity {
     private void toggleReadyStatus() {
         isReady = !isReady;
         signalRClient.sendReadyStatusUpdate(sessionId, playerId, isReady);
+        updateReadyStatusUI(playerId, isReady);
+    }
+
+    /**
+     * Met à jour l'interface utilisateur pour afficher le statut de préparation d'un joueur.
+     *
+     * @param playerId L'ID du joueur à mettre à jour.
+     * @param isReady  Le nouveau statut de préparation.
+     */
+    private void updateReadyStatusUI(String playerId, boolean isReady) {
+        for (int i = 0; i < playersContainer.getChildCount(); i++) {
+            View playerView = playersContainer.getChildAt(i);
+            TextView playerNameView = playerView.findViewById(R.id.playerName);
+            TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
+
+            if (playerNameView.getTag().equals(playerId)) {
+                playerStatusView.setText(isReady ? R.string.pret : R.string.pas_pret);
+                playerStatusView.setTextColor(isReady ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
+                break;
+            }
+        }
+    }
+
+    /**
+     * Charge les détails de la session, y compris la liste des joueurs.
+     *
+     * @param sessionId Identifiant de la session.
+     */
+    public void loadSessionDetails(String sessionId) {
+        apiService.getSessionById(sessionId).enqueue(new Callback<GameSession>() {
+            @Override
+            public void onResponse(Call<GameSession> call, Response<GameSession> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Player> players = response.body().getPlayers();
+                    displayPlayers(players);
+                    if (!players.isEmpty()) {
+                        String hostName = players.get(0).getName();
+                        String fullTextParty = getString(R.string.nom_de_la_partie_nom) + " " + hostName;
+                        partyNameTextView.setText(fullTextParty);
+                    }
+                } else {
+                    Log.e("WaitingRoom", "Erreur lors de la récupération des détails de la session : " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GameSession> call, Throwable t) {
+                Log.e("WaitingRoom", "Échec de la requête : " + t.getMessage());
+            }
+        });
     }
 
     /**
      * Affiche la liste des joueurs dans l'interface utilisateur.
      *
-     * @param players Liste des joueurs mise à jour.
+     * @param players Liste des joueurs à afficher.
      */
-    private void displayPlayers(List<Player> players) {
+    public void displayPlayers(List<Player> players) {
         playersContainer.removeAllViews();
         for (Player player : players) {
             View playerView = LayoutInflater.from(this).inflate(R.layout.player_item, playersContainer, false);
@@ -137,6 +206,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
             TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
 
             playerNameView.setText(player.getName());
+
             playerNameView.setTag(player.getPlayerId());
             playerStatusView.setText(player.isReady() ? R.string.pret : R.string.pas_pret);
             playerStatusView.setTextColor(player.isReady() ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
@@ -146,23 +216,11 @@ public class WaitingRoomActivity extends AppCompatActivity {
     }
 
     /**
-     * Redirige vers MainActivity lorsque le joueur reçoit une image.
-     *
-     * @param imageBytes Données de l'image reçue.
-     */
-    private void redirectToMainActivity(byte[] imageBytes) {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("imageBytes", imageBytes);
-        startActivity(intent);
-        finish();
-    }
-
-    /**
      * Copie le texte dans le presse-papiers du téléphone.
      *
      * @param text Texte à copier.
      */
-    private void copyToClipboard(String text) {
+    public void copyToClipboard(String text) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Session ID", text);
         clipboard.setPrimaryClip(clip);
@@ -172,14 +230,25 @@ public class WaitingRoomActivity extends AppCompatActivity {
     /**
      * Supprime la session actuelle et retourne à l'écran d'accueil.
      */
-    private void deleteSessionAndExit() {
-        signalRClient.stopConnection(); // Arrête la connexion SignalR
-        Toast.makeText(this, "Session terminée.", Toast.LENGTH_SHORT).show();
-        startActivity(new Intent(WaitingRoomActivity.this, HomeActivity.class));
-        finish();
-    }
+    public void deleteSessionAndExit() {
+        apiService.destructiondeSession(sessionId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    startActivity(new Intent(WaitingRoomActivity.this, HomeActivity.class));
+                } else {
+                    Toast.makeText(WaitingRoomActivity.this, "Erreur lors de la suppression de la session", Toast.LENGTH_SHORT).show();
+                }
+            }
 
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(WaitingRoomActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     private boolean isHost() {
+        //logique à définir
         return true;
     }
 }

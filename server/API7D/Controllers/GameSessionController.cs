@@ -70,7 +70,6 @@ public class GameSessionController : ControllerBase
         }
 
         existingSession.Players.Add(player);
-        await _hubContext.Clients.Group(sessionId).SendAsync("PlayerListUpdated", existingSession.Players);
         await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player.Name);
         return Ok($"Le joueur {player.Name} a rejoint la session {sessionId}.");
     }

@@ -19,10 +19,11 @@ namespace API7D.Controllers
         private IImage _imageService = new image();
 
 
-        public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService)
+        public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService, IImage imageService)
         {
             _hubContext = hubContext;
             _sessionService = sessionService;
+            _imageService = imageService;
             // Spécifie le chemin vers le dossier contenant les images
             _imageFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Image");
         }
@@ -37,7 +38,13 @@ namespace API7D.Controllers
         public ActionResult<byte[]> GetImage(int id)
         {
             byte[] returnedImage = _imageService.GetImages(id);
-            return returnedImage;
+
+            if (returnedImage == null)
+            {
+                return NotFound($"Image {id} non trouvée.");
+            }
+            //return returnedImage;
+            return new FileContentResult(returnedImage, "application/octet-stream");
         }
 
         [HttpGet("allImage")]

@@ -1,18 +1,20 @@
-﻿namespace API7D.objet
+﻿using API7D.Metier;
+
+namespace API7D.objet
 {
     public class ImageDifference
     {
-        private string imageUrl;
-        private List<Coordonnees> coordonnees;
-        public string ImageUrl
+        private Dictionary<int, List<Coordonnees>> diferanceImage = new Dictionary<int, List<Coordonnees>>();
+
+        public Dictionary<int, List<Coordonnees>> DiferanceImage
         {
-            get { return ImageUrl; }
-            set { ImageUrl = value; }
+            get { return diferanceImage; }
         }
-        public List<Coordonnees> Differences
+
+        public ImageDifference(List<Coordonnees> coordonne, int image )
         {
-            get { return Differences; }
-            set { Differences = value; }
+            diferanceImage.Add(image, coordonne);
         }
+
     }
 }

@@ -14,27 +14,21 @@ namespace API7D.Controllers
     {
             private IDifferanceChecker checker;
 
-        public DifferanceController(IDifferanceChecker checker)
-        {
-            this.checker = checker;
-        }
         public DifferanceController()
-            {
-           
-                checker = new DifferanceChecker();
-            }
-
+        {
+            this.checker = new DifferanceChecker();
+        }
         /// <summary>
         /// permet de veifier les différance
         /// </summary>
         /// <param name="coordonnees">une coordonée X Y</param>
         /// <returns></returns>
         [HttpPost("check")]
-        public IActionResult CheckDifference([FromBody] Coordonnees coordonnees)
+        public IActionResult CheckDifference([FromBody] Coordonnees coordonnees , int IdImage)
         {
             try
             {
-                bool isInZone = checker.IsWithinDifference(coordonnees);
+                bool isInZone = checker.IsWithinDifference(coordonnees,IdImage);
                 return Ok(isInZone);  // Envoie la réponse correcte
             }
             catch (Exception ex)

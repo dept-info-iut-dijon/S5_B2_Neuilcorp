@@ -46,9 +46,24 @@ namespace API7D.Metier
             _logger.LogInformation($"Client ConnectionId: {Context.ConnectionId} successfully joined session group {sessionId}.");
         }
 
-        // Méthode pour notifier que le joueur a rejoint la session
+     /// <summary>
+        /// Méthode appelée lorsqu'un joueur rejoint une session.
+        /// </summary>
+        /// <param name="sessionId">ID de la session de jeu.</param>
+        /// <param name="playerName">Nom du joueur.</param>
         public async Task PlayerJoined(string sessionId, string playerName)
         {
+            string playerId = PlayerIdGenerator.GeneratePlayerId();
+            Player newPlayer = new Player(playerId, playerName);
+            _logger.LogDebug($"Player {playerName} obtained id in session {playerId}.");
+            GameSession session = _sessionService.GetSessionById(sessionId);
+            if (session == null)
+            {
+                await Clients.Caller.SendAsync("Error", "Session not found.");
+                return;
+            }
+            session.Players.Add(newPlayer);
+
             _logger.LogInformation($"Player {playerName} is joining session {sessionId}.");
             await Clients.Group(sessionId).SendAsync("PlayerJoined", playerName);
             _logger.LogDebug($"Event 'PlayerJoined' sent for player {playerName} in session {sessionId}.");
@@ -92,7 +107,7 @@ namespace API7D.Metier
             }
         }
 
-        //ne marche probablement pas
+        //marche
         public async Task SetPlayerReadyStatus(string sessionId, string playerId, bool isReady)
         {
             _logger.LogInformation($"Received readiness update for player {playerId} in session {sessionId}. IsReady: {isReady}.");

@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.example.spotthedifference.models.GameSession;
 import com.google.gson.Gson;
+import com.example.spotthedifference.models.Player;
 import com.microsoft.signalr.HubConnection;
 import com.microsoft.signalr.HubConnectionBuilder;
 import com.microsoft.signalr.HubConnectionState;
@@ -39,6 +40,7 @@ public class SignalRClient {
      */
     public SignalRClient() {
         hubConnection = HubConnectionBuilder.create(SERVER_URL).build();
+
         hubConnection.on("PlayerJoined", playerName -> playerJoinedSubject.onNext(playerName), String.class);
         hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> playerReadyStatusChangedSubject.onNext(isReady), String.class, Boolean.class);
         hubConnection.on("SyncSessionState", sessionState -> { GameSession session = new Gson().fromJson(sessionState, GameSession.class); syncSessionStateSubject.onNext(session);}, String.class);
@@ -194,7 +196,7 @@ public class SignalRClient {
      *
      * @return Un BehaviorSubject émettant les noms des joueurs qui rejoignent.
      */
-    public BehaviorSubject<String> getPlayerJoinedObservable() {
+    public BehaviorSubject<Player> getPlayerJoinedObservable() {
         return playerJoinedSubject;
     }
 
@@ -203,7 +205,7 @@ public class SignalRClient {
      *
      * @return Un BehaviorSubject émettant les statuts de préparation des joueurs.
      */
-    public BehaviorSubject<Boolean> getPlayerReadyStatusChangedObservable() {
+    public BehaviorSubject<Player> getPlayerReadyStatusChangedObservable() {
         return playerReadyStatusChangedSubject;
     }
 

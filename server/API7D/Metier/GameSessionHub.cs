@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using API7D.DATA;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace API7D.Metier
 {
@@ -18,27 +19,39 @@ namespace API7D.Metier
         private readonly SessionService _sessionService;
         private readonly ImageDATA _imageService;
         private static readonly Dictionary<string, (byte[] Image1, byte[] Image2)> ImagePairs = new();
+        private readonly ILogger<GameSessionHub> _logger;
 
         /// <summary>
         /// Initialise une nouvelle instance de <see cref="GameSessionHub"/>.
         /// </summary>
-        public GameSessionHub(SessionService sessionService, ImageDATA imageService)
+        public GameSessionHub(SessionService sessionService, ImageDATA imageService, ILogger<GameSessionHub> logger)
         {
             _sessionService = sessionService;
             _imageService = imageService;
+            _logger = logger;
+        }
+
+        public override Task OnConnectedAsync()
+        {
+            _logger.LogInformation($"Client connecté : {Context.ConnectionId}.");
+            return base.OnConnectedAsync();
         }
 
 
         // Méthode pour joindre un groupe de session (pour chaque session, un groupe est créé)
         public async Task JoinSessionGroup(string sessionId)
         {
+            _logger.LogInformation($"JoinSessionGroup appelé avec sessionId: {sessionId}, ConnectionId: {Context.ConnectionId}");
             await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
+            _logger.LogInformation($"Client ConnectionId: {Context.ConnectionId} successfully joined session group {sessionId}.");
         }
 
         // Méthode pour notifier que le joueur a rejoint la session
         public async Task PlayerJoined(string sessionId, string playerName)
         {
+            _logger.LogInformation($"Player {playerName} is joining session {sessionId}.");
             await Clients.Group(sessionId).SendAsync("PlayerJoined", playerName);
+            _logger.LogDebug($"Event 'PlayerJoined' sent for player {playerName} in session {sessionId}.");
         }
 
         /// <summary>
@@ -82,17 +95,29 @@ namespace API7D.Metier
         //ne marche probablement pas
         public async Task SetPlayerReadyStatus(string sessionId, string playerId, bool isReady)
         {
+            _logger.LogInformation($"Received readiness update for player {playerId} in session {sessionId}. IsReady: {isReady}.");
+
             GameSession existingSession = _sessionService.GetSessionById(sessionId);
-            if (existingSession == null) return;
+            if (existingSession == null)
+            {
+                _logger.LogWarning($"Session {sessionId} not found.");
+                return;
+            }
 
             Player player = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
-            if (player == null) return;
+            if (player == null)
+            {
+                _logger.LogWarning($"Player {playerId} not found in session {sessionId}.");
+                return;
+            }
 
             player.IsReady = isReady;
+            _logger.LogInformation($"Player {playerId} readiness updated to {isReady} in session {sessionId}.");
+
             await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
 
             // Vérifie si tous les joueurs sont prêts
-            if (existingSession.Players.All(p => p.IsReady))
+            /**if (existingSession.Players.All(p => p.IsReady))
             {
                 // Envoi des images une fois que tous les joueurs sont prêts
                 var images = _imageService.GetImagePair(existingSession.ImagePairId);
@@ -104,7 +129,7 @@ namespace API7D.Metier
                     byte[] imageToSend = (i % 2 == 0) ? images.Image1 : images.Image2;
                     await Clients.Client(players[i].PlayerId).SendAsync("ReceiveImage", imageToSend);
                 }
-            }
+            }*/
         }
 
         public async Task SelectImagePair(string sessionId, int imagePairId)
@@ -144,6 +169,17 @@ namespace API7D.Metier
             {
                 await Clients.Group(sessionId).SendAsync("SelectionFailed", currentSelection);
             }*/
+        }
+
+        public async Task RequestSync(string sessionId)
+        {
+            _logger.LogInformation($"Sync request received for session {sessionId}.");
+            GameSession existingSession = _sessionService.GetSessionById(sessionId);
+            if (existingSession != null)
+            {
+                await Clients.Caller.SendAsync("SyncSessionState", existingSession);
+                _logger.LogInformation($"Sync state sent to client {Context.ConnectionId} for session {sessionId}.");
+            }
         }
     }
 }

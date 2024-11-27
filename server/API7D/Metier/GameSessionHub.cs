@@ -17,7 +17,6 @@ namespace API7D.Metier
     public class GameSessionHub : Hub
     {
         private readonly SessionService _sessionService;
-        private static readonly Dictionary<string, (byte[] Image1, byte[] Image2)> ImagePairs = new();
         private readonly ILogger<GameSessionHub> _logger;
 
         /// <summary>
@@ -47,65 +46,15 @@ namespace API7D.Metier
             _logger.LogInformation($"Client ConnectionId: {Context.ConnectionId} successfully joined session group {sessionId}.");
         }
 
-     /// <summary>
-        /// Méthode appelée lorsqu'un joueur rejoint une session.
+        /// <summary>
+        /// Notifie les clients qu'un joueur a rejoint la session.
         /// </summary>
         /// <param name="sessionId">ID de la session de jeu.</param>
-        /// <param name="playerName">Nom du joueur.</param>
-        public async Task PlayerJoined(string sessionId, string playerName)
+        /// <param name="player">L'objet Player représentant le joueur.</param>
+        public async Task NotifyPlayerJoined(string sessionId, Player player)
         {
-            string playerId = PlayerIdGenerator.GeneratePlayerId();
-            Player newPlayer = new Player(playerId, playerName);
-            _logger.LogDebug($"Player {playerName} obtained id in session {playerId}.");
-            GameSession session = _sessionService.GetSessionById(sessionId);
-            if (session == null)
-            {
-                await Clients.Caller.SendAsync("Error", "Session not found.");
-                return;
-            }
-            session.Players.Add(newPlayer);
-
-            _logger.LogInformation($"Player {playerName} is joining session {sessionId}.");
-            await Clients.Group(sessionId).SendAsync("PlayerJoined", playerName);
-            _logger.LogDebug($"Event 'PlayerJoined' sent for player {playerName} in session {sessionId}.");
-        }
-
-        /// <summary>
-        /// Définit le statut de préparation d'un joueur et notifie les clients.
-        /// </summary>
-        public void ChooseImagePair(string sessionId, int imagePaireId)
-        {
-            var imagePair = _imageService.GetImagePair(imagePaireId);
-            ImagePairs[sessionId] = imagePair;
-        }
-
-        /// <summary>
-        /// Vérifie si tous les joueurs sont prêts, puis envoie une image aléatoire de la paire à chaque joueur.
-        /// </summary>
-        public async Task SendImagesToPlayersIfAllReady(string sessionId)
-        {
-            GameSession session = _sessionService.GetSessionById(sessionId);
-
-            if (session == null || !session.Players.All(p => p.IsReady))
-                return;
-
-            if (!ImagePairs.ContainsKey(sessionId))
-            {
-                Console.WriteLine("Erreur : La paire d'images n'a pas été sélectionnée.");
-                return;
-            }
-
-            var (image1, image2) = ImagePairs[sessionId];
-            bool toggleImage = true;  // Variable pour alterner les images
-
-            foreach (var player in session.Players)
-            {
-                var imageToSend = toggleImage ? image1 : image2;
-                toggleImage = !toggleImage;
-
-                // Envoi de l'image spécifique à chaque joueur
-                await Clients.Client(player.PlayerId).SendAsync("ReceiveImage", imageToSend);
-            }
+            _logger.LogInformation($"Notifying clients in session {sessionId} that player {player.Name} has joined.");
+            await Clients.Group(sessionId).SendAsync("PlayerJoined", player);
         }
 
         //marche
@@ -146,29 +95,7 @@ namespace API7D.Metier
                     await Clients.Client(players[i].PlayerId).SendAsync("ReceiveImage", imageToSend);
                 }
             }*/
-        }
-
-        public async Task SelectImagePair(string sessionId, int imagePairId)
-        {
-            GameSession existingSession = _sessionService.GetSessionById(sessionId);
-            if (existingSession == null)
-            {
-                Console.WriteLine($"Session {sessionId} non trouvée.");
-                return;
-            }
-
-            Player player = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
-            if (player == null)
-            {
-                Console.WriteLine($"Joueur {playerId} non trouvé dans la session.");
-                return;
-            }
-
-            player.IsReady = isReady;
-            Console.WriteLine($"Statut de préparation du joueur {player.Name} mis à jour à {(isReady ? "prêt" : "pas prêt")}");
-
-            await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
-        }
+    }
 
         public async Task RequestSync(string sessionId)
         {

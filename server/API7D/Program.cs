@@ -10,7 +10,7 @@ builder.Services.AddLogging(logging =>
     logging.ClearProviders();
     logging.AddConsole();
     logging.AddDebug();
-    logging.AddFilter("Microsoft.AspNetCore", LogLevel.Information);
+    //logging.AddFilter("Microsoft.AspNetCore", LogLevel.Information);
 });
 
 // Add services to the container.

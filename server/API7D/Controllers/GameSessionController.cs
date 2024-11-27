@@ -78,8 +78,7 @@ public class GameSessionController : ControllerBase
 
         existingSession.Players.Add(player);
         _logger.LogInformation($"Player {player.Name} added to session {sessionId}.");
-        await _hubContext.Clients.Group(sessionId).SendAsync("SyncSessionState", existingSession);
-        _logger.LogDebug($"SyncSessionState sent for session {sessionId} after player joined.");
+
         await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player.Name);
         return Ok($"Le joueur {player.Name} a rejoint la session {sessionId}.");
     }

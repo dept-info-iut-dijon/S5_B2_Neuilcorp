@@ -13,11 +13,13 @@ public class GameSessionController : ControllerBase
     private readonly SessionService _sessionService;
     private readonly IHubContext<GameSessionHub> _hubContext;
     private readonly SessionCodeGenerator _codeGenerator = new SessionCodeGenerator();
+    private readonly ILogger<GameSessionController> _logger;
 
-    public GameSessionController(IHubContext<GameSessionHub> hubContext, SessionService sessionService)
+    public GameSessionController(IHubContext<GameSessionHub> hubContext, SessionService sessionService, ILogger<GameSessionController> logger)
     {
         _hubContext = hubContext;
         _sessionService = sessionService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -52,24 +54,32 @@ public class GameSessionController : ControllerBase
     [HttpPost("{sessionId}/join")]
     public async Task<ActionResult> JoinSession(string sessionId, [FromBody] Player player)
     {
+        _logger.LogInformation($"Player {player?.Name ?? "Unknown"} is attempting to join session {sessionId}.");
+
         if (player == null || string.IsNullOrEmpty(player.PlayerId))
         {
+            _logger.LogWarning($"Invalid player data for session {sessionId}.");
             return BadRequest("Informations du joueur invalides.");
         }
 
         GameSession existingSession = _sessionService.GetSessionById(sessionId);
         if (existingSession == null)
         {
+            _logger.LogWarning($"Session {sessionId} not found.");
             return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
         }
 
         bool playerAlreadyInSession = existingSession.Players.Exists(p => p.PlayerId == player.PlayerId);
         if (playerAlreadyInSession)
         {
+            _logger.LogWarning($"Player {player.PlayerId} is already in session {sessionId}.");
             return BadRequest("Le joueur est déjà dans la session.");
         }
 
         existingSession.Players.Add(player);
+        _logger.LogInformation($"Player {player.Name} added to session {sessionId}.");
+        await _hubContext.Clients.Group(sessionId).SendAsync("SyncSessionState", existingSession);
+        _logger.LogDebug($"SyncSessionState sent for session {sessionId} after player joined.");
         await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player.Name);
         return Ok($"Le joueur {player.Name} a rejoint la session {sessionId}.");
     }
@@ -134,5 +144,20 @@ public class GameSessionController : ControllerBase
         }
 
         return Ok(gameSession.Players);
+    }
+
+    [HttpGet("{sessionId}/forceSync")]
+    public ActionResult<GameSession> ForceSync(string sessionId)
+    {
+        _logger.LogInformation($"Force sync requested for session {sessionId}.");
+        GameSession existingSession = _sessionService.GetSessionById(sessionId);
+        if (existingSession == null)
+        {
+            _logger.LogWarning($"Session {sessionId} not found for force sync.");
+            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+        }
+
+        _logger.LogInformation($"Force sync returning session state for {sessionId}.");
+        return Ok(existingSession);
     }
 }

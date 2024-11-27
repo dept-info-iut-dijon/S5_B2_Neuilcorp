@@ -3,6 +3,8 @@ package com.example.spotthedifference.WebSocket;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+
+import com.example.spotthedifference.models.Player;
 import com.microsoft.signalr.HubConnection;
 import com.microsoft.signalr.HubConnectionBuilder;
 import com.microsoft.signalr.HubConnectionState;
@@ -20,8 +22,8 @@ public class SignalRClient {
     private Disposable connectionDisposable;
     private int retryCount = 0;
 
-    private BehaviorSubject<String> playerJoinedSubject = BehaviorSubject.create();
-    private BehaviorSubject<Boolean> playerReadyStatusChangedSubject = BehaviorSubject.create();
+    private BehaviorSubject<Player> playerJoinedSubject = BehaviorSubject.create();
+    private BehaviorSubject<Player> playerReadyStatusChangedSubject = BehaviorSubject.create();
 
     /**
      * Constructeur de SignalRClient. Initialise la connexion au serveur SignalR et
@@ -29,8 +31,14 @@ public class SignalRClient {
      */
     public SignalRClient() {
         hubConnection = HubConnectionBuilder.create(SERVER_URL).build();
-        hubConnection.on("PlayerJoined", playerName -> playerJoinedSubject.onNext(playerName), String.class);
-        hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> playerReadyStatusChangedSubject.onNext(isReady), String.class, Boolean.class);
+        hubConnection.on("PlayerJoined", (playerId, playerName) -> {
+            playerJoinedSubject.onNext(new Player(playerId, playerName));
+        }, String.class, String.class);
+
+        hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> {
+            playerReadyStatusChangedSubject.onNext(new Player(playerId, isReady));
+        }, String.class, Boolean.class);
+
     }
 
     /**
@@ -167,7 +175,7 @@ public class SignalRClient {
      *
      * @return Un BehaviorSubject émettant les noms des joueurs qui rejoignent.
      */
-    public BehaviorSubject<String> getPlayerJoinedObservable() {
+    public BehaviorSubject<Player> getPlayerJoinedObservable() {
         return playerJoinedSubject;
     }
 
@@ -176,7 +184,7 @@ public class SignalRClient {
      *
      * @return Un BehaviorSubject émettant les statuts de préparation des joueurs.
      */
-    public BehaviorSubject<Boolean> getPlayerReadyStatusChangedObservable() {
+    public BehaviorSubject<Player> getPlayerReadyStatusChangedObservable() {
         return playerReadyStatusChangedSubject;
     }
 

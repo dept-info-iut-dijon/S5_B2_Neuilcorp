@@ -36,42 +36,30 @@ namespace API7D.Metier
             Console.WriteLine($"Connexion {Context.ConnectionId} ajoutée au groupe {sessionId}.");
         }
 
-        /// <summary>
-        /// Notifie tous les clients d'une session qu'un joueur a rejoint la session.
-        /// Ajoute également le joueur à la session côté serveur.
+     /// <summary>
+        /// Méthode appelée lorsqu'un joueur rejoint une session.
         /// </summary>
-        /// <param name="sessionId">L'ID de la session de jeu.</param>
-        /// <param name="playerName">Le nom du joueur qui a rejoint.</param>
+        /// <param name="sessionId">ID de la session de jeu.</param>
+        /// <param name="playerName">Nom du joueur.</param>
         public async Task PlayerJoined(string sessionId, string playerName)
         {
-            var session = _sessionService.GetSessionById(sessionId);
+            string playerId = PlayerIdGenerator.GeneratePlayerId(); // Génération de l'ID du joueur
+            Player newPlayer = new Player(playerId, playerName);
+
+            GameSession session = _sessionService.GetSessionById(sessionId);
             if (session == null)
             {
-                Console.WriteLine($"Session {sessionId} non trouvée.");
+                await Clients.Caller.SendAsync("Error", "Session not found.");
                 return;
             }
 
-            var existingPlayer = session.Players.FirstOrDefault(p => p.Name == playerName);
-            if (existingPlayer != null)
-            {
-                Console.WriteLine($"Joueur {playerName} existe déjà dans la session {sessionId}.");
-                return;
-            }
+            session.Players.Add(newPlayer);
 
-            // Ajouter le joueur à la session
-            session.Players.Add(new Player
-            {
-                Name = playerName,
-                IsReady = false,
-                PlayerId = Context.ConnectionId
-            });
-            _sessionService.UpdateSession(session);
+            // Joindre le joueur au groupe SignalR de la session
+            await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
 
-            Console.WriteLine($"Joueur {playerName} ajouté à la session {sessionId}. Total joueurs : {session.Players.Count}");
-
-            // Diffuser l'événement à tous les clients
-            await Clients.Group(sessionId).SendAsync("PlayerJoined", playerName);
-            Console.WriteLine($"Diffusion de l'événement PlayerJoined pour le joueur {playerName} à la session {sessionId}");
+            // Notification à tous les clients du groupe
+            await Clients.Group(sessionId).SendAsync("PlayerJoined", playerName, playerId);
         }
 
         /// <summary>

@@ -26,8 +26,8 @@ public class SignalRClient {
     private int retryCount = 0;
 
     private BehaviorSubject<GameSession> syncSessionStateSubject = BehaviorSubject.create();
-    private BehaviorSubject<String> playerJoinedSubject = BehaviorSubject.create();
-    private BehaviorSubject<Boolean> playerReadyStatusChangedSubject = BehaviorSubject.create();
+    private BehaviorSubject<Player> playerJoinedSubject = BehaviorSubject.create();
+    private BehaviorSubject<Player> playerReadyStatusChangedSubject = BehaviorSubject.create();
     private BehaviorSubject<Boolean> connectionEstablishedSubject = BehaviorSubject.create();
 
     public BehaviorSubject<Boolean> getConnectionEstablishedObservable() {
@@ -41,8 +41,14 @@ public class SignalRClient {
     public SignalRClient() {
         hubConnection = HubConnectionBuilder.create(SERVER_URL).build();
 
-        hubConnection.on("PlayerJoined", playerName -> playerJoinedSubject.onNext(playerName), String.class);
-        hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> playerReadyStatusChangedSubject.onNext(isReady), String.class, Boolean.class);
+        hubConnection.on("PlayerJoined", (playerId, playerName) -> {
+            playerJoinedSubject.onNext(new Player(playerId, playerName));
+        }, String.class, String.class);
+
+        hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> {
+            playerReadyStatusChangedSubject.onNext(new Player(playerId, isReady));
+        }, String.class, Boolean.class);
+
         hubConnection.on("SyncSessionState", sessionState -> { GameSession session = new Gson().fromJson(sessionState, GameSession.class); syncSessionStateSubject.onNext(session);}, String.class);
     }
 

@@ -132,7 +132,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         disposables.add(signalRClient.getPlayerReadyStatusChangedObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(playerReadyStatus -> {
+                .subscribe(player -> {
                     Log.d("WaitingRoomActivity", "Statut de préparation de " + player.getPlayerId() + " mis à jour : " + player.isReady());
                     loadSessionDetails(sessionId);
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerReadyStatusChanged observable", throwable)));

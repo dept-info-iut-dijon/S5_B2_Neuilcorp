@@ -23,6 +23,7 @@ import com.example.spotthedifference.api.RetrofitClient;
 import com.example.spotthedifference.models.GameSession;
 import com.example.spotthedifference.models.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.disposables.CompositeDisposable;
@@ -50,6 +51,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
     private boolean isReady = false;
     private SignalRClient signalRClient;
     private CompositeDisposable disposables = new CompositeDisposable();
+    private List<Player> players = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -175,7 +177,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             @Override
             public void onResponse(Call<GameSession> call, Response<GameSession> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Player> players = response.body().getPlayers();
+                    players = response.body().getPlayers();
                     displayPlayers(players);
                     if (!players.isEmpty()) {
                         String hostName = players.get(0).getName();
@@ -249,7 +251,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         });
     }
     private boolean isHost() {
-        //logique à définir
-        return true;
+        return !players.isEmpty() && playerId.equals(players.get(0).getPlayerId());
     }
 }

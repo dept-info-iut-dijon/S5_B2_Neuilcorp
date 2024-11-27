@@ -114,18 +114,19 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         disposables.add(signalRClient.getPlayerJoinedObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
-                .subscribe(playerName -> {
-                    Log.d("WaitingRoomActivity", playerName + " a rejoint la session");
+                .subscribe(player -> {
+                    Log.d("WaitingRoomActivity", player.getName() + " a rejoint la session avec l'ID " + player.getPlayerId());
                     runOnUiThread(() -> loadSessionDetails(sessionId));
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerJoined observable", throwable)));
 
         disposables.add(signalRClient.getPlayerReadyStatusChangedObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
-                .subscribe(isReady -> {
-                    Log.d("WaitingRoomActivity", "Statut de préparation mis à jour : " + isReady);
-                    runOnUiThread(() -> updateReadyStatusUI(playerId, isReady));
+                .subscribe(player -> {
+                    Log.d("WaitingRoomActivity", "Statut de préparation de " + player.getPlayerId() + " mis à jour : " + player.isReady());
+                    runOnUiThread(() -> updateReadyStatusUI(player.getPlayerId(), player.isReady()));
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur ReadyStatus observable", throwable)));
+
     }
 
     @Override
@@ -154,9 +155,9 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         for (int i = 0; i < playersContainer.getChildCount(); i++) {
             View playerView = playersContainer.getChildAt(i);
             TextView playerNameView = playerView.findViewById(R.id.playerName);
-            TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
 
             if (playerNameView.getTag().equals(playerId)) {
+                TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
                 playerStatusView.setText(isReady ? R.string.pret : R.string.pas_pret);
                 playerStatusView.setTextColor(isReady ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
                 break;
@@ -206,14 +207,14 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
 
             playerNameView.setText(player.getName());
-
-            playerNameView.setTag(player.getPlayerId());
+            playerNameView.setTag(player.getPlayerId()); // Associe l'ID du joueur à la vue
             playerStatusView.setText(player.isReady() ? R.string.pret : R.string.pas_pret);
             playerStatusView.setTextColor(player.isReady() ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
 
             playersContainer.addView(playerView);
         }
     }
+
 
     /**
      * Copie le texte dans le presse-papiers du téléphone.

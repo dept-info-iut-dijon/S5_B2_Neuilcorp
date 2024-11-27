@@ -9,11 +9,17 @@ public class Player implements IPlayer {
     public Player() {
     }
 
-    // Constructeur avec paramètres
+    // Constructeur avec paramètres sauf état
     public Player(String playerId, String name) {
-        this.playerId = java.util.UUID.randomUUID().toString();
+        this.playerId = playerId;
         this.name = name;
         this.isReady = false;
+    }
+
+    // Constructeur avec paramètres sauf nom
+    public Player(String playerId, boolean isReady) {
+        this.playerId = playerId;
+        this.isReady = isReady;
     }
 
     @Override

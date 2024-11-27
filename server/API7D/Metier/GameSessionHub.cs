@@ -35,10 +35,30 @@ namespace API7D.Metier
             await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
         }
 
-        // Méthode pour notifier que le joueur a rejoint la session
+     /// <summary>
+        /// Méthode appelée lorsqu'un joueur rejoint une session.
+        /// </summary>
+        /// <param name="sessionId">ID de la session de jeu.</param>
+        /// <param name="playerName">Nom du joueur.</param>
         public async Task PlayerJoined(string sessionId, string playerName)
         {
-            await Clients.Group(sessionId).SendAsync("PlayerJoined", playerName);
+            string playerId = PlayerIdGenerator.GeneratePlayerId(); // Génération de l'ID du joueur
+            Player newPlayer = new Player(playerId, playerName);
+
+            GameSession session = _sessionService.GetSessionById(sessionId);
+            if (session == null)
+            {
+                await Clients.Caller.SendAsync("Error", "Session not found.");
+                return;
+            }
+
+            session.Players.Add(newPlayer);
+
+            // Joindre le joueur au groupe SignalR de la session
+            await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
+
+            // Notification à tous les clients du groupe
+            await Clients.Group(sessionId).SendAsync("PlayerJoined", playerName, playerId);
         }
 
         /// <summary>

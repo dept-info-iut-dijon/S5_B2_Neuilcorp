@@ -17,17 +17,16 @@ namespace API7D.Metier
     public class GameSessionHub : Hub
     {
         private readonly SessionService _sessionService;
-        private readonly ImageDATA _imageService;
         private static readonly Dictionary<string, (byte[] Image1, byte[] Image2)> ImagePairs = new();
         private readonly ILogger<GameSessionHub> _logger;
 
         /// <summary>
         /// Initialise une nouvelle instance de <see cref="GameSessionHub"/>.
         /// </summary>
-        public GameSessionHub(SessionService sessionService, ImageDATA imageService, ILogger<GameSessionHub> logger)
+        /// <param name="sessionService">Service de gestion des sessions de jeu.</param>
+        public GameSessionHub(SessionService sessionService, ILogger<GameSessionHub> logger)
         {
             _sessionService = sessionService;
-            _imageService = imageService;
             _logger = logger;
         }
 
@@ -37,8 +36,10 @@ namespace API7D.Metier
             return base.OnConnectedAsync();
         }
 
-
-        // Méthode pour joindre un groupe de session (pour chaque session, un groupe est créé)
+        /// <summary>
+        /// Permet à un client de rejoindre un groupe de session spécifique.
+        /// </summary>
+        /// <param name="sessionId">L'ID de la session de jeu à rejoindre.</param>
         public async Task JoinSessionGroup(string sessionId)
         {
             _logger.LogInformation($"JoinSessionGroup appelé avec sessionId: {sessionId}, ConnectionId: {Context.ConnectionId}");
@@ -70,7 +71,7 @@ namespace API7D.Metier
         }
 
         /// <summary>
-        /// Permet à l'hôte de choisir une paire d'images pour la session.
+        /// Définit le statut de préparation d'un joueur et notifie les clients.
         /// </summary>
         public void ChooseImagePair(string sessionId, int imagePaireId)
         {
@@ -152,38 +153,21 @@ namespace API7D.Metier
             GameSession existingSession = _sessionService.GetSessionById(sessionId);
             if (existingSession == null)
             {
-                await Clients.Caller.SendAsync("Error", "Session not found.");
+                Console.WriteLine($"Session {sessionId} non trouvée.");
                 return;
             }
 
-            // L'hôte sélectionne la paire d'images pour la session
-            existingSession.ImagePairId = imagePairId;
-
-            await Clients.Group(sessionId).SendAsync("ImagePairSelected", imagePairId);
-        }
-
-        /// <summary>
-        /// Vérifie si tous les joueurs ont sélectionné la même différence et valide ou invalide la tentative.
-        /// </summary>
-        public async Task VerifyPlayerSelection(string sessionId, string playerId, Coordonnees selection)
-        {
-            // a faire apres
-            /*GameSession session = _sessionService.GetSessionById(sessionId);
-            if (session == null)
+            Player player = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
+            if (player == null)
+            {
+                Console.WriteLine($"Joueur {playerId} non trouvé dans la session.");
                 return;
-
-            var currentSelection = selection;
-            var allPlayersSelectedSame = session.Players.All(p => p.CurrentSelection.Equals(currentSelection));
-
-            if (allPlayersSelectedSame)
-            {
-                await Clients.Group(sessionId).SendAsync("SelectionValidated", currentSelection);
-                // Ajouter logique pour passer à la différence suivante, si nécessaire.
             }
-            else
-            {
-                await Clients.Group(sessionId).SendAsync("SelectionFailed", currentSelection);
-            }*/
+
+            player.IsReady = isReady;
+            Console.WriteLine($"Statut de préparation du joueur {player.Name} mis à jour à {(isReady ? "prêt" : "pas prêt")}");
+
+            await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
         }
 
         public async Task RequestSync(string sessionId)

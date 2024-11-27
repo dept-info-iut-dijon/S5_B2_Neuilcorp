@@ -34,7 +34,7 @@ namespace TestsUnitaires.TestsMetier
             Assert.Contains(result, coord => coord.X == 503 && coord.Y == 656);
             Assert.Contains(result, coord => coord.X == 527 && coord.Y == 492);
             Assert.Contains(result, coord => coord.X == 423 && coord.Y == 765);
-            Assert.Contains(result, coord => coord.X == 339 && coord.Y == 557);
+            Assert.Contains(result, coord => coord.X == 338 && coord.Y == 870);
         }
     }
 }

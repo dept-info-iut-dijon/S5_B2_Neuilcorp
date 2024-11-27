@@ -117,7 +117,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         // Gestion des événements de synchronisation
         disposables.add(signalRClient.getSyncSessionStateObservable()
                 .subscribeOn(Schedulers.io())
-                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread()) // Assurez-vous d'importer AndroidSchedulers de RxJava3
+                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread())
                 .subscribe(session -> displayPlayers(session.getPlayers()),
                         throwable -> Log.e("WaitingRoomActivity", "Erreur SyncSessionState", throwable)));
 

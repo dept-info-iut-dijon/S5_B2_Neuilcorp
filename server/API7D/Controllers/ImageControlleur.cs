@@ -15,8 +15,7 @@ namespace API7D.Controllers
         private readonly SessionService _sessionService;
         private readonly string _imageFolderPath;
         private readonly IHubContext<GameSessionHub> _hubContext;
-
-        private IImage _imageService = new image();
+        private readonly IImage _imageService;
 
 
         public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService, IImage imageService)

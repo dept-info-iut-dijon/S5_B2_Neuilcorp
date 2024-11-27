@@ -15,6 +15,7 @@ builder.Services.AddLogging(logging =>
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddScoped<IImage, image>();
 builder.Services.AddSingleton<SessionService>();
 builder.Services.AddSingleton<ImageDATA>(); // Enregistrement de ImageDATA
 

@@ -34,7 +34,7 @@ namespace API7D.DATA
             {
                 connection.Open();
 
-                string query = "SELECT ImageLink FROM images WHERE ImageID = @ID";
+                string query = "SELECT ImageLink FROM Image WHERE ImageID = @ID";
                 using (var command = new SqliteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@ID", ID);

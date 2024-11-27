@@ -27,6 +27,7 @@ import java.util.List;
 
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -78,6 +79,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
 
         // Rejoindre le groupe de session SignalR
         signalRClient.joinSessionGroup(sessionId);
+        signalRClient.requestSync(sessionId);
 
         // Affichage du code de session
         if (sessionId != null) {
@@ -110,22 +112,29 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         readyButton.setOnClickListener(v -> toggleReadyStatus());
         copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
 
-        // Gestion des observables de SignalR pour suivre les événements
+        // Gestion des événements de synchronisation
+        disposables.add(signalRClient.getSyncSessionStateObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread()) // Assurez-vous d'importer AndroidSchedulers de RxJava3
+                .subscribe(session -> displayPlayers(session.getPlayers()),
+                        throwable -> Log.e("WaitingRoomActivity", "Erreur SyncSessionState", throwable)));
+
+        // Gestion des événements PlayerJoined
         disposables.add(signalRClient.getPlayerJoinedObservable()
                 .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                .subscribe(playerName -> {
-                    Log.d("WaitingRoomActivity", playerName + " a rejoint la session");
-                    runOnUiThread(() -> loadSessionDetails(sessionId));
-                }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerJoined observable", throwable)));
+                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread())
+                .subscribe(playerName -> loadSessionDetails(sessionId),
+                        throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerJoined", throwable)));
 
+        // Gestion des événements PlayerReadyStatusChanged
         disposables.add(signalRClient.getPlayerReadyStatusChangedObservable()
                 .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                .subscribe(isReady -> {
-                    Log.d("WaitingRoomActivity", "Statut de préparation mis à jour : " + isReady);
-                    runOnUiThread(() -> updateReadyStatusUI(playerId, isReady));
-                }, throwable -> Log.e("WaitingRoomActivity", "Erreur ReadyStatus observable", throwable)));
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(playerReadyStatus -> {
+                    Log.d("WaitingRoomActivity", "Player ready status changed");
+                    loadSessionDetails(sessionId);
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerReadyStatusChanged", throwable)));
+
     }
 
     @Override

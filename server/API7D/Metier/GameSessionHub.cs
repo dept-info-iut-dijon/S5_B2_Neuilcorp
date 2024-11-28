@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using API7D.DATA;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using API7D.Controllers;
 
 namespace API7D.Metier
 {
@@ -18,15 +19,19 @@ namespace API7D.Metier
     {
         private readonly SessionService _sessionService;
         private readonly ILogger<GameSessionHub> _logger;
+        private readonly IImage _imageService;
+        private readonly IHubContext<GameSessionHub> _hubContext;
 
         /// <summary>
         /// Initialise une nouvelle instance de <see cref="GameSessionHub"/>.
         /// </summary>
         /// <param name="sessionService">Service de gestion des sessions de jeu.</param>
-        public GameSessionHub(SessionService sessionService, ILogger<GameSessionHub> logger)
+        public GameSessionHub(SessionService sessionService, ILogger<GameSessionHub> logger, IImage imageService, IHubContext<GameSessionHub> hubContext)
         {
             _sessionService = sessionService;
             _logger = logger;
+            _imageService = imageService;
+            _hubContext = hubContext;
         }
 
         public override Task OnConnectedAsync()
@@ -62,6 +67,7 @@ namespace API7D.Metier
         {
             _logger.LogInformation($"Received readiness update for player {playerId} in session {sessionId}. IsReady: {isReady}.");
 
+            // Récupération de la session
             GameSession existingSession = _sessionService.GetSessionById(sessionId);
             if (existingSession == null)
             {
@@ -69,6 +75,7 @@ namespace API7D.Metier
                 return;
             }
 
+            // Récupération du joueur dans la session
             Player player = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
             if (player == null)
             {
@@ -76,26 +83,39 @@ namespace API7D.Metier
                 return;
             }
 
+            // Si un seul joueur dans la session on le force à ne pas etre pret
+            if (existingSession.Players.Count < 2)
+            {
+                _logger.LogInformation($"Player {playerId} cannot be ready alone in session {sessionId}.");
+                await Clients.Caller.SendAsync("ReadyNotAllowed", "Vous ne pouvez pas être prêt en étant seul.");
+                player.IsReady = false;
+                isReady = false;
+            }
+            else { 
             player.IsReady = isReady;
-            _logger.LogInformation($"Player {playerId} readiness updated to {isReady} in session {sessionId}.");
 
+            }
+            _logger.LogInformation($"Player {playerId} readiness updated to {isReady} in session {sessionId}.");
             await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
 
-            // Vérifie si tous les joueurs sont prêts
-            /**if (existingSession.Players.All(p => p.IsReady))
+            if (existingSession.Players.All(p => p.IsReady))
             {
-                // Envoi des images une fois que tous les joueurs sont prêts
-                var images = _imageService.GetImagePair(existingSession.ImagePairId);
-                var players = existingSession.Players.ToList();
+                _logger.LogInformation($"All players in session {sessionId} are ready. Requesting ImageController to send images...");
 
-                // Distribution alternée des images
-                for (int i = 0; i < players.Count; i++)
+                var imageController = new ImageControlleur(_hubContext, _sessionService, _imageService);
+                var result = await imageController.SendImagesToPlayers(sessionId);
+
+                if (result is OkObjectResult)
                 {
-                    byte[] imageToSend = (i % 2 == 0) ? images.Image1 : images.Image2;
-                    await Clients.Client(players[i].PlayerId).SendAsync("ReceiveImage", imageToSend);
+                    // Notifie le groupe que la partie commence après l'envoi des images
+                    await Clients.Group(sessionId).SendAsync("GameStarted");
                 }
-            }*/
-    }
+                else
+                {
+                    _logger.LogWarning($"Failed to send images for session {sessionId}: {result}");
+                }
+            }
+        }
 
         public async Task RequestSync(string sessionId)
         {

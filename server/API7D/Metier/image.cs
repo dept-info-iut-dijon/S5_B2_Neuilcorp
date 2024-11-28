@@ -45,9 +45,29 @@ namespace API7D.Metier
             throw new NotImplementedException();
         }
 
-        public (byte[] Image1, byte[] Image2) GetImagePair(int imagePaireId)
+        public (byte[] Image1, byte[] Image2) GetImagePair(int pairId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var imagePaths = _data.GetAllImagesWithPairData()
+                                      .Where(img => img.ImagePairId == pairId)
+                                      .Select(img => img.ImageLink)
+                                      .ToList();
+
+                if (imagePaths.Count != 2)
+                {
+                    throw new Exception($"La paire d'images avec l'ID {pairId} est incomplète ou introuvable.");
+                }
+
+                byte[] image1 = File.ReadAllBytes(imagePaths[0]);
+                byte[] image2 = File.ReadAllBytes(imagePaths[1]);
+
+                return (image1, image2);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Erreur lors de la récupération de la paire d'images avec l'ID {pairId}: {ex.Message}", ex);
+            }
         }
 
         public List<ImageWithPair> GetAllImagesWithPairs()

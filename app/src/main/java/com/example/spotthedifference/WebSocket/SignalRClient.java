@@ -3,6 +3,7 @@ package com.example.spotthedifference.WebSocket;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.spotthedifference.models.GameSession;
 import com.google.gson.Gson;
@@ -29,10 +30,12 @@ public class SignalRClient {
     private BehaviorSubject<Player> playerJoinedSubject = BehaviorSubject.create();
     private BehaviorSubject<Player> playerReadyStatusChangedSubject = BehaviorSubject.create();
     private BehaviorSubject<Boolean> connectionEstablishedSubject = BehaviorSubject.create();
-
+    private BehaviorSubject<byte[]> gameStartedSubject = BehaviorSubject.create();
     public BehaviorSubject<Boolean> getConnectionEstablishedObservable() {
         return connectionEstablishedSubject;
     }
+    private BehaviorSubject<String> readyNotAllowedSubject = BehaviorSubject.create();
+    private BehaviorSubject<String> notifyMessageSubject = BehaviorSubject.create();
 
     /**
      * Constructeur de SignalRClient. Initialise la connexion au serveur SignalR et
@@ -56,6 +59,17 @@ public class SignalRClient {
             log("SignalRClient: SyncSessionState reçu", null);
         }, String.class);
 
+        hubConnection.on("GameStarted", (imageData) -> {
+            gameStartedSubject.onNext(imageData);
+        }, byte[].class);
+
+        hubConnection.on("ReadyNotAllowed", (message) -> {
+            readyNotAllowedSubject.onNext(message);
+        }, String.class);
+
+        hubConnection.on("NotifyMessage", (message) -> {
+            notifyMessageSubject.onNext(message);
+        }, String.class);
     }
 
     /**
@@ -242,6 +256,18 @@ public class SignalRClient {
      */
     public BehaviorSubject<GameSession> getSyncSessionStateObservable() {
         return syncSessionStateSubject;
+    }
+
+    public BehaviorSubject<byte[]> getGameStartedObservable() {
+        return gameStartedSubject;
+    }
+
+    public BehaviorSubject<String> getReadyNotAllowedObservable() {
+        return readyNotAllowedSubject;
+    }
+
+    public BehaviorSubject<String> getNotifyMessageObservable() {
+        return notifyMessageSubject;
     }
 
     /**

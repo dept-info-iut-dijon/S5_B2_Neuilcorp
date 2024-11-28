@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 
 import com.example.spotthedifference.R;
 import com.example.spotthedifference.WebSocket.SignalRClient;
@@ -137,6 +138,36 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                     loadSessionDetails(sessionId);
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerReadyStatusChanged observable", throwable)));
 
+        disposables.add(signalRClient.getGameStartedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(imageData -> {
+                    Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
+                    intent.putExtra("imageData", imageData);
+                    intent.putExtra("sessionId", sessionId);
+                    startActivity(intent);
+                    finish(); // Ferme l'activité actuelle
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la réception de GameStarted", throwable)));
+
+        // Gestion des événements ReadyNotAllowed
+        disposables.add(signalRClient.getReadyNotAllowedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(message -> {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Attention")
+                            .setMessage(message)
+                            .setPositiveButton("OK", null)
+                            .show();
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de ReadyNotAllowed", throwable)));
+
+        // Gestion des événements NotifyMessage
+        disposables.add(signalRClient.getNotifyMessageObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(message -> {
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de NotifyMessage", throwable)));
     }
 
     @Override

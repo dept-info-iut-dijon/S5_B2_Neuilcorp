@@ -64,7 +64,14 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         Retrofit retrofit = client.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
 
-        loadImage(1);
+        // Récupération et affichage de l'image reçue via l'Intent
+        byte[] imageData = getIntent().getByteArrayExtra("imageData");
+        if (imageData != null) {
+            Bitmap bitmap = ImageConverter.instance.convertBytesToBitmap(imageData);
+            imageView.setImageBitmap(bitmap);
+        } else {
+            Toast.makeText(this, "Aucune image reçue", Toast.LENGTH_SHORT).show();
+        }
 
         imageView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {

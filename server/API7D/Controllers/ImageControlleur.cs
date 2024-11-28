@@ -69,13 +69,19 @@ namespace API7D.Controllers
                 return NotFound($"Session {sessionId} non trouvée.");
             }
 
+            if (session.ImagePairId == 0)
+            {
+                await _hubContext.Clients.Group(sessionId).SendAsync("NotifyMessage", "L'hôte n'a pas encore choisi une paire d'images.");
+                return BadRequest("L'hôte n'a pas encore choisi une paire d'images.");
+            }
+
             var imagePairId = session.ImagePairId;
             var images = _imageService.GetImagePair(imagePairId); // images[0] et images[1] contiennent les deux images
 
-            
+            var melangePlayers = session.Players.OrderBy(_ => Guid.NewGuid()).ToList();
 
             int imageSwitch = 0;
-            foreach (var player in session.Players)
+            foreach (var player in melangePlayers)
             {
                 var imageToSend = (imageSwitch % 2 == 0) ? images.Image1 : images.Image2;
                 imageSwitch++;

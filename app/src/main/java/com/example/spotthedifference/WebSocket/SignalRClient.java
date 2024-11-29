@@ -156,6 +156,10 @@ public class SignalRClient {
                 .blockingAwait();
     }
 
+    /**
+     * Méthode permettant d'enregistrer un joueur auprès du serveur via SignalR.
+     * @param playerId l'ID du joueur à enregistrer
+     */
     public void registerPlayer(String playerId) {
         if (isConnected()) {
             hubConnection.send("RegisterPlayer", playerId);
@@ -288,10 +292,18 @@ public class SignalRClient {
         return syncSessionStateSubject;
     }
 
+    /**
+     * retourne l'observable qui émet un message lorsque l'état de préparation n'est pas autorisé.
+     * @return readyNotAllowedSubject : emet des messages sur l'état
+     */
     public BehaviorSubject<String> getReadyNotAllowedObservable() {
         return readyNotAllowedSubject;
     }
 
+    /**
+     * Retourne l'observable qui émet un message de notification
+     * @return
+     */
     public BehaviorSubject<String> getNotifyMessageObservable() {
         return notifyMessageSubject;
     }

@@ -228,6 +228,12 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
     public void showErrorToast(String message) {
         Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT).show();
     }
+
+    /**
+     * Affiche un message toast pour l'utilisateur.
+     *
+     * @param message Message à afficher.
+     */
     public void showToast(String message) {
         Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT).show();
     }

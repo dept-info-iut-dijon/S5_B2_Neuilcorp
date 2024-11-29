@@ -22,6 +22,7 @@ public class Player implements IPlayer {
         this.isReady = isReady;
     }
 
+
     @Override
     public String getPlayerId() {
         return playerId;

@@ -36,12 +36,22 @@ namespace API7D.Metier
             _hubContext = hubContext;
         }
 
+
+        /// <summary>
+        /// Méthode appelée lorsqu'un client se connecte.
+        /// </summary>
+        /// <returns>Tâche représentant l'opération asynchrone</returns>
         public override Task OnConnectedAsync()
         {
             _logger.LogInformation($"Client connecté : {Context.ConnectionId}.");
             return base.OnConnectedAsync();
         }
 
+        /// <summary>
+        /// Methode appelée lorsqu'un client se déconnecte.
+        /// </summary>
+        /// <param name="exception">Exception éventuellement générée lors de la déconnection</param>
+        /// <returns>Tâche représentant l'opération asynchrone</returns>
         public override Task OnDisconnectedAsync(Exception exception)
         {
             var playerId = PlayerConnections.FirstOrDefault(pair => pair.Value == Context.ConnectionId).Key;
@@ -54,6 +64,11 @@ namespace API7D.Metier
             return base.OnDisconnectedAsync(exception);
         }
 
+        /// <summary>
+        /// Enregistre un joueur dans le dictionnaire des connexions.
+        /// </summary>
+        /// <param name="playerId">Id du joueur à enregistrer</param>
+        /// <returns>Tâche représentant l'opération asynchrone</returns>
         public async Task RegisterPlayer(string playerId)
         {
             if (PlayerConnections.ContainsKey(playerId))
@@ -109,6 +124,16 @@ namespace API7D.Metier
             await Clients.Group(sessionId).SendAsync("PlayerJoined", player);
         }
 
+        /// <summary>
+        /// Mets à jour l'état de préparation d'un joueur dans une session.
+        /// Valide qu'une session ne peut démarrer que si au moins deux joueurs sont prêts.
+        /// Notifie les joueurs de l'état de préparation mis à jour.
+        /// </summary>
+        /// <param name="sessionId">ID de session</param>
+        /// <param name="playerId">ID des joueurs</param>
+        /// <param name="isReady">savoir si un joueur est prêt ou non</param>
+        /// <returns></returns>
+         
         //marche
         public async Task SetPlayerReadyStatus(string sessionId, string playerId, bool isReady)
         {
@@ -178,6 +203,11 @@ namespace API7D.Metier
             }
         }
 
+        /// <summary>
+        /// Fournit l'état actuel de la session 
+        /// </summary>
+        /// <param name="sessionId"></param>
+        /// <returns></returns>
         public async Task RequestSync(string sessionId)
         {
             _logger.LogInformation($"Sync request received for session {sessionId}.");

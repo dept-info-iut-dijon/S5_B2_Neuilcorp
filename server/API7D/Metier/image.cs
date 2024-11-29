@@ -6,9 +6,20 @@ using System.Data.SqlTypes;
 
 namespace API7D.Metier
 {
+
+    /// <summary>
+    /// Classe qui implémente l'interface IImage pour la gestion des images
+    /// </summary>
     public class image : IImage
     {
         private IImageDATA _data = new ImageDATA()!;
+
+        /// <summary>
+        /// Récupère une image par son ID.
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public byte[] GetImages(int ID)
         {
             try
@@ -23,6 +34,11 @@ namespace API7D.Metier
             }
         }
 
+        /// <summary>
+        /// Récupère toutes les images
+        /// </summary>
+        /// <returns>Une liste de tableaux de bytes représentant toutes les images</returns>
+        /// <exception cref="Exception">si une erreur survient lors de la lecture des images</exception>
         public List<byte[]> GetAllImages()
         {
             try
@@ -43,11 +59,22 @@ namespace API7D.Metier
             }
         }
 
+        /// <summary>
+        /// Méthode non implémentée
+        /// </summary>
+        /// <param name="image">L'objet ImageDifference représentant les images</param>
+        /// <exception cref="NotImplementedException">Cette méthode n'est pas encore implémentée</exception>
         public void SetImages(ImageDifference image)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Récupère une paire d'images à partir de l'ID de la paire.
+        /// </summary>
+        /// <param name="pairId">l'ID de la paire d'images</param>
+        /// <returns>Un tuple contenant deux tableaux de bytes représentant les images de la paire</returns>
+        /// <exception cref="Exception">Si la paire d'image est incomplète ou introuvable</exception>
         public (byte[] Image1, byte[] Image2) GetImagePair(int pairId)
         {
             try
@@ -73,6 +100,10 @@ namespace API7D.Metier
             }
         }
 
+        /// <summary>
+        /// Récupère toutes les images avec leurs paires associées et les retourne sous forme d'une liste 
+        /// </summary>
+        /// <returns>une liste d'objets ImageWithPair contenant les paires d'images de leurs ID</returns>
         public List<ImageWithPair> GetAllImagesWithPairs()
         {
             var imageData = _data.GetAllImagesWithPairData();
@@ -92,6 +123,13 @@ namespace API7D.Metier
             return imageWithPairs;
         }
 
+        /// <summary>
+        /// Récupère les images prêtes pour le joueur pour une session donnée.
+        /// </summary>
+        /// <param name="Idsession">l'ID de la session de jeu</param>
+        /// <param name="_session">Le service de gestion de session</param>
+        /// <returns>Un tuple contenant les deux images à envoyer au joueur</returns>
+        /// <exception cref="Exception">Si la session est invalide ou si l'hôte n'a pas choisi d'image</exception>
         public (byte[] Image1, byte[] Image2) ReadyImageToPlayer(string Idsession , SessionService _session)
         {
             var session = _session.GetSessionById(Idsession);

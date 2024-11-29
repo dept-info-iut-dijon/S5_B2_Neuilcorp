@@ -8,11 +8,17 @@ namespace TestsUnitaires.TestsMetier
     {
         private readonly DifferanceCheckerDATA _differanceChecker;
 
+        /// <summary>
+        /// Constructeur de la classe de test
+        /// </summary>
         public DifferanceCheckerTests()
         {
             _differanceChecker = new DifferanceCheckerDATA();
         }
 
+        /// <summary>
+        /// Teste que la méthode GetListDifferanceCoordinates retourne le bon nombre de coordonnées
+        /// </summary>
         [Fact]
         public void GetListDifferanceCoordinates_ReturnsCorrectNumberOfCoordinates()
         {
@@ -22,6 +28,9 @@ namespace TestsUnitaires.TestsMetier
             Assert.Equal(8, result.Count);
         }
 
+        /// <summary>
+        /// Teste que la méthode GetListDifferanceCoordinates contient les coordonnées attendues
+        /// </summary>
         [Fact]
         public void GetListDifferanceCoordinates_ContainsExpectedCoordinates()
         {

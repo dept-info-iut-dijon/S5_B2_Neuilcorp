@@ -1,5 +1,7 @@
 package com.example.spotthedifference.api;
 
+import android.util.Log;
+
 import com.example.spotthedifference.models.Coordonnees;
 import com.example.spotthedifference.models.GameSession;
 import com.example.spotthedifference.models.Player;
@@ -14,11 +16,12 @@ import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
-    @POST("api/Differance/check") // Chemin de l'endpoint du controleur
-    Call<Boolean> sendCoordinates(@Body Coordonnees coordonnees);
+    @POST("api/Differance/check")
+    Call<ApiResponse> sendCoordinates(@Body Coordonnees coordonnees,@Query("sessionId") String sessionId,@Query("playerId") String playerId,@Query("imageId") String imagePairId);
 
     @GET("ImageControlleur/{id}")
     Call<ResponseBody> getImage(@Path("id") int imageId);

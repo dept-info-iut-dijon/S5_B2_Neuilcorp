@@ -1,4 +1,5 @@
 ﻿using API7D.objet;
+using API7D.Services;
 
 namespace API7D.Metier
 {
@@ -10,6 +11,6 @@ namespace API7D.Metier
         /// <param name="x"> coordonée X </param>
         /// <param name="y"> coordonée Y </param>
         /// <returns></returns>
-        public bool IsWithinDifference(Coordonnees coordinate, int idImagePaire);
+        public bool IsWithinDifference(Coordonnees coordinate, int idImagePaire, string SessionID, SessionService _sessionService, string playerID);
     }
 }

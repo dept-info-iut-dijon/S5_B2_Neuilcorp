@@ -13,10 +13,12 @@ namespace API7D.Controllers
     public class DifferanceController : ControllerBase
     {
             private IDifferanceChecker checker;
+            private readonly SessionService _sessionService;
 
-        public DifferanceController()
+        public DifferanceController(SessionService sessionService)
         {
             this.checker = new DifferanceChecker();
+            _sessionService = sessionService;
         }
         /// <summary>
         /// permet de veifier les différance
@@ -24,12 +26,12 @@ namespace API7D.Controllers
         /// <param name="coordonnees">une coordonée X Y</param>
         /// <returns></returns>
         [HttpPost("check")]
-        public IActionResult CheckDifference([FromBody] Coordonnees coordonnees , int IdImage)
+        public IActionResult CheckDifference([FromBody] Coordonnees coordonnees , int IdimagePair,string sessionID,string playerID)
         {
             try
             {
-                bool isInZone = checker.IsWithinDifference(coordonnees,IdImage);
-                return Ok(isInZone);  // Envoie la réponse correcte
+                bool isInZone = checker.IsWithinDifference(coordonnees,IdimagePair,sessionID, _sessionService, playerID);
+                return Ok(isInZone);  // Envoie la réponse correctes
             }
             catch (Exception ex)
             {

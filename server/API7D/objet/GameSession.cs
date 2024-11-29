@@ -76,5 +76,18 @@ namespace API7D.objet
         {
             return playerSelections.Count == players.Count;
         }
+
+        // Méthode pour vérifier si un joueur est l'hôte de la session.
+        public bool IsHost(string playerId)
+        {
+            return Players.Count > 0 && Players[0].PlayerId == playerId;
+        }
+
+        // Méthode pour vérifier si un joueur existe dans la session.
+        public bool ContainsPlayer(string playerId)
+        {
+            return Players.Any(p => p.PlayerId == playerId);
+        }
+
     }
 }

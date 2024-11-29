@@ -9,6 +9,7 @@ using API7D.DATA;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using API7D.Controllers;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace API7D.Metier
 {
@@ -21,6 +22,7 @@ namespace API7D.Metier
         private readonly ILogger<GameSessionHub> _logger;
         private readonly IImage _imageService;
         private readonly IHubContext<GameSessionHub> _hubContext;
+        private static readonly Dictionary<string, string> PlayerConnections = new Dictionary<string, string>();
 
         /// <summary>
         /// Initialise une nouvelle instance de <see cref="GameSessionHub"/>.
@@ -40,6 +42,36 @@ namespace API7D.Metier
             return base.OnConnectedAsync();
         }
 
+        public override Task OnDisconnectedAsync(Exception exception)
+        {
+            var playerId = PlayerConnections.FirstOrDefault(pair => pair.Value == Context.ConnectionId).Key;
+            if (playerId != null)
+            {
+                PlayerConnections.Remove(playerId);
+                _logger.LogInformation($"Player {playerId} déconnecté et supprimé du dictionnaire.");
+            }
+
+            return base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task RegisterPlayer(string playerId)
+        {
+            if (PlayerConnections.ContainsKey(playerId))
+            {
+                // Mettre à jour si l'association existe déjà
+                PlayerConnections[playerId] = Context.ConnectionId;
+                _logger.LogInformation($"Mise à jour de la connexion pour le joueur {playerId} avec {Context.ConnectionId}.");
+
+            }
+            else
+            {
+                // Ajouter le nouvel enregistrement
+                PlayerConnections.Add(playerId, Context.ConnectionId);
+                _logger.LogInformation($"Enregistrement du joueur {playerId} avec {Context.ConnectionId}.");
+            }
+            await Clients.Caller.SendAsync("ReceiveConnectionId", Context.ConnectionId);
+        }
+
         /// <summary>
         /// Permet à un client de rejoindre un groupe de session spécifique.
         /// </summary>
@@ -49,6 +81,21 @@ namespace API7D.Metier
             _logger.LogInformation($"JoinSessionGroup appelé avec sessionId: {sessionId}, ConnectionId: {Context.ConnectionId}");
             await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
             _logger.LogInformation($"Client ConnectionId: {Context.ConnectionId} successfully joined session group {sessionId}.");
+        }
+
+        public async Task<string> GetConnectionIdByPlayerId(string playerId)
+        {
+            if (PlayerConnections.ContainsKey(playerId))
+            {
+                string connectionId = PlayerConnections[playerId];
+                _logger.LogInformation($"ConnectionId pour Player {playerId} : {connectionId}");
+                return connectionId;
+            }
+            else
+            {
+                _logger.LogWarning($"Aucune connexion trouvée pour Player {playerId}.");
+                return null;
+            }
         }
 
         /// <summary>
@@ -76,8 +123,8 @@ namespace API7D.Metier
             }
 
             // Récupération du joueur dans la session
-            Player player = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
-            if (player == null)
+            Player thisplayer = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
+            if (thisplayer == null)
             {
                 _logger.LogWarning($"Player {playerId} not found in session {sessionId}.");
                 return;
@@ -88,11 +135,11 @@ namespace API7D.Metier
             {
                 _logger.LogInformation($"Player {playerId} cannot be ready alone in session {sessionId}.");
                 await Clients.Caller.SendAsync("ReadyNotAllowed", "Vous ne pouvez pas être prêt en étant seul.");
-                player.IsReady = false;
+                thisplayer.IsReady = false;
                 isReady = false;
             }
             else { 
-            player.IsReady = isReady;
+            thisplayer.IsReady = isReady;
 
             }
             _logger.LogInformation($"Player {playerId} readiness updated to {isReady} in session {sessionId}.");
@@ -102,17 +149,31 @@ namespace API7D.Metier
             {
                 _logger.LogInformation($"All players in session {sessionId} are ready. Requesting ImageController to send images...");
 
-                var imageController = new ImageControlleur(_hubContext, _sessionService, _imageService);
-                var result = await imageController.SendImagesToPlayers(sessionId);
+                //var imageController = new ImageControlleur(_hubContext, _sessionService, _imageService, _logger);
+                var image = _imageService.ReadyImageToPlayer(sessionId, _sessionService);
 
-                if (result is OkObjectResult)
+                var GameSession = _sessionService.GetSessionById(sessionId);
+
+                var melangePlayers = GameSession.Players.OrderBy(_ => Guid.NewGuid()).ToList();
+
+                int imageSwitch = 0;
+                foreach (Player player in melangePlayers)
                 {
-                    // Notifie le groupe que la partie commence après l'envoi des images
-                    await Clients.Group(sessionId).SendAsync("GameStarted");
-                }
-                else
-                {
-                    _logger.LogWarning($"Failed to send images for session {sessionId}: {result}");
+                    var connectionId = await GetConnectionIdByPlayerId(player.PlayerId);
+                    var imageToSend = (imageSwitch % 2 == 0) ? image.Image1 : image.Image2;
+                    imageSwitch++;
+
+                    if (connectionId != null)
+                    {
+                        var imageDataBase64 = Convert.ToBase64String(imageToSend);
+                        await _hubContext.Clients.Client(connectionId).SendAsync("GameStarted", imageDataBase64);
+                        _logger.LogInformation($"image envoyer a : {player.PlayerId} avec {connectionId}.");
+                        _logger.LogInformation($"taille de l'image : {imageToSend.Length}.");
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Failed to send image to player {connectionId}");
+                    }
                 }
             }
         }

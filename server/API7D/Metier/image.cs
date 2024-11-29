@@ -1,5 +1,8 @@
 ﻿using API7D.DATA;
 using API7D.objet;
+using API7D.Services;
+using Microsoft.AspNetCore.SignalR;
+using System.Data.SqlTypes;
 
 namespace API7D.Metier
 {
@@ -88,5 +91,26 @@ namespace API7D.Metier
 
             return imageWithPairs;
         }
+
+        public (byte[] Image1, byte[] Image2) ReadyImageToPlayer(string Idsession , SessionService _session)
+        {
+            var session = _session.GetSessionById(Idsession);
+            if (session == null)
+            {
+                throw new Exception("session invalide");
+            }
+
+            if (session.ImagePairId == 0)
+            {
+                throw new Exception("l'hote n'a pas choisi d'image");
+            }
+            
+            var imagePairId = session.ImagePairId;
+            var images = GetImagePair(imagePairId);
+
+            return images;
+        }
+
+
     }
 }

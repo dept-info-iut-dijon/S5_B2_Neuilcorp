@@ -135,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                 } else {
                     showResultDialog(false);
                 }
+                hideWaitingDialog();
             }
 
             @Override

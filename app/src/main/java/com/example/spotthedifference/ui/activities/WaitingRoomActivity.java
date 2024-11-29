@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 
 import com.example.spotthedifference.R;
+import com.example.spotthedifference.WebSocket.GameStartedListener;
 import com.example.spotthedifference.WebSocket.SignalRClient;
 import com.example.spotthedifference.api.ApiService;
 import com.example.spotthedifference.api.IRetrofitClient;
@@ -40,7 +42,7 @@ import retrofit2.Retrofit;
  * dans l'application. Elle permet aux joueurs de se connecter à une session
  * de jeu en attendant les autres participants avant de démarrer la partie.
  */
-public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRoomActivity {
+public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRoomActivity, GameStartedListener{
 
     private TextView sessionCodeTextView;
     private TextView partyNameTextView;
@@ -77,7 +79,8 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         playerId = getIntent().getStringExtra("playerId");
 
         // Initialisation du client SignalR et démarrage de la connexion
-        signalRClient = new SignalRClient();
+        signalRClient = new SignalRClient(playerId);
+        signalRClient.setGameStartedListener((GameStartedListener) this);
         signalRClient.startConnection();
 
         // Rejoindre le groupe de session SignalR
@@ -138,17 +141,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                     loadSessionDetails(sessionId);
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerReadyStatusChanged observable", throwable)));
 
-        disposables.add(signalRClient.getGameStartedObservable()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(imageData -> {
-                    Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
-                    intent.putExtra("imageData", imageData);
-                    intent.putExtra("sessionId", sessionId);
-                    startActivity(intent);
-                    finish(); // Ferme l'activité actuelle
-                }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la réception de GameStarted", throwable)));
-
         // Gestion des événements ReadyNotAllowed
         disposables.add(signalRClient.getReadyNotAllowedObservable()
                 .subscribeOn(Schedulers.io())
@@ -168,6 +160,16 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 .subscribe(message -> {
                     Toast.makeText(this, message, Toast.LENGTH_LONG).show();
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de NotifyMessage", throwable)));
+    }
+
+    @Override
+    public void onGameStarted(byte[] imageData) {
+        Log.d("WaitingRoomActivity", "Image reçue via GameStartedCallback. Taille : " + imageData.length);
+        Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
+        intent.putExtra("imageData", imageData);
+        intent.putExtra("sessionId", sessionId);
+        startActivity(intent);
+        finish(); // Ferme l'activité actuelle
     }
 
     @Override

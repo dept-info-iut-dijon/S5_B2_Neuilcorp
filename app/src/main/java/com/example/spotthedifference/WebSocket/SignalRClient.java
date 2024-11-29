@@ -64,14 +64,17 @@ public class SignalRClient {
             log("SignalRClient: SyncSessionState reçu", null);
         }, String.class);
 
-        hubConnection.on("GameStarted", (base64Data) -> {
+        hubConnection.on("GameStarted", (base64Data, imagePairId) -> {
             byte[] imageData = Base64.decode(base64Data, Base64.DEFAULT);
-            Log.d("SignalRClient", "Image reçue et décodée, taille : " + imageData.length);
+            Log.d("SignalRClient", "Image reçue et décodée, taille : " + imageData.length + "imagePairId : " + imagePairId);
 
             if (gameStartedListener != null) {
-                gameStartedListener.onGameStarted(imageData);
+                log("SignalRClient: GameStarted appelé", null);
+                gameStartedListener.onGameStarted(imageData, imagePairId);
+            }else {
+                Log.e("SignalRClient", "GameStartedListener est null !");
             }
-        }, String.class);
+        }, String.class, Integer.class);
 
         hubConnection.on("ReadyNotAllowed", (message) -> {
             readyNotAllowedSubject.onNext(message);
@@ -89,6 +92,7 @@ public class SignalRClient {
 
     public void setGameStartedListener(GameStartedListener listener) {
         this.gameStartedListener = listener;
+        Log.d("SignalRClient", "GameStartedListener défini : " + (listener != null));
     }
 
     /**
@@ -112,7 +116,6 @@ public class SignalRClient {
                 })
                 .subscribe();
     }
-
 
     /**
      * Tente une reconnexion automatique en cas de déconnexion, avec un délai croissant.
@@ -281,6 +284,10 @@ public class SignalRClient {
             log("Connexion inactive, impossible de demander une synchronisation.", null);
             attemptReconnection();
         }
+    }
+
+    public HubConnection getHubConnection() {
+        return hubConnection;
     }
 
     /**

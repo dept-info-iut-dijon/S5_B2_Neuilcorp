@@ -2,6 +2,7 @@
 
 using API7D.DATA;
 using API7D.objet;
+using API7D.Services;
 using System;
 using System.Collections.Generic;
 
@@ -23,27 +24,66 @@ public class DifferanceChecker : IDifferanceChecker
     /// <param name="coordinate">Coordonnées à vérifier</param>
     /// <param name="idImagePaire">ID de la paire d'images</param>
     /// <returns>True si les coordonnées sont dans une zone de différence, sinon False</returns>
-    public bool IsWithinDifference(Coordonnees coordinate, int idImagePaire)
+    public bool IsWithinDifference(Coordonnees coordinate, int idImagePaire,string SessionID,SessionService _sessionService,string playerID)
     {
-        if (!differences.ContainsKey(idImagePaire))
-        {
-            throw new ArgumentException($"Aucune différence trouvée pour la paire d'images avec l'ID {idImagePaire}.");
-        }
-
+        GameSession gameSession = _sessionService.GetSessionById(SessionID);
+        gameSession.PlayerSelections.Add(playerID, (coordinate.X, coordinate.Y));
         // Récupère la liste des différences pour la paire d'images donnée
-        var pairDifferences = differences[idImagePaire];
+        List<Coordonnees> pairDifferences = differences[idImagePaire];
+        bool result = false;
 
-        foreach (var difference in pairDifferences)
+        if (gameSession.PlayerSelections.Count == gameSession.Players.Count())
         {
-            // Calcul de la distance euclidienne entre les coordonnées fournies et chaque différence
-            double distance = Math.Sqrt(Math.Pow(difference.X - coordinate.X, 2) + Math.Pow(difference.Y - coordinate.Y, 2));
+            bool isDifferenceValid = false;
 
-            if (distance <= AcceptanceRadius)
+            foreach (var difference in pairDifferences)
             {
-                return true;
-            }
-        }
+                // Vérifie si tous les joueurs ont sélectionné une position autour de la même différence
+                bool allPlayersSelectedSameDifference = true;
 
-        return false;
+                foreach (var playerSelection in gameSession.PlayerSelections.Values)
+                {
+                    double distance = Math.Sqrt(
+                        Math.Pow(difference.X - playerSelection.x, 2) +
+                        Math.Pow(difference.Y - playerSelection.y, 2)
+                    );
+
+                    // Si un joueur n'est pas dans la zone d'acceptation, cette différence n'est pas validée
+                    if (distance > AcceptanceRadius)
+                    {
+                        allPlayersSelectedSameDifference = false;
+                        break;
+                    }
+                }
+
+                // Si tous les joueurs ont validé une différence, on termine la vérification
+                if (allPlayersSelectedSameDifference)
+                {
+                    isDifferenceValid = true;
+                    break;
+                }
+            }
+            
+            if (isDifferenceValid)
+            {
+                // Tous les joueurs ont sélectionné une différence valide
+                Console.WriteLine("Différence validée !");
+                // Réinitialiser les sélections des joueurs pour la prochaine tentative
+                gameSession.PlayerSelections.Clear();
+                result = true;
+            }
+            else
+            {
+                // Au moins un joueur s'est trompé
+                Console.WriteLine("Erreur, tous les joueurs doivent sélectionner la même différence.");
+                // Réinitialiser les sélections des joueurs pour la prochaine tentative
+                gameSession.PlayerSelections.Clear();
+                result = false;
+            }
+            
+
+
+        }
+        return result;
     }
 }

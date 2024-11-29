@@ -5,7 +5,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +25,9 @@ import com.example.spotthedifference.api.RetrofitClient;
 import com.example.spotthedifference.models.GameSession;
 import com.example.spotthedifference.models.Player;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,7 +82,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
 
         // Initialisation du client SignalR et démarrage de la connexion
         signalRClient = new SignalRClient(playerId);
-        signalRClient.setGameStartedListener((GameStartedListener) this);
+        signalRClient.setGameStartedListener(this);
         signalRClient.startConnection();
 
         // Rejoindre le groupe de session SignalR
@@ -114,7 +116,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             }
         });
 
-        exitButton.setOnClickListener(v -> deleteSessionAndExit());
         readyButton.setOnClickListener(v -> toggleReadyStatus());
         copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
 
@@ -169,13 +170,36 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
      * @param imageData
      */
     @Override
-    public void onGameStarted(byte[] imageData) {
-        Log.d("WaitingRoomActivity", "Image reçue via GameStartedCallback. Taille : " + imageData.length);
-        Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
-        intent.putExtra("imageData", imageData);
-        intent.putExtra("sessionId", sessionId);
-        startActivity(intent);
-        finish(); // Ferme l'activité actuelle
+    public void onGameStarted(byte[] imageData, Integer imagePairId) {
+        Log.d("WaitingRoomActivity", "Image reçue via GameStartedCallback. Taille : " + imageData.length + " imagePairId : " + imagePairId);
+
+        File imageFile = new File(getCacheDir(), "tempImage.jpg");
+
+        try {
+            if (!imageFile.getParentFile().exists()) {
+                boolean dirCreated = imageFile.getParentFile().mkdirs();
+                if (!dirCreated) {
+                    Log.e("WaitingRoomActivity", "Impossible de créer le répertoire parent pour le fichier temporaire.");
+                    Toast.makeText(this, "Erreur : Impossible de créer le fichier temporaire.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            try (FileOutputStream fos = new FileOutputStream(imageFile)) {
+                fos.write(imageData);
+            }
+
+            Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
+            intent.putExtra("imagePath", imageFile.getAbsolutePath());
+            intent.putExtra("sessionId", sessionId);
+            intent.putExtra("playerId", playerId);
+            intent.putExtra("imagePairId", imagePairId.toString());
+            startActivity(intent);
+            finish();
+        } catch (IOException e) {
+            Log.e("WaitingRoomActivity", "Erreur lors de l'écriture ou de l'accès au fichier temporaire : " + e.getMessage(), e);
+            Toast.makeText(this, "Erreur lors de la sauvegarde de l'image.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

@@ -51,6 +51,11 @@ namespace API7D.DATA
             return imagePath ?? throw new Exception("Image not found.");
         }
 
+
+        /// <summary>
+        /// Récupère une liste des images avec leurs données associées ( Id image, ID de la paire d'image)
+        /// </summary>
+        /// <returns>Une liste de tuple contenant les informations telles que : imageId, imagePairId, ImageLink</returns>
         public List<(int ImageId, int ImagePairId, string ImageLink)> GetAllImagesWithPairData()
         {
             var imagesWithPairs = new List<(int ImageId, int PairId, string ImageLink)>(); // Utilisation des noms correspondants

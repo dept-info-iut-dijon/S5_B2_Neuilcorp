@@ -96,6 +96,11 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         });
     }
 
+    /**
+     * Méthode pour charger une image depuis le serveur en utilisant l'ID de l'image.
+     * Si la requête est réussie, l'image est affichée dans l'ImageView.
+     * @param imageId Identifiant de l'image à charger.
+     */
     @Override
     public void loadImage(int imageId) {
         Call<ResponseBody> call = apiService.getImage(imageId);
@@ -123,6 +128,11 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         });
     }
 
+    /**
+     * méthode pour envoyer les coordonnées au serveur.
+     * Affiche un message selon le résultat de la requête.
+     * @param coordonnees Coordonnées à envoyer.
+     */
     @Override
     public void sendCoordinatesToServer(Coordonnees coordonnees) {
         Call<Boolean> call = apiService.sendCoordinates(coordonnees);
@@ -145,6 +155,9 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         });
     }
 
+    /**
+     * Méthode pour afficher une boite de dialogue indiquant que l'on attend les autres joueurs.
+     */
     @Override
     public void showWaitingDialog() {
         if (waitingDialog == null) {
@@ -157,6 +170,9 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         waitingDialog.show();
     }
 
+    /**
+     * Méthode pour masquer la boite de dialogue d'attente.
+     */
     @Override
     public void hideWaitingDialog() {
         if (waitingDialog != null && waitingDialog.isShowing()) {
@@ -164,6 +180,10 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         }
     }
 
+    /**
+     * Méthode pour afficher un message indiquant si le joueur a trouvé une différence ou non.
+     * @param isSuccess Vrai si le résultat est un succès, sinon faux.
+     */
     @Override
     public void showResultDialog(boolean isSuccess) {
         String message = isSuccess ? "Bravo vous avez trouvé une différence !" : "Aie.. Il semblerait qu'au moins un joueur se soit trompé.";

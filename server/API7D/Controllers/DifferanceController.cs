@@ -19,10 +19,14 @@ namespace API7D.Controllers
             this.checker = new DifferanceChecker();
         }
         /// <summary>
-        /// permet de veifier les différance
+        /// permet de verifier les différences
         /// </summary>
         /// <param name="coordonnees">une coordonée X Y</param>
-        /// <returns></returns>
+        /// <param name="IdImage">L'identifiant de l'image à vérifier</param>
+        /// <returns>
+        /// 200 Ok : si la vérification est réussie
+        /// 400 Bad Request : si la vérification a échoué
+        /// </returns>
         [HttpPost("check")]
         public IActionResult CheckDifference([FromBody] Coordonnees coordonnees , int IdImage)
         {

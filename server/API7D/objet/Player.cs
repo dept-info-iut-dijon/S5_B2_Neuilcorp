@@ -6,11 +6,19 @@
         private string name;
         private bool isReady;
 
+
+        /// <summary>
+        /// Obtient ou définit l'ID du joueur
+        /// </summary>
         public string PlayerId
         {
             get { return playerId; }
             set { playerId = value; }
         }
+
+        /// <summary>
+        /// Obtient ou définit le nom du joueur
+        /// </summary>
         public string Name
         {
             get { return name; }  // Utiliser la variable privée `name`

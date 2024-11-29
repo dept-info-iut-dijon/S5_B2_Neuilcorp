@@ -5,6 +5,10 @@ namespace TestsUnitaires.TestsMetier
 {
     public class SessionCodeGeneratorTests
     {
+
+        /// <summary>
+        /// Teste que la méthode GenerateUniqueCode retourne un code à six chiffres.
+        /// </summary>
         [Fact]
         public void GenerateUniqueCode_ReturnsSixDigitCode()
         {
@@ -13,6 +17,9 @@ namespace TestsUnitaires.TestsMetier
             Assert.InRange(code, 100000, 999999);
         }
 
+        /// <summary>
+        /// Teste que la méthode GenerateUniqueCode retourne des codes uniques.
+        /// </summary>
         [Fact]
         public void GenerateUniqueCode_ReturnsUniqueCodes()
         {
@@ -28,6 +35,9 @@ namespace TestsUnitaires.TestsMetier
             Assert.Equal(100, codes.Count);
         }
 
+        /// <summary>
+        /// Teste que la méthode InvalidateCode permet de générer un nouveau code différent après l'invalidation.
+        /// </summary>
         [Fact]
         public void InvalidateCode_AllowsGeneratingSameCodeAgain()
         {
@@ -38,6 +48,10 @@ namespace TestsUnitaires.TestsMetier
             Assert.NotEqual(code, newCode);
         }
 
+
+        /// <summary>
+        /// Teste que la méthode GenerateUniqueCode ne génère pas un code invalidé.
+        /// </summary>
         [Fact]
         public void GenerateUniqueCode_DoesNotGenerateInvalidatedCode()
         {

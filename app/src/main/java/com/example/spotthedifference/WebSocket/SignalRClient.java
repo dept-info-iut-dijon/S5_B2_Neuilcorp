@@ -117,7 +117,6 @@ public class SignalRClient {
                 .subscribe();
     }
 
-
     /**
      * Tente une reconnexion automatique en cas de déconnexion, avec un délai croissant.
      */
@@ -281,6 +280,10 @@ public class SignalRClient {
             log("Connexion inactive, impossible de demander une synchronisation.", null);
             attemptReconnection();
         }
+    }
+
+    public HubConnection getHubConnection() {
+        return hubConnection;
     }
 
     /**

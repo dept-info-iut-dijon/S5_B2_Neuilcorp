@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,6 +17,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.spotthedifference.R;
+import com.example.spotthedifference.WebSocket.SignalRClient;
 import com.example.spotthedifference.api.ApiResponse;
 import com.example.spotthedifference.api.ApiService;
 import com.example.spotthedifference.api.IRetrofitClient;
@@ -34,18 +36,25 @@ import retrofit2.Retrofit;
 public class MainActivity extends AppCompatActivity implements IMainActivity {
 
     private static final String TAG = "MainActivity";
-
+    private SignalRClient signalRClient;
     private ImageView imageView;
     private Button validerButton;
     private ImageView circleImageView;
     private Coordonnees coordTemp;
     private ApiService apiService;
     private AlertDialog waitingDialog;
-    private String sessionId;
-    private String playerId;
-    private int imagePairId;
-    private String imagePath;
-
+    private static final int TIMEOUT_DURATION = 30000;
+    private Handler timeoutHandler = new Handler();
+    private Runnable timeoutRunnable = () -> {
+        Toast.makeText(MainActivity.this, "Temps écoulé. Veuillez réessayer.", Toast.LENGTH_LONG).show();
+        resetUI();
+    };
+    private void startTimeout() {
+        timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_DURATION);
+    }
+    private void stopTimeout() {
+        timeoutHandler.removeCallbacks(timeoutRunnable);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,13 +69,16 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         String imagePath = intent.getStringExtra("imagePath");
         String imagePairIdString = intent.getStringExtra("imagePairId");
 
+        signalRClient = new SignalRClient(playerId);
+        signalRClient.startConnection();
+        Log.d("MainActivity", "SignalRClient démarré pour le joueur : " + playerId);
+        signalRClient.getHubConnection().on("ResultNotification", (result) -> {
+            runOnUiThread(() -> showResultDialog((Boolean) result));
+        }, Boolean.class);
+
+
         // Validation des données reçues
         if (sessionId == null || playerId == null || imagePath == null) {
-            Log.e("MainActivity", "Erreur : Données de session ou d'image manquantes.");
-            Log.e("MainActivity", "Données de session : " + sessionId);
-            Log.e("MainActivity", "Données de joueur : " + playerId);
-            Log.e("MainActivity", "Données d'image : " + imagePath);
-            Log.e("MainActivity", "Données d'image pair : " + imagePairId);
             Toast.makeText(this, "Données manquantes, retour à l'accueil.", Toast.LENGTH_LONG).show();
             finish(); // Ferme l'activité si les données essentielles manquent
             return;
@@ -119,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
             if (coordTemp != null) {
                 Log.d("MainActivity", "Coordonnées valides : " + coordTemp.getX() + ", " + coordTemp.getY());
                 showWaitingDialog();
+                startTimeout();
                 sendCoordinatesToServer(coordTemp, sessionId, playerId, imagePairIdString);
                 validerButton.setEnabled(false);
                 imageView.setEnabled(false);
@@ -181,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
 
     @Override
     public void showResultDialog(boolean isSuccess) {
+        stopTimeout();
         String message = isSuccess ? "Bravo vous avez trouvé une différence !" : "Aïe... Une ou plusieurs erreurs ont été détectées.";
         new AlertDialog.Builder(MainActivity.this)
                 .setMessage(message)

@@ -163,6 +163,12 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de NotifyMessage", throwable)));
     }
 
+    /**
+     * Méthode appelée lorsque le jeu commence, elle reçoit les données de l'image
+     * L'image est ensuite envoyée à l'activité principale via un intent
+     * l'ID de session est également passé à l'activité pour référence
+     * @param imageData
+     */
     @Override
     public void onGameStarted(byte[] imageData, Integer imagePairId) {
         Log.d("WaitingRoomActivity", "Image reçue via GameStartedCallback. Taille : " + imageData.length + " imagePairId : " + imagePairId);
@@ -196,6 +202,9 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         }
     }
 
+    /**
+     * Méthode appelée lorsque l'activité est détruite.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -315,6 +324,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             }
         });
     }
+
     private boolean isHost() {
         return !players.isEmpty() && playerId.equals(players.get(0).getPlayerId());
     }

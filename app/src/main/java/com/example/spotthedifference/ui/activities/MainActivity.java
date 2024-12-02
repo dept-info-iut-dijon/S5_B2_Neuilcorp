@@ -71,9 +71,16 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
 
         signalRClient = new SignalRClient(playerId);
         signalRClient.startConnection();
+        signalRClient.joinSessionGroup(sessionId);
+        signalRClient.requestSync(sessionId);
+
         Log.d("MainActivity", "SignalRClient démarré pour le joueur : " + playerId);
         signalRClient.getHubConnection().on("ResultNotification", (result) -> {
-            runOnUiThread(() -> showResultDialog((Boolean) result));
+            runOnUiThread(() -> {
+                Log.d("MainActivity", "Notification SignalR reçue : " + result);
+                hideWaitingDialog();
+                showResultDialog((Boolean) result);
+            });
         }, Boolean.class);
 
 
@@ -140,40 +147,28 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         });
     }
 
-    /**
-     * Méthode pour charger une image depuis le serveur en utilisant l'ID de l'image.
-     * Si la requête est réussie, l'image est affichée dans l'ImageView.
-     * @param imageId Identifiant de l'image à charger.
-     */
     @Override
     public void sendCoordinatesToServer(Coordonnees coordonnees, String sessionId, String playerId, String imagePairIdString) {
         Log.d("MainActivity", "Envoi des coordonnées au serveur...");
         Log.d("MainActivity", "imagePairId : " + imagePairIdString);
 
-        Call<ApiResponse> call = apiService.sendCoordinates(coordonnees, sessionId, playerId, imagePairIdString);
+        Call<Void> call = apiService.sendCoordinates(coordonnees, sessionId, playerId, imagePairIdString);
         Log.d("MainActivity", "Appel de l'API : " + call.request().url());
-        call.enqueue(new Callback<ApiResponse>() {
+        call.enqueue(new Callback<Void>() {
 
             @Override
-            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse apiResponse = response.body();
-                    Log.d("MainActivity", "Réponse reçue : success=" + apiResponse.isSuccess() +
-                            ", message=" + (apiResponse.getMessage() != null ? apiResponse.getMessage() : "aucun message"));
-
-                    showResultDialog(apiResponse.isSuccess());
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.d("MainActivity", "Coordonnées envoyées avec succès.");
                 } else {
                     Log.e("MainActivity", "Erreur dans la réponse HTTP : code=" + response.code());
-                    showResultDialog(false);
+                    Toast.makeText(MainActivity.this, "Erreur de communication avec le serveur.", Toast.LENGTH_LONG).show();
                 }
-                hideWaitingDialog();
             }
 
             @Override
-            public void onFailure(Call<ApiResponse> call, Throwable t) {
+            public void onFailure(Call<Void> call, Throwable t) {
                 Log.e("MainActivity", "Erreur lors de l'envoi des coordonnées : " + t.getMessage());
-                Toast.makeText(MainActivity.this, "Erreur : " + t.getMessage(), Toast.LENGTH_LONG).show();
-                hideWaitingDialog();
             }
         });
     }
@@ -210,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     @Override
     public void showResultDialog(boolean isSuccess) {
         stopTimeout();
-        String message = isSuccess ? "Bravo vous avez trouvé une différence !" : "Aïe... Une ou plusieurs erreurs ont été détectées.";
+        String message = isSuccess ? "Bravo vous avez trouvé une différence !" : "Aïe... Au moins un des joueur semble s'être trompé.";
         new AlertDialog.Builder(MainActivity.this)
                 .setMessage(message)
                 .setPositiveButton("OK", (dialog, which) -> resetUI())

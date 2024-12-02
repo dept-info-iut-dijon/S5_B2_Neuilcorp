@@ -25,7 +25,7 @@ public interface ApiService {
      * @return : un booléen indiquant si les coordonnées sont correctes
      */
 @POST("api/Differance/check")
-    Call<ApiResponse> sendCoordinates(@Body Coordonnees coordonnees,@Query("sessionId") String sessionId,@Query("playerId") String playerId,@Query("imageId") String imagePairId);
+    Call<Void> sendCoordinates(@Body Coordonnees coordonnees,@Query("sessionId") String sessionId,@Query("playerId") String playerId,@Query("imageId") String imagePairId);
 
     /**
      * Récupère une image à partir de son id

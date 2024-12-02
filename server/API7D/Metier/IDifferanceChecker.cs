@@ -7,10 +7,13 @@ namespace API7D.Metier
     {
         /// <summary>
         /// verifie la presence d'une differance a cette coordonnée
+        /// 
+        /// ASYNC dans le code
+        /// 
         /// </summary>
         /// <param name="x"> coordonée X </param>
         /// <param name="y"> coordonée Y </param>
         /// <returns></returns>
-        public bool IsWithinDifference(Coordonnees coordinate, int idImagePaire, string SessionID, SessionService _sessionService, string playerID);
+        public Task<bool> IsWithinDifferenceAsync(Coordonnees coordinate, int idImagePaire, string SessionID, SessionService _sessionService, string playerID);
     }
 }

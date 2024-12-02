@@ -191,7 +191,7 @@ namespace API7D.Metier
                     if (connectionId != null)
                     {
                         var imageDataBase64 = Convert.ToBase64String(imageToSend);
-                        await _hubContext.Clients.Client(connectionId).SendAsync("GameStarted", imageDataBase64);
+                        await _hubContext.Clients.Client(connectionId).SendAsync("GameStarted", imageDataBase64 ,GameSession.ImagePairId);
                         _logger.LogInformation($"image envoyer a : {player.PlayerId} avec {connectionId}.");
                         _logger.LogInformation($"taille de l'image : {imageToSend.Length}.");
                     }
@@ -218,5 +218,13 @@ namespace API7D.Metier
                 _logger.LogInformation($"Sync state sent to client {Context.ConnectionId} for session {sessionId}.");
             }
         }
+
+        public async Task NotifyResult(string sessionId, bool isInZone)
+        {
+            _logger.LogInformation($"Notification du résultat pour la session {sessionId}. Résultat : {isInZone}");
+
+            await _sessionService.NotifyPlayers(sessionId, isInZone);
+        }
+
     }
 }

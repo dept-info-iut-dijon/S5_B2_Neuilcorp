@@ -3,6 +3,7 @@ using API7D.objet;
 using API7D.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace API7D.Controllers
 {
@@ -14,12 +15,16 @@ namespace API7D.Controllers
     {
             private IDifferanceChecker checker;
             private readonly SessionService _sessionService;
+            private readonly ILogger<DifferanceChecker> _logger;
 
-        public DifferanceController(SessionService sessionService)
+        public DifferanceController(SessionService sessionService , ILogger<DifferanceChecker> logger)
         {
-            this.checker = new DifferanceChecker();
+            _logger = logger;
+            this.checker = new DifferanceChecker(logger);
             _sessionService = sessionService;
+
         }
+
         /// <summary>
         /// permet de verifier les différences
         /// </summary>
@@ -30,16 +35,33 @@ namespace API7D.Controllers
         /// 400 Bad Request : si la vérification a échoué
         /// </returns>
         [HttpPost("check")]
-        public IActionResult CheckDifference([FromBody] Coordonnees coordonnees , int IdimagePair,string sessionID,string playerID)
+        public async Task<IActionResult> CheckDifference(
+            [FromBody] Coordonnees coordonnees,
+            [FromQuery] string sessionId,
+            [FromQuery] string playerId,
+            [FromQuery] string imageId)
         {
+            _logger.LogWarning("j'ai reçu une requête pour vérifier une différence.");
+
             try
             {
-                bool isInZone = checker.IsWithinDifference(coordonnees,IdimagePair,sessionID, _sessionService, playerID);
-                return Ok(isInZone);  // Envoie la réponse correctes
+                // Appelle la méthode asynchrone pour vérifier si la différence est valide
+                bool isInZone = await checker.IsWithinDifferenceAsync(
+                    coordonnees,
+                    int.Parse(imageId),
+                    sessionId,
+                    _sessionService,
+                    playerId
+                );
+
+                await _sessionService.NotifyPlayers(sessionId, isInZone);
+                // Retourne une réponse HTTP avec le statut approprié
+                return Ok(new { success = isInZone });
             }
             catch (Exception ex)
             {
-                return BadRequest("Erreur dans le traitement des coordonnées");  // Gestion d'erreurs
+                _logger.LogError(ex, "Une erreur est survenue lors de la vérification de la différence.");
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
 

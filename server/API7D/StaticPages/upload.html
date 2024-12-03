@@ -207,20 +207,16 @@
             differenceItem.querySelector(".delete-difference").addEventListener("click", function () {
                 const indexToRemove = parseInt(this.getAttribute("data-index"));
 
-                // Remove circles from images
                 const circles1 = imageContainer1.querySelectorAll(".difference");
                 const circles2 = imageContainer2.querySelectorAll(".difference");
                 if (circles1[indexToRemove]) circles1[indexToRemove].remove();
                 if (circles2[indexToRemove]) circles2[indexToRemove].remove();
 
-                // Remove from differences arrays
                 differences1.splice(indexToRemove, 1);
                 differences2.splice(indexToRemove, 1);
 
-                // Remove from list
                 differencesList.removeChild(differenceItem);
 
-                // Renumber remaining differences
                 updateDifferencesList();
             });
 
@@ -235,7 +231,7 @@
         }
 
         uploadedImage1.addEventListener("click", function (event) {
-            if (uploadedImage2.src) {  // Only add markers if second image is loaded
+            if (uploadedImage2.src) {
                 const rect1 = uploadedImage1.getBoundingClientRect();
                 const rect2 = uploadedImage2.getBoundingClientRect();
 
@@ -245,8 +241,7 @@
                 const x1 = (event.clientX - rect1.left) * scaleX1;
                 const y1 = (event.clientY - rect1.top) * scaleY1;
 
-                // Check if the click is too close to existing differences
-                const minDistance = 80; // Minimum distance between differences (pixels)
+                const minDistance = 80;
                 const isNearExistingDifference = differences1.some(diff => {
                     const diffX = ((diff.x / scaleX1) - (event.clientX - rect1.left)) ** 2;
                     const diffY = ((diff.y / scaleY1) - (event.clientY - rect1.top)) ** 2;
@@ -254,24 +249,21 @@
                 });
 
                 if (isNearExistingDifference) {
-                    return; // Prevent adding a new difference if too close to an existing one
+                    return;
                 }
 
-                // Calculate relative position for second image
                 const relativeX = (event.clientX - rect1.left) / uploadedImage1.width;
                 const relativeY = (event.clientY - rect1.top) / uploadedImage1.height;
 
                 const x2 = relativeX * uploadedImage2.naturalWidth;
                 const y2 = relativeY * uploadedImage2.naturalHeight;
 
-                // Add marker to first image
                 const diffElement1 = document.createElement("div");
                 diffElement1.classList.add("difference");
                 diffElement1.style.left = `${(event.clientX - rect1.left) - 50}px`;
                 diffElement1.style.top = `${(event.clientY - rect1.top) - 50}px`;
                 imageContainer1.appendChild(diffElement1);
 
-                // Add marker to second image
                 const diffElement2 = document.createElement("div");
                 diffElement2.classList.add("difference");
                 const markerX2 = (relativeX * uploadedImage2.width) - 50;
@@ -280,7 +272,6 @@
                 diffElement2.style.top = `${markerY2}px`;
                 imageContainer2.appendChild(diffElement2);
 
-                // Store differences
                 differences1.push({
                     x: x1,
                     y: y1,
@@ -294,7 +285,6 @@
                     imageHeight: uploadedImage2.naturalHeight
                 });
 
-                // Update differences list
                 updateDifferencesList();
             }
         });

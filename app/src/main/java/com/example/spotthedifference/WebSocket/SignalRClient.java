@@ -2,7 +2,9 @@ package com.example.spotthedifference.WebSocket;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.spotthedifference.models.GameSession;
 import com.google.gson.Gson;
@@ -10,6 +12,8 @@ import com.example.spotthedifference.models.Player;
 import com.microsoft.signalr.HubConnection;
 import com.microsoft.signalr.HubConnectionBuilder;
 import com.microsoft.signalr.HubConnectionState;
+import com.microsoft.signalr.TransportEnum;
+
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
@@ -24,6 +28,7 @@ public class SignalRClient {
     private HubConnection hubConnection;
     private Disposable connectionDisposable;
     private int retryCount = 0;
+    private String playerId;
 
     private BehaviorSubject<GameSession> syncSessionStateSubject = BehaviorSubject.create();
     private BehaviorSubject<Player> playerJoinedSubject = BehaviorSubject.create();
@@ -31,15 +36,19 @@ public class SignalRClient {
     private BehaviorSubject<Boolean> connectionEstablishedSubject = BehaviorSubject.create();
     private BehaviorSubject<String> sessionClosedSubject = BehaviorSubject.create();
 
+    private GameStartedListener gameStartedListener;
     public BehaviorSubject<Boolean> getConnectionEstablishedObservable() {
         return connectionEstablishedSubject;
     }
+    private BehaviorSubject<String> readyNotAllowedSubject = BehaviorSubject.create();
+    private BehaviorSubject<String> notifyMessageSubject = BehaviorSubject.create();
 
     /**
      * Constructeur de SignalRClient. Initialise la connexion au serveur SignalR et
      * configure les événements pour écouter les changements de statut des joueurs.
      */
-    public SignalRClient() {
+    public SignalRClient(String playerid) {
+        playerId = playerid;
         hubConnection = HubConnectionBuilder.create(SERVER_URL).build();
 
         hubConnection.on("PlayerJoined", player -> {
@@ -57,6 +66,35 @@ public class SignalRClient {
             log("SignalRClient: SyncSessionState reçu", null);
         }, String.class);
 
+        hubConnection.on("GameStarted", (base64Data, imagePairId) -> {
+            byte[] imageData = Base64.decode(base64Data, Base64.DEFAULT);
+            Log.d("SignalRClient", "Image reçue et décodée, taille : " + imageData.length + "imagePairId : " + imagePairId);
+
+            if (gameStartedListener != null) {
+                log("SignalRClient: GameStarted appelé", null);
+                gameStartedListener.onGameStarted(imageData, imagePairId);
+            }else {
+                Log.e("SignalRClient", "GameStartedListener est null !");
+            }
+        }, String.class, Integer.class);
+
+        hubConnection.on("ReadyNotAllowed", (message) -> {
+            readyNotAllowedSubject.onNext(message);
+        }, String.class);
+
+        hubConnection.on("NotifyMessage", (message) -> {
+            notifyMessageSubject.onNext(message);
+        }, String.class);
+
+        hubConnection.on("ReceiveConnectionId", (connectionId) -> {
+            Log.d("SignalRClient", "ConnectionId reçu : " + connectionId);
+        }, String.class);
+
+    }
+
+    public void setGameStartedListener(GameStartedListener listener) {
+        this.gameStartedListener = listener;
+        Log.d("SignalRClient", "GameStartedListener défini : " + (listener != null));
     }
 
     /**
@@ -72,6 +110,7 @@ public class SignalRClient {
                     log("Connexion établie.", null);
                     connectionEstablishedSubject.onNext(true);
                     resetReconnectionAttempts();
+                    registerPlayer(playerId);
                 })
                 .doOnError(error -> {
                     handleError(error, "startConnection");
@@ -79,7 +118,6 @@ public class SignalRClient {
                 })
                 .subscribe();
     }
-
 
     /**
      * Tente une reconnexion automatique en cas de déconnexion, avec un délai croissant.
@@ -121,6 +159,20 @@ public class SignalRClient {
                 .subscribeOn(Schedulers.io())
                 .doOnComplete(() -> log("Connexion fermée.", null))
                 .blockingAwait();
+    }
+
+    /**
+     * Méthode permettant d'enregistrer un joueur auprès du serveur via SignalR.
+     * @param playerId l'ID du joueur à enregistrer
+     */
+    public void registerPlayer(String playerId) {
+        if (isConnected()) {
+            hubConnection.send("RegisterPlayer", playerId);
+            log("SignalRClient: Enregistrement du joueur avec playerId = " + playerId, null);
+        } else {
+            log("Connexion inactive, impossible d'enregistrer le joueur.", null);
+            attemptReconnection();
+        }
     }
 
     /**
@@ -236,6 +288,10 @@ public class SignalRClient {
         }
     }
 
+    public HubConnection getHubConnection() {
+        return hubConnection;
+    }
+
     /**
      * Retourne un observable pour les événements de synchronisation de session.
      *
@@ -243,6 +299,22 @@ public class SignalRClient {
      */
     public BehaviorSubject<GameSession> getSyncSessionStateObservable() {
         return syncSessionStateSubject;
+    }
+
+    /**
+     * retourne l'observable qui émet un message lorsque l'état de préparation n'est pas autorisé.
+     * @return readyNotAllowedSubject : emet des messages sur l'état
+     */
+    public BehaviorSubject<String> getReadyNotAllowedObservable() {
+        return readyNotAllowedSubject;
+    }
+
+    /**
+     * Retourne l'observable qui émet un message de notification
+     * @return
+     */
+    public BehaviorSubject<String> getNotifyMessageObservable() {
+        return notifyMessageSubject;
     }
 
     /**

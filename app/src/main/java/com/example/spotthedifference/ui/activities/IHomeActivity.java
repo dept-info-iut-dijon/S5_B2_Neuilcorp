@@ -56,6 +56,10 @@ public interface IHomeActivity {
      */
     void showToast(String message);
 
+    /**
+     * Affiche un message d'erreur Toast pour informer l'utilisateur.
+     * @param message
+     */
     void showErrorToast(String message);
 
 }

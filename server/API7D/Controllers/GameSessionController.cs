@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
+
+/// <summary>
+/// Contrôleur pour gérer les sessions de jeu, il fournit les endpoints pour créer, rejoindre et supprimer des sessions ainsi que pour gérer les joueurs dans une session.
 public class GameSessionController : ControllerBase
 {
     private readonly SessionService _sessionService;
@@ -15,6 +18,13 @@ public class GameSessionController : ControllerBase
     private readonly SessionCodeGenerator _codeGenerator = new SessionCodeGenerator();
     private readonly ILogger<GameSessionController> _logger;
 
+
+    /// <summary>
+    /// Initialise une nouvelle instance de GameSessionController.
+    /// </summary>
+    /// <param name="hubContext">Le contexte SinglaR utilisé pour envoyer des messages en temps réel</param>
+    /// <param name="sessionService">Service de gestion des sessions de jeu</param>
+    /// <param name="logger">L'instance de logger</param>
     public GameSessionController(IHubContext<GameSessionHub> hubContext, SessionService sessionService, ILogger<GameSessionController> logger)
     {
         _hubContext = hubContext;
@@ -145,6 +155,12 @@ public class GameSessionController : ControllerBase
         return Ok(gameSession.Players);
     }
 
+
+    /// <summary>
+    /// Force la synchronisation de l'état de la session.
+    /// </summary>
+    /// <param name="sessionId">l'ID de la session à synchroniser</param>
+    /// <returns>L'état actuel de la session ou un message d'erreur</returns>
     [HttpGet("{sessionId}/forceSync")]
     public ActionResult<GameSession> ForceSync(string sessionId)
     {

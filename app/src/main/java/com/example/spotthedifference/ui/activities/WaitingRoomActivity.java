@@ -14,8 +14,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 
 import com.example.spotthedifference.R;
+import com.example.spotthedifference.WebSocket.GameStartedListener;
 import com.example.spotthedifference.WebSocket.SignalRClient;
 import com.example.spotthedifference.api.ApiService;
 import com.example.spotthedifference.api.IRetrofitClient;
@@ -23,6 +25,9 @@ import com.example.spotthedifference.api.RetrofitClient;
 import com.example.spotthedifference.models.GameSession;
 import com.example.spotthedifference.models.Player;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +44,7 @@ import retrofit2.Retrofit;
  * dans l'application. Elle permet aux joueurs de se connecter à une session
  * de jeu en attendant les autres participants avant de démarrer la partie.
  */
-public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRoomActivity {
+public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRoomActivity, GameStartedListener{
 
     private TextView sessionCodeTextView;
     private TextView partyNameTextView;
@@ -76,7 +81,8 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         playerId = getIntent().getStringExtra("playerId");
 
         // Initialisation du client SignalR et démarrage de la connexion
-        signalRClient = new SignalRClient();
+        signalRClient = new SignalRClient(playerId);
+        signalRClient.setGameStartedListener(this);
         signalRClient.startConnection();
 
         // Rejoindre le groupe de session SignalR
@@ -110,7 +116,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             }
         });
 
-        exitButton.setOnClickListener(v -> deleteSessionAndExit());
         readyButton.setOnClickListener(v -> toggleReadyStatus());
         copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
 
@@ -145,8 +150,69 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                     redirectToHome();
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur SessionClosed observable", throwable)));
 
+        // Gestion des événements ReadyNotAllowed
+        disposables.add(signalRClient.getReadyNotAllowedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(message -> {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Attention")
+                            .setMessage(message)
+                            .setPositiveButton("OK", null)
+                            .show();
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de ReadyNotAllowed", throwable)));
+
+        // Gestion des événements NotifyMessage
+        disposables.add(signalRClient.getNotifyMessageObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(message -> {
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de NotifyMessage", throwable)));
     }
 
+    /**
+     * Méthode appelée lorsque le jeu commence, elle reçoit les données de l'image
+     * L'image est ensuite envoyée à l'activité principale via un intent
+     * l'ID de session est également passé à l'activité pour référence
+     * @param imageData
+     */
+    @Override
+    public void onGameStarted(byte[] imageData, Integer imagePairId) {
+        Log.d("WaitingRoomActivity", "Image reçue via GameStartedCallback. Taille : " + imageData.length + " imagePairId : " + imagePairId);
+
+        File imageFile = new File(getCacheDir(), "tempImage.jpg");
+
+        try {
+            if (!imageFile.getParentFile().exists()) {
+                boolean dirCreated = imageFile.getParentFile().mkdirs();
+                if (!dirCreated) {
+                    Log.e("WaitingRoomActivity", "Impossible de créer le répertoire parent pour le fichier temporaire.");
+                    Toast.makeText(this, "Erreur : Impossible de créer le fichier temporaire.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            try (FileOutputStream fos = new FileOutputStream(imageFile)) {
+                fos.write(imageData);
+            }
+
+            Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
+            intent.putExtra("imagePath", imageFile.getAbsolutePath());
+            intent.putExtra("sessionId", sessionId);
+            intent.putExtra("playerId", playerId);
+            intent.putExtra("imagePairId", imagePairId.toString());
+            startActivity(intent);
+            finish();
+        } catch (IOException e) {
+            Log.e("WaitingRoomActivity", "Erreur lors de l'écriture ou de l'accès au fichier temporaire : " + e.getMessage(), e);
+            Toast.makeText(this, "Erreur lors de la sauvegarde de l'image.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Méthode appelée lorsque l'activité est détruite.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -297,7 +363,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         signalRClient.notifyAllPlayersToExit(sessionId);
         redirectToHome();
     }
-
 
     private boolean isHost() {
         return !players.isEmpty() && playerId.equals(players.get(0).getPlayerId());

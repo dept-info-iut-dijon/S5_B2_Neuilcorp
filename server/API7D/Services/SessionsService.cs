@@ -1,4 +1,7 @@
-﻿using API7D.objet;
+﻿using API7D.Metier;
+using API7D.objet;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,7 +10,15 @@ namespace API7D.Services
     public class SessionService
     {
         private readonly List<GameSession> _sessions = new List<GameSession>();
+        private readonly IHubContext<GameSessionHub> _hubContext;
+        private readonly ILogger<SessionService> _logger;
 
+
+        public SessionService(IHubContext<GameSessionHub> hubContext, ILogger<SessionService> logger)
+        {
+            _hubContext = hubContext;
+            _logger = logger;
+        }
         /// <summary>
         /// Ajoute une nouvelle session de jeu.
         /// </summary>
@@ -105,5 +116,31 @@ namespace API7D.Services
             return false;
         }
 
+        /// <summary>
+        /// Notifie tous les joueurs d'une session d'un résultat de différence.
+        /// </summary>
+        /// <param name="sessionId">Identifiant de la session.</param>
+        /// <param name="isInZone">Résultat de validation de la différence (true ou false).</param>
+        /// <returns>Tâche asynchrone représentant l'opération de notification.</returns>
+        public async Task NotifyPlayers(string sessionId, bool isInZone)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                _logger.LogError("SessionId ne peut pas être null ou vide.");
+                throw new ArgumentException("SessionId est requis.", nameof(sessionId));
+            }
+
+            try
+            {
+                // Notifie tous les clients appartenant au groupe SignalR correspondant à la session
+                await _hubContext.Clients.Group(sessionId).SendAsync("ResultNotification", isInZone);
+
+                _logger.LogInformation($"Tous les joueurs de la session {sessionId} ont été notifiés du résultat : {isInZone}.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la notification des joueurs de la session {sessionId}.");
+            }
+        }
     }
 }

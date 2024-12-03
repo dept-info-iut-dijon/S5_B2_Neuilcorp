@@ -1,4 +1,5 @@
 ﻿using API7D.objet;
+using API7D.Services;
 
 namespace API7D.Metier
 {
@@ -35,5 +36,7 @@ namespace API7D.Metier
         /// </summary>
         /// <returns>Liste contenant l'ID de l'image, l'ID de la paire et l'image en base64.</returns>
         List<ImageWithPair> GetAllImagesWithPairs();
+
+        public (byte[] Image1, byte[] Image2) ReadyImageToPlayer(string Idsession, SessionService _session);
     }
 }

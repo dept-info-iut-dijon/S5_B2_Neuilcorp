@@ -1,6 +1,7 @@
 using API7D.DATA;
 using API7D.Metier;
 using API7D.Services;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -56,6 +57,15 @@ app.UseAuthorization();
 
 // Configurer le Hub SignalR
 app.MapHub<GameSessionHub>("/gameSessionHub");
+
+// Configuration pour servir des fichiers statiques depuis le dossier "StaticPages"
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "StaticPages")),
+    RequestPath = "/static"
+});
+
 
 app.MapControllers();
 

@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Télécharger Deux Images et Définir les Différences</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f8ff;
+            color: #333;
+            padding-bottom: 70px;
+        }
+
+        h1 {
+            color: #1e90ff;
+            text-align: center;
+        }
+
+        form {
+            margin-top: 20px;
+            text-align: center;
+            background-color: #e0f7fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-size: 16px;
+            margin-top: 10px;
+            color: #1e90ff;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+            border: 2px solid #1e90ff;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        #image-container-1, #image-container-2 {
+            position: relative;
+            display: inline-block;
+            max-width: 45%;
+            margin-top: 20px;
+            margin-right: 20px;
+            text-align: center;
+        }
+
+        #image-container-2 {
+            margin-right: 0;
+        }
+
+        #uploaded-image-1, #uploaded-image-2 {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #1e90ff;
+            border-radius: 5px;
+        }
+
+        .difference {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 2px solid red;
+            border-radius: 50%;
+            background-color: transparent;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #1e90ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+            button:hover {
+                background-color: #4682b4;
+            }
+
+        #submit-differences {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .error-message {
+            color: #ff6347;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #differences-list {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .difference-item {
+            display: inline-flex;
+            align-items: center;
+            background-color: #e0f7fa;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .delete-difference {
+            color: red;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Téléchargez les images et définissez les différences</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="image1">Choisissez la première image :</label><br>
+        <input type="file" id="image1" name="image1" accept="image/*" required><br><br>
+
+        <label for="image2">Choisissez la deuxième image :</label><br>
+        <input type="file" id="image2" name="image2" accept="image/*" required><br><br>
+
+        <button type="submit">Télécharger les images</button>
+    </form>
+
+    <div id="image-container-1" style="display:none;">
+        <img id="uploaded-image-1" src="" alt="Image 1 téléchargée" />
+    </div>
+
+    <div id="image-container-2" style="display:none;">
+        <img id="uploaded-image-2" src="" alt="Image 2 téléchargée" />
+    </div>
+
+    <div id="differences-list"></div>
+
+    <div id="error-message" class="error-message" style="display:none;">
+        Veuillez vous assurer que vous avez téléchargé les deux images.
+    </div>
+
+    <button id="submit-differences" style="display:none;">Envoyer les Différences</button>
+
+    <script>
+        const form = document.getElementById("uploadForm");
+        const image1Input = document.getElementById("image1");
+        const image2Input = document.getElementById("image2");
+        const imageContainer1 = document.getElementById("image-container-1");
+        const uploadedImage1 = document.getElementById("uploaded-image-1");
+        const imageContainer2 = document.getElementById("image-container-2");
+        const uploadedImage2 = document.getElementById("uploaded-image-2");
+        const submitButton = document.getElementById("submit-differences");
+        const errorMessage = document.getElementById("error-message");
+        const differencesList = document.getElementById("differences-list");
+
+        let differences1 = [];
+        let differences2 = [];
+
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const file1 = image1Input.files[0];
+            const file2 = image2Input.files[0];
+
+            if (file1 && file2) {
+                const reader1 = new FileReader();
+                reader1.onload = function (e) {
+                    uploadedImage1.src = e.target.result;
+                    imageContainer1.style.display = "inline-block";
+                };
+                reader1.readAsDataURL(file1);
+
+                const reader2 = new FileReader();
+                reader2.onload = function (e) {
+                    uploadedImage2.src = e.target.result;
+                    imageContainer2.style.display = "inline-block";
+                };
+                reader2.readAsDataURL(file2);
+
+                submitButton.style.display = "inline-block";
+            } else {
+                errorMessage.style.display = "block";
+            }
+        });
+
+        function addDifferenceToList(index, x1, y1, x2, y2) {
+            const differenceItem = document.createElement("div");
+            differenceItem.classList.add("difference-item");
+            differenceItem.innerHTML = `
+                    Différence ${index + 1} :
+                    Image 1 (x: ${Math.round(x1)}, y: ${Math.round(y1)})
+                    Image 2 (x: ${Math.round(x2)}, y: ${Math.round(y2)})
+                    <span class="delete-difference" data-index="${index}">✖</span>
+                `;
+
+            differenceItem.querySelector(".delete-difference").addEventListener("click", function () {
+                const indexToRemove = parseInt(this.getAttribute("data-index"));
+
+                // Remove circles from images
+                const circles1 = imageContainer1.querySelectorAll(".difference");
+                const circles2 = imageContainer2.querySelectorAll(".difference");
+                if (circles1[indexToRemove]) circles1[indexToRemove].remove();
+                if (circles2[indexToRemove]) circles2[indexToRemove].remove();
+
+                // Remove from differences arrays
+                differences1.splice(indexToRemove, 1);
+                differences2.splice(indexToRemove, 1);
+
+                // Remove from list
+                differencesList.removeChild(differenceItem);
+
+                // Renumber remaining differences
+                updateDifferencesList();
+            });
+
+            differencesList.appendChild(differenceItem);
+        }
+
+        function updateDifferencesList() {
+            differencesList.innerHTML = "";
+            differences1.forEach((diff, index) => {
+                addDifferenceToList(index, diff.x, diff.y, differences2[index].x, differences2[index].y);
+            });
+        }
+
+        uploadedImage1.addEventListener("click", function (event) {
+            if (uploadedImage2.src) {  // Only add markers if second image is loaded
+                const rect1 = uploadedImage1.getBoundingClientRect();
+                const rect2 = uploadedImage2.getBoundingClientRect();
+
+                const scaleX1 = uploadedImage1.naturalWidth / uploadedImage1.width;
+                const scaleY1 = uploadedImage1.naturalHeight / uploadedImage1.height;
+
+                const x1 = (event.clientX - rect1.left) * scaleX1;
+                const y1 = (event.clientY - rect1.top) * scaleY1;
+
+                // Check if the click is too close to existing differences
+                const minDistance = 80; // Minimum distance between differences (pixels)
+                const isNearExistingDifference = differences1.some(diff => {
+                    const diffX = ((diff.x / scaleX1) - (event.clientX - rect1.left)) ** 2;
+                    const diffY = ((diff.y / scaleY1) - (event.clientY - rect1.top)) ** 2;
+                    return Math.sqrt(diffX + diffY) < minDistance;
+                });
+
+                if (isNearExistingDifference) {
+                    return; // Prevent adding a new difference if too close to an existing one
+                }
+
+                // Calculate relative position for second image
+                const relativeX = (event.clientX - rect1.left) / uploadedImage1.width;
+                const relativeY = (event.clientY - rect1.top) / uploadedImage1.height;
+
+                const x2 = relativeX * uploadedImage2.naturalWidth;
+                const y2 = relativeY * uploadedImage2.naturalHeight;
+
+                // Add marker to first image
+                const diffElement1 = document.createElement("div");
+                diffElement1.classList.add("difference");
+                diffElement1.style.left = `${(event.clientX - rect1.left) - 50}px`;
+                diffElement1.style.top = `${(event.clientY - rect1.top) - 50}px`;
+                imageContainer1.appendChild(diffElement1);
+
+                // Add marker to second image
+                const diffElement2 = document.createElement("div");
+                diffElement2.classList.add("difference");
+                const markerX2 = (relativeX * uploadedImage2.width) - 50;
+                const markerY2 = (relativeY * uploadedImage2.height) - 50;
+                diffElement2.style.left = `${markerX2}px`;
+                diffElement2.style.top = `${markerY2}px`;
+                imageContainer2.appendChild(diffElement2);
+
+                // Store differences
+                differences1.push({
+                    x: x1,
+                    y: y1,
+                    imageWidth: uploadedImage1.naturalWidth,
+                    imageHeight: uploadedImage1.naturalHeight
+                });
+                differences2.push({
+                    x: x2,
+                    y: y2,
+                    imageWidth: uploadedImage2.naturalWidth,
+                    imageHeight: uploadedImage2.naturalHeight
+                });
+
+                // Update differences list
+                updateDifferencesList();
+            }
+        });
+
+        submitButton.addEventListener("click", function () {
+            const data = {
+                differences1: differences1,
+                differences2: differences2
+            };
+
+            fetch("/api/save-differences", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert("Les différences ont été envoyées !");
+                })
+                .catch(error => {
+                    console.error("Erreur d'envoi des données : ", error);
+                    alert("Une erreur s'est produite.");
+                });
+        });
+    </script>
+</body>
+</html>

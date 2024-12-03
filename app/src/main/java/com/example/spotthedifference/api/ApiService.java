@@ -108,4 +108,7 @@ public interface ApiService {
     @POST("ImageControlleur/{sessionId}/selectImagePair")
     Call<Void> selectImagePair(@Path("sessionId") String sessionId, @Body int imagePairId);
 
+    @DELETE("api/GameSession/{sessionId}/player/{playerId}")
+    Call<Void> removePlayerFromSession(@Path("sessionId") String sessionId, @Path("playerId") String playerId);
+
 }

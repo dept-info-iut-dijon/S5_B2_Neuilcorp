@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 using API7D.objet;
 using API7D.Services;
@@ -219,6 +219,26 @@ namespace API7D.Metier
             }
         }
 
+        /// <summary>
+        /// Notifie les clients lorsqu'une session est supprimée.
+        /// </summary>
+        /// <param name="sessionId">ID de la session supprimée.</param>
+        public async Task NotifySessionDeleted(string sessionId)
+        {
+            _logger.LogInformation($"Notifying clients that session {sessionId} was deleted.");
+            await Clients.Group(sessionId).SendAsync("SessionDeleted", sessionId);
+        }
+
+        /// <summary>
+        /// Notifie les clients lorsqu'un joueur est supprimé.
+        /// </summary>
+        /// <param name="sessionId">ID de la session.</param>
+        /// <param name="playerId">ID du joueur supprimé.</param>
+        public async Task NotifyPlayerRemoved(string sessionId, string playerId)
+        {
+            _logger.LogInformation($"Notifying clients in session {sessionId} that player {playerId} was removed.");
+            await Clients.Group(sessionId).SendAsync("PlayerRemoved", playerId);
+            
         public async Task NotifyResult(string sessionId, bool isInZone)
         {
             _logger.LogInformation($"Notification du résultat pour la session {sessionId}. Résultat : {isInZone}");

@@ -34,6 +34,8 @@ public class SignalRClient {
     private BehaviorSubject<Player> playerJoinedSubject = BehaviorSubject.create();
     private BehaviorSubject<Player> playerReadyStatusChangedSubject = BehaviorSubject.create();
     private BehaviorSubject<Boolean> connectionEstablishedSubject = BehaviorSubject.create();
+    private BehaviorSubject<String> sessionClosedSubject = BehaviorSubject.create();
+
     private GameStartedListener gameStartedListener;
     public BehaviorSubject<Boolean> getConnectionEstablishedObservable() {
         return connectionEstablishedSubject;
@@ -322,5 +324,17 @@ public class SignalRClient {
         if (connectionDisposable != null && !connectionDisposable.isDisposed()) {
             connectionDisposable.dispose();
         }
+    }
+
+    public void notifySessionClosed(String sessionId) {
+        hubConnection.send("SessionClosed", sessionId);
+    }
+
+    public void notifyAllPlayersToExit(String sessionId) {
+        hubConnection.send("AllPlayersExit", sessionId);
+    }
+
+    public BehaviorSubject<String> getSessionClosedObservable() {
+        return sessionClosedSubject;
     }
 }

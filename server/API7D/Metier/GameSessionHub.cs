@@ -238,6 +238,7 @@ namespace API7D.Metier
         {
             _logger.LogInformation($"Notifying clients in session {sessionId} that player {playerId} was removed.");
             await Clients.Group(sessionId).SendAsync("PlayerRemoved", playerId);
+        }
             
         public async Task NotifyResult(string sessionId, bool isInZone)
         {

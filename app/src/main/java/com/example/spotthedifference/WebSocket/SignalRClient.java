@@ -42,6 +42,8 @@ public class SignalRClient {
     }
     private BehaviorSubject<String> readyNotAllowedSubject = BehaviorSubject.create();
     private BehaviorSubject<String> notifyMessageSubject = BehaviorSubject.create();
+    private BehaviorSubject<String> allPlayersExitSubject = BehaviorSubject.create();
+    private BehaviorSubject<String> playerLeftSubject = BehaviorSubject.create();
 
     /**
      * Constructeur de SignalRClient. Initialise la connexion au serveur SignalR et
@@ -90,7 +92,32 @@ public class SignalRClient {
             Log.d("SignalRClient", "ConnectionId reçu : " + connectionId);
         }, String.class);
 
+        hubConnection.on("SessionClosed", sessionId -> {
+            sessionClosedSubject.onNext(sessionId);
+            log("SignalRClient: Session fermée pour sessionId = " + sessionId, null);
+        }, String.class);
+
+        hubConnection.on("AllPlayersExit", sessionId -> {
+            allPlayersExitSubject.onNext(sessionId);
+            log("SignalRClient: AllPlayersExit reçu pour sessionId = " + sessionId, null);
+        }, String.class);
+
+        hubConnection.on("PlayerLeft", (sessionId, playerId) -> {
+            playerLeftSubject.onNext(playerId);
+            log("SignalRClient: PlayerLeft reçu pour playerId = " + playerId, null);
+        }, String.class, String.class);
     }
+
+    public void notifyPlayerLeft(String sessionId, String playerId) {
+        if (isConnected()) {
+            hubConnection.send("PlayerLeft", sessionId, playerId);
+            log("SignalRClient: Notifié le départ du joueur avec playerId = " + playerId, null);
+        } else {
+            log("Connexion inactive, impossible de notifier le départ du joueur.", null);
+            attemptReconnection();
+        }
+    }
+
 
     public void setGameStartedListener(GameStartedListener listener) {
         this.gameStartedListener = listener;
@@ -153,13 +180,15 @@ public class SignalRClient {
     /**
      * Arrête la connexion WebSocket au serveur SignalR.
      */
-    public void stopConnection() {
+    public void stopConnection(String sessionId, String playerId) {
+        notifyPlayerLeft(sessionId, playerId);
         disposeConnection();
         hubConnection.stop()
                 .subscribeOn(Schedulers.io())
                 .doOnComplete(() -> log("Connexion fermée.", null))
                 .blockingAwait();
     }
+
 
     /**
      * Méthode permettant d'enregistrer un joueur auprès du serveur via SignalR.
@@ -336,5 +365,13 @@ public class SignalRClient {
 
     public BehaviorSubject<String> getSessionClosedObservable() {
         return sessionClosedSubject;
+    }
+
+    public BehaviorSubject<String> getAllPlayersExitObservable() {
+        return allPlayersExitSubject;
+    }
+
+    public BehaviorSubject<String> getPlayerLeftObservable() {
+        return playerLeftSubject;
     }
 }

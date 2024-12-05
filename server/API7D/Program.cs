@@ -1,6 +1,7 @@
 using API7D.DATA;
 using API7D.Metier;
 using API7D.Services;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);

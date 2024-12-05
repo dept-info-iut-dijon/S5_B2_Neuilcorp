@@ -65,6 +65,42 @@ namespace API7D.Controllers
             }
         }
 
+        /// <summary>
+        /// Ajoute une liste de différences (coordonnées).
+        /// </summary>
+        /// <param name="coordonnees">Liste des coordonnées représentant les différences.</param>
+        /// <returns>
+        /// 200 Ok : si l'ajout est réussi.
+        /// 400 BadRequest : si les données sont invalides ou si une erreur survient.
+        /// </returns>
+        [HttpPost("add")]
+        public IActionResult AddDifferance([FromBody] List<Coordonnees> coordonnees)
+        {
+            if (coordonnees == null || !coordonnees.Any())
+            {
+                _logger.LogWarning("La liste de coordonnées est vide ou nulle.");
+                return BadRequest("La liste de coordonnées est vide ou invalide.");
+            }
+
+            try
+            {
+                // Logique d'ajout des différences
+                foreach (var coord in coordonnees)
+                {
+                    _logger.LogInformation($"Ajout de la coordonnée : X={coord.X}, Y={coord.Y}");
+                    // Vous pouvez appeler ici une méthode pour sauvegarder ces différences, si nécessaire.
+                    // Exemple : _sessionService.AddDifference(coord);
+                }
+
+                return Ok("Les différences ont été ajoutées avec succès.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'ajout des différences.");
+                return StatusCode(500, new { success = false, message = "Une erreur est survenue lors de l'ajout des différences." });
+            }
+        }
+
 
     }
 }

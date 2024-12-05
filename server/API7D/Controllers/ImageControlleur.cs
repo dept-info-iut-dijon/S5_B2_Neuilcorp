@@ -138,5 +138,33 @@ namespace API7D.Controllers
 
             return Ok("Paire d'images sélectionnée pour la session.");
         }
+
+
+        /// <summary>
+        /// Compare deux images représentées sous forme de tableaux de bytes.
+        /// </summary>
+        /// <param name="image1">Premier tableau de bytes représentant une image.</param>
+        /// <param name="image2">Deuxième tableau de bytes représentant une image.</param>
+        /// <returns>
+        /// 200 OK : Si les deux images sont identiques.
+        /// 400 BadRequest : Si les images diffèrent ou si une erreur survient.
+        /// </returns>
+        [HttpPost("compare")]
+        public IActionResult AddImage([FromQuery] byte[] image1, [FromQuery] byte[] image2 , List<Coordonnees> difference)
+        {
+            IActionResult result = BadRequest("internal server error");
+            if (image1 == null || image2 == null)
+            {
+                return BadRequest("Une ou plusieurs images sont nulles.");
+            }
+
+            _imageService.SetImages(image1, image2,difference);
+            result = Ok("donnée ajouter");
+            return result;
+        }
+
+
+
+
     }
 }

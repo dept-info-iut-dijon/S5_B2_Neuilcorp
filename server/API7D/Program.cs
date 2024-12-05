@@ -63,7 +63,7 @@ app.MapHub<GameSessionHub>("/gameSessionHub");
 app.MapGet("/", async context =>
 {
     // URL ICI
-    await context.Response.SendFileAsync("wwwroot/index.html");
+    await context.Response.SendFileAsync("StaticPages/upload.html");
 });
 
 // Configurer les routes des contrôleurs

@@ -192,7 +192,7 @@ namespace API7D.Metier
             _logger.LogInformation($"Player {playerId} readiness updated to {isReady} in session {sessionId}.");
             await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
 
-            if (existingSession.Players.All(p => p.IsReady))
+            if (existingSession.Players.All(p => p.IsReady) && existingSession.ImagePairId!=0)
             {
                 _logger.LogInformation($"All players in session {sessionId} are ready. Requesting ImageController to send images...");
 
@@ -222,6 +222,12 @@ namespace API7D.Metier
                         _logger.LogWarning($"Failed to send image to player {connectionId}");
                     }
                 }
+            }
+            else if (existingSession.Players.All(p => p.IsReady) && existingSession.ImagePairId == 0)
+            {
+                await Clients.Group(sessionId).SendAsync("ReadyNotAllowed", "La partie ne peut pas commencer, aucune image n'est choisie pour la partie");
+                thisplayer.IsReady = false;
+                isReady = false;
             }
         }
 

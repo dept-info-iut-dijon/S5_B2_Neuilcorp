@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\StaticPages\upload.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Image\2.png" />
   </ItemGroup>
 
@@ -21,6 +25,10 @@
 
   <ItemGroup>
     <Folder Include="Database\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\StaticPages\upload.html" />
   </ItemGroup>
 
 </Project>

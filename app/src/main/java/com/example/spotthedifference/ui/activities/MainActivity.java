@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         exitButton = findViewById(R.id.exitButton);
         exitButton.setOnClickListener(v -> deleteSessionAndExit());
 
-        disposables.add(signalRClient.getSessionClosedObservable()
+        disposables.add(signalRClient.getSessionDeletedObservable()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(closedSessionId -> {
@@ -167,53 +167,34 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                 }
             }, throwable -> Log.e(TAG, "Erreur SessionClosed observable", throwable)));
 
-        disposables.add(signalRClient.getPlayerLeftObservable()
+        disposables.add(signalRClient.getPlayerRemovedObservable()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(leftPlayerId -> {
-                if (!isHost() && !leftPlayerId.equals(playerId)) {
+            .subscribe(removedPlayerId -> {
+                if (!isHost() && !removedPlayerId.equals(playerId)) {
                     redirectToWaitingRoom();
                 }
-            }, throwable -> Log.e(TAG, "Erreur PlayerLeft observable", throwable)));
+            }, throwable -> Log.e(TAG, "Erreur PlayerRemoved observable", throwable)));
     }
 
     /**
-     * Gère le départ d'un joueur ou la suppression d'une session si l'hôte quitte.
+     * supprime la session peut importe le joueur qui quitte
      */
     private void deleteSessionAndExit() {
-        if (isHost()) {
-            // L'hôte quitte, supprimer la session
-            apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
-                @Override
-                public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (response.isSuccessful()) {
-                        signalRClient.notifySessionClosed(sessionId);
-                        redirectToHome();
-                    }
+        apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    signalRClient.notifySessionDeleted(sessionId);
+                    redirectToHome();
                 }
+            }
 
-                @Override
-                public void onFailure(Call<Void> call, Throwable t) {
-                    Log.e(TAG, "Échec de la suppression de session", t);
-                }
-            });
-        } else {
-            // Un joueur non-hôte quitte
-            apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
-                @Override
-                public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (response.isSuccessful()) {
-                        signalRClient.notifyPlayerLeft(sessionId, playerId);
-                        redirectToHome();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<Void> call, Throwable t) {
-                    Log.e(TAG, "Échec du retrait du joueur", t);
-                }
-            });
-        }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e(TAG, "Échec de la suppression de session", t);
+            }
+        });
     }
 
     /**
@@ -252,6 +233,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (signalRClient != null) {
+            signalRClient.notifySessionDeleted(sessionId);
             signalRClient.stopConnection(sessionId, playerId);
         }
     }

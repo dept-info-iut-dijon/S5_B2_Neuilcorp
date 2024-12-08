@@ -153,88 +153,94 @@ namespace API7D.DATA
         /// Ajoute une nouvelle image dans la base de données.
         /// </summary>
         /// <param name="image">L'objet image contenant les informations de l'image.</param>
-        public void SetImagesDATA(string path1, string path2 , List<Coordonnees> difference)
+        public void SetImagesDATA(string path1, string path2, List<Coordonnees> difference)
         {
+            // Validate inputs
+            if (string.IsNullOrEmpty(path1) || string.IsNullOrEmpty(path2))
+                throw new ArgumentException("Image paths cannot be null or empty");
+            if (difference == null)
+                throw new ArgumentNullException(nameof(difference));
+
+            // Ensure connection string is valid
+            if (string.IsNullOrEmpty(_connectionString))
+                throw new InvalidOperationException("Connection string is not initialized");
+
             using (var connection = new SqliteConnection(_connectionString))
             {
-                connection.Open();
-
-                // Début de la transaction
-                using (var transaction = connection.BeginTransaction())
+                try
                 {
-                    try
+                    // Ensure connection is closed before opening
+                    if (connection.State != System.Data.ConnectionState.Closed)
+                        connection.Close();
+
+                    connection.Open();
+
+                    using (var transaction = connection.BeginTransaction())
                     {
-                        // Insertion de la première image
-                        string query1 = "INSERT INTO Image (ImageLink) VALUES (@ImageLink1)";
-                        using (var command1 = new SqliteCommand(query1, connection))
+                        try
                         {
-                            command1.Parameters.AddWithValue("@ImageLink1", path1);
-                            command1.ExecuteNonQuery();
-                        }
-
-                        // Récupération de l'ID de la première image
-                        string getIdQuery1 = "SELECT last_insert_rowid()";
-                        int image1ID;
-                        using (var command = new SqliteCommand(getIdQuery1, connection))
-                        {
-                            image1ID = Convert.ToInt32(command.ExecuteScalar());
-                        }
-
-                        // Insertion de la deuxième image
-                        string query2 = "INSERT INTO Image (ImageLink) VALUES (@ImageLink2)";
-                        using (var command2 = new SqliteCommand(query2, connection))
-                        {
-                            command2.Parameters.AddWithValue("@ImageLink2", path2);
-                            command2.ExecuteNonQuery();
-                        }
-
-                        // Récupération de l'ID de la deuxième image
-                        string getIdQuery2 = "SELECT last_insert_rowid()";
-                        int image2ID;
-                        using (var command = new SqliteCommand(getIdQuery2, connection))
-                        {
-                            image2ID = Convert.ToInt32(command.ExecuteScalar());
-                        }
-
-                        // Insertion des IDs dans la table ImageDifference
-                        string query3 = "INSERT INTO ImageDifference (Image1ID, Image2ID) VALUES (@Image1ID, @Image2ID)";
-                        int pairId;
-                        using (var command3 = new SqliteCommand(query3, connection))
-                        {
-                            command3.Parameters.AddWithValue("@Image1ID", image1ID);
-                            command3.Parameters.AddWithValue("@Image2ID", image2ID);
-                            command3.ExecuteNonQuery();
-
-                            // Récupérer l'ID du couple d'images (PairID)
-                            string getPairIdQuery = "SELECT last_insert_rowid()";
-                            using (var command4 = new SqliteCommand(getPairIdQuery, connection))
+                            // Insert first image and get its ID
+                            string query1 = "INSERT INTO Image (ImageLink) VALUES (@ImageLink1); SELECT last_insert_rowid();";
+                            int image1ID;
+                            using (var command1 = new SqliteCommand(query1, connection, transaction))
                             {
-                                pairId = Convert.ToInt32(command4.ExecuteScalar());
+                                command1.Parameters.AddWithValue("@ImageLink1", path1);
+                                image1ID = Convert.ToInt32(command1.ExecuteScalar());
                             }
-                        }
 
-                        // Insertion des différences dans la table Difference
-                        foreach (var coord in difference)
-                        {
+                            // Insert second image and get its ID
+                            string query2 = "INSERT INTO Image (ImageLink) VALUES (@ImageLink2); SELECT last_insert_rowid();";
+                            int image2ID;
+                            using (var command2 = new SqliteCommand(query2, connection, transaction))
+                            {
+                                command2.Parameters.AddWithValue("@ImageLink2", path2);
+                                image2ID = Convert.ToInt32(command2.ExecuteScalar());
+                            }
+
+                            // Insert image pair and get pair ID
+                            string query3 = "INSERT INTO ImageDifference (Image1ID, Image2ID) VALUES (@Image1ID, @Image2ID); SELECT last_insert_rowid();";
+                            int pairId;
+                            using (var command3 = new SqliteCommand(query3, connection, transaction))
+                            {
+                                command3.Parameters.AddWithValue("@Image1ID", image1ID);
+                                command3.Parameters.AddWithValue("@Image2ID", image2ID);
+                                pairId = Convert.ToInt32(command3.ExecuteScalar());
+                            }
+
+                            // Insert differences using a single command with parameters
                             string query4 = "INSERT INTO Difference (X, Y, PairID) VALUES (@X, @Y, @PairID)";
-                            using (var command4 = new SqliteCommand(query4, connection))
+                            using (var command4 = new SqliteCommand(query4, connection, transaction))
                             {
-                                command4.Parameters.AddWithValue("@X", coord.X);
-                                command4.Parameters.AddWithValue("@Y", coord.Y);
-                                command4.Parameters.AddWithValue("@PairID", pairId);
-                                command4.ExecuteNonQuery();
-                            }
-                        }
+                                command4.Parameters.Add("@X", SqliteType.Integer);
+                                command4.Parameters.Add("@Y", SqliteType.Integer);
+                                command4.Parameters.Add("@PairID", SqliteType.Integer);
 
-                        // Validation de la transaction
-                        transaction.Commit();
+                                foreach (var coord in difference)
+                                {
+                                    command4.Parameters["@X"].Value = coord.X;
+                                    command4.Parameters["@Y"].Value = coord.Y;
+                                    command4.Parameters["@PairID"].Value = pairId;
+                                    command4.ExecuteNonQuery();
+                                }
+                            }
+
+                            transaction.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            throw new Exception($"Error during database transaction: {ex.Message}", ex);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        // En cas d'erreur, annule la transaction
-                        transaction.Rollback();
-                        throw new Exception("Erreur lors de l'insertion des images.", ex);
-                    }
+                }
+                catch (SqliteException ex)
+                {
+                    throw new Exception($"SQLite connection error: {ex.Message}", ex);
+                }
+                finally
+                {
+                    if (connection.State == System.Data.ConnectionState.Open)
+                        connection.Close();
                 }
             }
         }

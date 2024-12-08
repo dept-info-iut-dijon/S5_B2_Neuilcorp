@@ -79,9 +79,9 @@ namespace API7D.Metier
                 System.IO.File.WriteAllBytes(filePath, image1);
 
                 string filePath2 = Path.Combine(imagesFolder, $"{name}1.png");
-                System.IO.File.WriteAllBytes(filePath, image2);
+                System.IO.File.WriteAllBytes(filePath2, image2);
 
-                _data.SetImagesDATA($"Image/{name}.png", $"Image/{name}1.png");
+                _data.SetImagesDATA($"Image/{name}.png", $"Image/{name}1.png",difference);
 
 
 

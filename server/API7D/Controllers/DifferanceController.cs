@@ -100,7 +100,5 @@ namespace API7D.Controllers
                 return StatusCode(500, new { success = false, message = "Une erreur est survenue lors de l'ajout des différences." });
             }
         }
-
-
     }
 }

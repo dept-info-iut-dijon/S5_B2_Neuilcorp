@@ -16,7 +16,7 @@ namespace API7D.Metier
         /// Ajoute une image avec une liste des différences.
         /// </summary>
         /// <param name="image">Objet ImageDifference contenant les informations sur l'image et ses différences.</param>
-        void SetImages(byte[] image1 , byte[] image2 , List<Coordonnees> difference);
+        void SetImages(byte[] image1 , byte[] image2 ,string name, List<Coordonnees> difference);
 
         /// <summary>
         /// Récupère toutes les images sous forme de tableau de bytes.

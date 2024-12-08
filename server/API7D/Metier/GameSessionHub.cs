@@ -98,6 +98,17 @@ namespace API7D.Metier
             _logger.LogInformation($"Client ConnectionId: {Context.ConnectionId} successfully joined session group {sessionId}.");
         }
 
+
+        /// <summary>
+        /// Notifie les clients lorsqu'une session est supprimée.
+        /// </summary>
+        /// <param name="sessionId">ID de la session supprimée.</param>
+        public async Task SessionDeleted(string sessionId)
+        {
+            _logger.LogInformation($"Notifying clients that session {sessionId} was deleted.");
+            await Clients.Group(sessionId).SendAsync("SessionDeleted", sessionId);
+        }
+
         public async Task<string> GetConnectionIdByPlayerId(string playerId)
         {
             if (PlayerConnections.ContainsKey(playerId))
@@ -125,6 +136,17 @@ namespace API7D.Metier
         }
 
         /// <summary>
+        /// Notifie les clients lorsqu'un joueur est supprimé.
+        /// </summary>
+        /// <param name="sessionId">ID de la session.</param>
+        /// <param name="playerId">ID du joueur supprimé.</param>
+        public async Task NotifyPlayerRemoved(string sessionId, Player player)
+        {
+            _logger.LogInformation($"Notifying clients in session {sessionId} that player {player.Name} was removed.");
+            await Clients.Group(sessionId).SendAsync("PlayerRemoved", player);
+        }
+
+        /// <summary>
         /// Mets à jour l'état de préparation d'un joueur dans une session.
         /// Valide qu'une session ne peut démarrer que si au moins deux joueurs sont prêts.
         /// Notifie les joueurs de l'état de préparation mis à jour.
@@ -133,7 +155,7 @@ namespace API7D.Metier
         /// <param name="playerId">ID des joueurs</param>
         /// <param name="isReady">savoir si un joueur est prêt ou non</param>
         /// <returns></returns>
-         
+
         //marche
         public async Task SetPlayerReadyStatus(string sessionId, string playerId, bool isReady)
         {
@@ -217,27 +239,6 @@ namespace API7D.Metier
                 await Clients.Caller.SendAsync("SyncSessionState", existingSession);
                 _logger.LogInformation($"Sync state sent to client {Context.ConnectionId} for session {sessionId}.");
             }
-        }
-
-        /// <summary>
-        /// Notifie les clients lorsqu'une session est supprimée.
-        /// </summary>
-        /// <param name="sessionId">ID de la session supprimée.</param>
-        public async Task NotifySessionDeleted(string sessionId)
-        {
-            _logger.LogInformation($"Notifying clients that session {sessionId} was deleted.");
-            await Clients.Group(sessionId).SendAsync("SessionDeleted", sessionId);
-        }
-
-        /// <summary>
-        /// Notifie les clients lorsqu'un joueur est supprimé.
-        /// </summary>
-        /// <param name="sessionId">ID de la session.</param>
-        /// <param name="playerId">ID du joueur supprimé.</param>
-        public async Task NotifyPlayerRemoved(string sessionId, string playerId)
-        {
-            _logger.LogInformation($"Notifying clients in session {sessionId} that player {playerId} was removed.");
-            await Clients.Group(sessionId).SendAsync("PlayerRemoved", playerId);
         }
             
         public async Task NotifyResult(string sessionId, bool isInZone)

@@ -203,7 +203,9 @@ namespace API7D.Metier
             }
             else if (existingSession.Players.All(p => p.IsReady) && existingSession.ImagePairId == 0)
             {
-
+                await Clients.Group(sessionId).SendAsync("ReadyNotAllowed", "La partie ne peut pas commencer, aucune image n'est choisie pour la partie");
+                thisplayer.IsReady = false;
+                isReady = false;
             }
         }
 

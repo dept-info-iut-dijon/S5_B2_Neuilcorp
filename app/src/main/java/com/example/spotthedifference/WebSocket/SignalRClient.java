@@ -34,7 +34,7 @@ public class SignalRClient {
     private BehaviorSubject<Player> playerJoinedSubject = BehaviorSubject.create();
     private BehaviorSubject<Player> playerReadyStatusChangedSubject = BehaviorSubject.create();
     private BehaviorSubject<Boolean> connectionEstablishedSubject = BehaviorSubject.create();
-    private BehaviorSubject<String> sessionClosedSubject = BehaviorSubject.create();
+    private BehaviorSubject<String> SessionDeletedSubject = BehaviorSubject.create();
 
     private GameStartedListener gameStartedListener;
     public BehaviorSubject<Boolean> getConnectionEstablishedObservable() {
@@ -42,8 +42,7 @@ public class SignalRClient {
     }
     private BehaviorSubject<String> readyNotAllowedSubject = BehaviorSubject.create();
     private BehaviorSubject<String> notifyMessageSubject = BehaviorSubject.create();
-    private BehaviorSubject<String> allPlayersExitSubject = BehaviorSubject.create();
-    private BehaviorSubject<String> playerLeftSubject = BehaviorSubject.create();
+    private BehaviorSubject<String> PlayerRemovedSubject = BehaviorSubject.create();
 
     /**
      * Constructeur de SignalRClient. Initialise la connexion au serveur SignalR et
@@ -56,6 +55,11 @@ public class SignalRClient {
         hubConnection.on("PlayerJoined", player -> {
             playerJoinedSubject.onNext(player);
             log("SignalRClient: PlayerJoined reçu -> ID: " + player.getPlayerId() + ", Nom: " + player.getName(), null);
+        }, Player.class);
+
+        hubConnection.on("PlayerRemoved", player -> {
+            PlayerRemovedSubject.onNext(playerId);
+            log("SignalRClient: PlayerRemoved reçu -> ID: " + player.getPlayerId() + ", Nom: " + player.getName(), null);
         }, Player.class);
 
         hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> {
@@ -92,32 +96,11 @@ public class SignalRClient {
             Log.d("SignalRClient", "ConnectionId reçu : " + connectionId);
         }, String.class);
 
-        hubConnection.on("SessionClosed", sessionId -> {
-            sessionClosedSubject.onNext(sessionId);
+        hubConnection.on("SessionDeleted", sessionId -> {
+            SessionDeletedSubject.onNext(sessionId);
             log("SignalRClient: Session fermée pour sessionId = " + sessionId, null);
         }, String.class);
-
-        hubConnection.on("AllPlayersExit", sessionId -> {
-            allPlayersExitSubject.onNext(sessionId);
-            log("SignalRClient: AllPlayersExit reçu pour sessionId = " + sessionId, null);
-        }, String.class);
-
-        hubConnection.on("PlayerLeft", (sessionId, playerId) -> {
-            playerLeftSubject.onNext(playerId);
-            log("SignalRClient: PlayerLeft reçu pour playerId = " + playerId, null);
-        }, String.class, String.class);
     }
-
-    public void notifyPlayerLeft(String sessionId, String playerId) {
-        if (isConnected()) {
-            hubConnection.send("PlayerLeft", sessionId, playerId);
-            log("SignalRClient: Notifié le départ du joueur avec playerId = " + playerId, null);
-        } else {
-            log("Connexion inactive, impossible de notifier le départ du joueur.", null);
-            attemptReconnection();
-        }
-    }
-
 
     public void setGameStartedListener(GameStartedListener listener) {
         this.gameStartedListener = listener;
@@ -181,7 +164,7 @@ public class SignalRClient {
      * Arrête la connexion WebSocket au serveur SignalR.
      */
     public void stopConnection(String sessionId, String playerId) {
-        notifyPlayerLeft(sessionId, playerId);
+        notifyPlayerRemoved(sessionId, playerId);
         disposeConnection();
         hubConnection.stop()
                 .subscribeOn(Schedulers.io())
@@ -228,21 +211,6 @@ public class SignalRClient {
     }
 
     /**
-     * Notifie le serveur que le joueur a rejoint la session, si la connexion est active.
-     *
-     * @param sessionId  L'identifiant de la session.
-     * @param playerName Le nom du joueur rejoignant la session.
-     */
-    public void notifyPlayerJoined(String sessionId, String playerName) {
-        if (isConnected()) {
-            hubConnection.send("PlayerJoined", sessionId, playerName);
-        } else {
-            log("Connexion inactive, impossible d'envoyer la notification.", null);
-            attemptReconnection();
-        }
-    }
-
-    /**
      * Envoie la mise à jour du statut de préparation d'un joueur au serveur, si la connexion est active.
      *
      * @param sessionId L'identifiant de la session de jeu.
@@ -257,6 +225,17 @@ public class SignalRClient {
             attemptReconnection();
         }
     }
+
+    public void notifyPlayerRemoved(String sessionId, String playerId) {
+        if (isConnected()) {
+            hubConnection.send("PlayerLeft", sessionId, playerId);
+            log("SignalRClient: Notifié le départ du joueur avec playerId = " + playerId, null);
+        } else {
+            log("Connexion inactive, impossible de notifier le départ du joueur.", null);
+            attemptReconnection();
+        }
+    }
+
 
     /**
      * Gère les erreurs survenant lors des tentatives de connexion et lance une reconnexion.
@@ -355,23 +334,15 @@ public class SignalRClient {
         }
     }
 
-    public void notifySessionClosed(String sessionId) {
-        hubConnection.send("SessionClosed", sessionId);
+    public void notifySessionDeleted(String sessionId) {
+        hubConnection.send("SessionDeleted", sessionId);
     }
 
-    public void notifyAllPlayersToExit(String sessionId) {
-        hubConnection.send("AllPlayersExit", sessionId);
+    public BehaviorSubject<String> getSessionDeletedObservable() {
+        return SessionDeletedSubject;
     }
 
-    public BehaviorSubject<String> getSessionClosedObservable() {
-        return sessionClosedSubject;
-    }
-
-    public BehaviorSubject<String> getAllPlayersExitObservable() {
-        return allPlayersExitSubject;
-    }
-
-    public BehaviorSubject<String> getPlayerLeftObservable() {
-        return playerLeftSubject;
+    public BehaviorSubject<String> getPlayerRemovedObservable() {
+        return PlayerRemovedSubject;
     }
 }

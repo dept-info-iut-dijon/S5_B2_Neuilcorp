@@ -134,6 +134,14 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 .subscribe(playerName -> loadSessionDetails(sessionId),
                         throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerJoined observable", throwable)));
 
+        // Gestion des événements PlayerRemoved
+        disposables.add(signalRClient.getPlayerRemovedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread())
+                .subscribe(playerName -> loadSessionDetails(sessionId),
+                        throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerRemoved observable", throwable)));
+
+
         // Gestion des événements PlayerReadyStatusChanged
         disposables.add(signalRClient.getPlayerReadyStatusChangedObservable()
                 .subscribeOn(Schedulers.io())
@@ -143,17 +151,16 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                     loadSessionDetails(sessionId);
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerReadyStatusChanged observable", throwable)));
 
-        disposables.add(signalRClient.getSessionClosedObservable()
+        disposables.add(signalRClient.getSessionDeletedObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(closedSessionId -> {
-                    if (closedSessionId.equals(sessionId)) {
-                        runOnUiThread(() -> {
-                            Toast.makeText(this, "La session a été fermée par l'hôte.", Toast.LENGTH_SHORT).show();
-                            redirectToHome();
-                        });
-                    }
-                }, throwable -> Log.e("WaitingRoomActivity", "Erreur SessionClosed observable", throwable)));
+                .subscribe(deletedSessionId -> {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "La session a été fermée par l'hôte.", Toast.LENGTH_SHORT).show();
+                        redirectToHome();
+                    });
+
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur SessionDeleted observable", throwable)));
 
         // Gestion des événements ReadyNotAllowed
         disposables.add(signalRClient.getReadyNotAllowedObservable()
@@ -174,17 +181,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 .subscribe(message -> {
                     Toast.makeText(this, message, Toast.LENGTH_LONG).show();
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de NotifyMessage", throwable)));
-
-        disposables.add(signalRClient.getAllPlayersExitObservable()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(exitSessionId -> {
-                    if (exitSessionId.equals(sessionId)) {
-                        runOnUiThread(() -> {
-                            redirectToHome();
-                        });
-                    }
-                }, throwable -> Log.e("WaitingRoomActivity", "Erreur AllPlayersExit observable", throwable)));
     }
 
     /**
@@ -338,9 +334,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
-                        // Notifier tous les joueurs que la session est fermée
-                        signalRClient.notifySessionClosed(sessionId);
-                        signalRClient.notifyAllPlayersToExit(sessionId);
                         redirectToHome();
                     } else {
                         Log.e("WaitingRoom", "Erreur lors de la suppression de la session : " + response.code());
@@ -358,7 +351,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
-                        signalRClient.notifyPlayerLeft(sessionId, playerId);
+                        //signalRClient.notifyPlayerRemoved(sessionId, playerId);
                         redirectToHome();
                     } else {
                         Log.e("WaitingRoom", "Erreur lors du retrait du joueur (code: " + response.code() + 

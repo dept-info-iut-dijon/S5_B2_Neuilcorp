@@ -155,14 +155,14 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         });
 
         exitButton = findViewById(R.id.exitButton);
-        exitButton.setOnClickListener(v -> deleteSessionAndExit());
+        exitButton.setOnClickListener(v -> deleteSessionAndExit(sessionId,playerId));
 
         disposables.add(signalRClient.getSessionDeletedObservable()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(closedSessionId -> {
                 if (closedSessionId.equals(sessionId)) {
-                    Toast.makeText(this, "La session a été fermée par l'hôte.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Un joueur a quitté la session, la partie est terminée", Toast.LENGTH_SHORT).show();
                     redirectToHome();
                 }
             }, throwable -> Log.e(TAG, "Erreur SessionClosed observable", throwable)));
@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     /**
      * supprime la session peut importe le joueur qui quitte
      */
-    private void deleteSessionAndExit() {
+    private void deleteSessionAndExit(String sessionId, String playerId) {
         apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {

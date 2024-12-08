@@ -27,6 +27,9 @@ import com.example.spotthedifference.ui.utils.ImageDisplayer;
 
 import java.io.IOException;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -55,6 +58,11 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     private void stopTimeout() {
         timeoutHandler.removeCallbacks(timeoutRunnable);
     }
+    private String sessionId;
+    private String playerId;
+    private Button exitButton;
+    private CompositeDisposable disposables = new CompositeDisposable();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,6 +153,89 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                 circleImageView.setVisibility(View.INVISIBLE);
             }
         });
+
+        exitButton = findViewById(R.id.exitButton);
+        exitButton.setOnClickListener(v -> deleteSessionAndExit());
+
+        disposables.add(signalRClient.getSessionDeletedObservable()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(closedSessionId -> {
+                if (closedSessionId.equals(sessionId)) {
+                    Toast.makeText(this, "La session a été fermée par l'hôte.", Toast.LENGTH_SHORT).show();
+                    redirectToHome();
+                }
+            }, throwable -> Log.e(TAG, "Erreur SessionClosed observable", throwable)));
+
+        disposables.add(signalRClient.getPlayerRemovedObservable()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(removedPlayerId -> {
+                if (!isHost() && !removedPlayerId.equals(playerId)) {
+                    redirectToWaitingRoom();
+                }
+            }, throwable -> Log.e(TAG, "Erreur PlayerRemoved observable", throwable)));
+    }
+
+    /**
+     * supprime la session peut importe le joueur qui quitte
+     */
+    private void deleteSessionAndExit() {
+        apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    signalRClient.notifySessionDeleted(sessionId);
+                    redirectToHome();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e(TAG, "Échec de la suppression de session", t);
+            }
+        });
+    }
+
+    /**
+     * Vérifie si le joueur actuel est hôte ou non.
+     * @return true si le joueur est hôte, false s'il ne l'est pas.
+     */
+    private boolean isHost() {
+        return false; // temporaire
+    }
+
+    /**
+     * Redirige vers l'activité HomeActivity.
+     */
+    private void redirectToHome() {
+        Intent intent = new Intent(this, HomeActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    /**
+     * Redirige vers l'activité WaitingRoomActivity.
+     */
+    private void redirectToWaitingRoom() {
+        Intent intent = new Intent(this, WaitingRoomActivity.class);
+        intent.putExtra("sessionId", sessionId);
+        intent.putExtra("playerId", playerId);
+        startActivity(intent);
+        finish();
+    }
+
+    /**
+     * Méthode appelée lorsque l'activité est détruite.
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (signalRClient != null) {
+            signalRClient.notifySessionDeleted(sessionId);
+            signalRClient.stopConnection(sessionId, playerId);
+        }
     }
 
     @Override

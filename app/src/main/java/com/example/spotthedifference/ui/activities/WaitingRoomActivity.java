@@ -118,6 +118,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
 
         readyButton.setOnClickListener(v -> toggleReadyStatus());
         copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
+        exitButton.setOnClickListener(v -> deleteSessionAndExit());
 
         // Gestion des événements de synchronisation
         disposables.add(signalRClient.getSyncSessionStateObservable()
@@ -133,6 +134,14 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 .subscribe(playerName -> loadSessionDetails(sessionId),
                         throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerJoined observable", throwable)));
 
+        // Gestion des événements PlayerRemoved
+        disposables.add(signalRClient.getPlayerRemovedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread())
+                .subscribe(playerName -> loadSessionDetails(sessionId),
+                        throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerRemoved observable", throwable)));
+
+
         // Gestion des événements PlayerReadyStatusChanged
         disposables.add(signalRClient.getPlayerReadyStatusChangedObservable()
                 .subscribeOn(Schedulers.io())
@@ -141,6 +150,17 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                     Log.d("WaitingRoomActivity", "Statut de préparation de " + player.getPlayerId() + " mis à jour : " + player.isReady());
                     loadSessionDetails(sessionId);
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerReadyStatusChanged observable", throwable)));
+
+        disposables.add(signalRClient.getSessionDeletedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(deletedSessionId -> {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "La session a été fermée par l'hôte.", Toast.LENGTH_SHORT).show();
+                        redirectToHome();
+                    });
+
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur SessionDeleted observable", throwable)));
 
         // Gestion des événements ReadyNotAllowed
         disposables.add(signalRClient.getReadyNotAllowedObservable()
@@ -209,7 +229,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
     protected void onDestroy() {
         super.onDestroy();
         disposables.clear();  // Libère les observables quand l'activité est détruite
-        signalRClient.stopConnection();
+        signalRClient.stopConnection(sessionId, playerId);
     }
 
     /**
@@ -305,27 +325,64 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
     }
 
     /**
-     * Supprime la session actuelle et retourne à l'écran d'accueil.
+     * Gère le départ d'un joueur ou la suppression d'une session si l'hôte quitte.
      */
     public void deleteSessionAndExit() {
-        apiService.destructiondeSession(sessionId).enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    startActivity(new Intent(WaitingRoomActivity.this, HomeActivity.class));
-                } else {
-                    Toast.makeText(WaitingRoomActivity.this, "Erreur lors de la suppression de la session", Toast.LENGTH_SHORT).show();
+        if (isHost()) {
+            // L'hôte quitte, supprimer la session
+            apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        redirectToHome();
+                    } else {
+                        Log.e("WaitingRoom", "Erreur lors de la suppression de la session : " + response.code());
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(WaitingRoomActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e("WaitingRoom", "Échec de la requête de suppression de la session : " + t.getMessage());
+                }
+            });
+        } else {
+            // Un joueur non-hôte quitte
+            apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        //signalRClient.notifyPlayerRemoved(sessionId, playerId);
+                        redirectToHome();
+                    } else {
+                        Log.e("WaitingRoom", "Erreur lors du retrait du joueur (code: " + response.code() + 
+                              ") - playerId: " + playerId);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e("WaitingRoom", "Échec de la requête de retrait du joueur : " + t.getMessage());
+                }
+            });
+        }
     }
 
+    /**
+     * Vérifie si le joueur actuel est hôte ou non.
+     * @return true si le joueur est hôte, false s'il ne l'est pas.
+     */
     private boolean isHost() {
         return !players.isEmpty() && playerId.equals(players.get(0).getPlayerId());
     }
+
+    /**
+     * Redirige vers l'activité HomeActivity.
+     */
+    private void redirectToHome() {
+        Intent intent = new Intent(WaitingRoomActivity.this, HomeActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+    }
+
 }

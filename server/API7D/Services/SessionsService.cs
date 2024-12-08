@@ -82,6 +82,41 @@ namespace API7D.Services
         }
 
         /// <summary>
+        /// Supprime un joueur d'une session.
+        /// </summary>
+        /// <param name="sessionId">ID de la session.</param>
+        /// <param name="playerId">ID du joueur à retirer.</param>
+        /// <returns>True si le joueur a été retiré, sinon False.</returns>
+        public bool RemovePlayerFromSession(string sessionId, string playerId)
+        {
+            GameSession session = GetSessionById(sessionId);
+            if (session == null || !session.ContainsPlayer(playerId))
+            {
+                return false;
+            }
+
+            Player playerToRemove = session.Players.FirstOrDefault(p => p.PlayerId == playerId);
+
+            if (playerToRemove != null)
+            {
+                session.Players.Remove(playerToRemove);
+
+                // Si le joueur est l'hôte, supprimer la session
+                if (session.IsHost(playerId))
+                {
+                    RemoveSession(sessionId);
+                }
+                else
+                {
+                    UpdateSession(session);
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Notifie tous les joueurs d'une session d'un résultat de différence.
         /// </summary>
         /// <param name="sessionId">Identifiant de la session.</param>

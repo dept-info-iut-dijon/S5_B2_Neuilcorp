@@ -175,4 +175,49 @@ public class GameSessionController : ControllerBase
         _logger.LogInformation($"Force sync returning session state for {sessionId}.");
         return Ok(existingSession);
     }
+
+    /// <summary>
+    /// Supprime un joueur d'une session existante.
+    /// </summary>
+    /// <param name="sessionId">ID de la session.</param>
+    /// <param name="playerId">ID du joueur à retirer.</param>
+    /// <returns>Un message indiquant le résultat de l'opération.</returns>
+    [HttpDelete("{sessionId}/player/{playerId}/remove")]
+    public async Task<ActionResult> RemovePlayerFromSession(string sessionId, string playerId)
+    {
+        _logger.LogInformation($"Removing player {playerId} from session {sessionId}.");
+
+        // Vérifier si la session existe
+        GameSession existingSession = _sessionService.GetSessionById(sessionId);
+        if (existingSession == null)
+        {
+            _logger.LogWarning($"Session {sessionId} not found.");
+            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+        }
+
+        // Vérifier si le joueur est dans la session
+        Player playerToRemove = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
+        if (playerToRemove == null)
+        {
+            _logger.LogWarning($"Player {playerId} not found in session {sessionId}.");
+            return NotFound($"Le joueur avec l'ID {playerId} n'est pas présent dans la session.");
+        }
+
+        // Si l'hôte est supprimé, supprimer la session
+        if (existingSession.Players[0].PlayerId == playerId)
+        {
+            _sessionService.RemoveSession(sessionId);
+            _logger.LogInformation($"Session {sessionId} deleted because the host was removed.");
+            await _hubContext.Clients.Group(sessionId).SendAsync("SessionDeleted", sessionId);
+            return Ok($"La session {sessionId} a été supprimée car l'hôte a été retiré.");
+        }
+
+        // Retirer le joueur
+        existingSession.Players.Remove(playerToRemove);
+        _sessionService.UpdateSession(existingSession);
+
+        _logger.LogInformation($"Player {playerId} removed from session {sessionId}.");
+        await _hubContext.Clients.Group(sessionId).SendAsync("PlayerRemoved", playerId);
+        return Ok($"Le joueur {playerId} a été retiré de la session {sessionId}.");
+    }
 }

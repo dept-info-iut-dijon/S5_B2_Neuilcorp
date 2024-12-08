@@ -89,7 +89,7 @@ public class GameSessionController : ControllerBase
         existingSession.Players.Add(player);
         _logger.LogInformation($"Player {player.Name} added to session {sessionId}.");
 
-        await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player.Name);
+        await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player);
         return Ok($"Le joueur {player.Name} a rejoint la session {sessionId}.");
     }
 
@@ -217,7 +217,7 @@ public class GameSessionController : ControllerBase
         _sessionService.UpdateSession(existingSession);
 
         _logger.LogInformation($"Player {playerId} removed from session {sessionId}.");
-        await _hubContext.Clients.Group(sessionId).SendAsync("PlayerRemoved", playerId);
-        return Ok($"Le joueur {playerId} a été retiré de la session {sessionId}.");
+        await _hubContext.Clients.Group(sessionId).SendAsync("PlayerRemoved", playerToRemove);
+        return Ok($"Le joueur {playerToRemove.Name} a été retiré de la session {sessionId}.");
     }
 }

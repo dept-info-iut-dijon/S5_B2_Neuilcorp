@@ -6,7 +6,8 @@ const uploadedImage2 = document.getElementById("uploaded-image-2");
 const imageContainer = document.getElementById("image-container");
 const differencesList = document.getElementById("differences-list");
 const submitDifferencesButton = document.getElementById("submit-differences");
-const redCircle = document.getElementById("red-circle");
+const redCircle1 = document.getElementById("red-circle-1");
+const redCircle2 = document.getElementById("red-circle-2");
 
 document.addEventListener('wheel', function(event) {
     if (event.ctrlKey || event.metaKey) {
@@ -21,19 +22,48 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-function moveRedCircle(event) {
-    redCircle.style.left = `${event.pageX - 25}px`;
-    redCircle.style.top = `${event.pageY - 25}px`;
-    redCircle.style.display = 'block';
+function moveRedCircles(event, image) {
+    const rect = image.getBoundingClientRect();
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+
+    if (image === uploadedImage1) {
+        redCircle1.style.left = `${event.clientX + window.scrollX - 25}px`;
+        redCircle1.style.top = `${event.clientY + window.scrollY - 25}px`;
+        redCircle1.style.display = 'block';
+
+        const rect2 = uploadedImage2.getBoundingClientRect();
+        const otherX = (x / scaleX) * uploadedImage2.width / uploadedImage1.width;
+        const otherY = (y / scaleY) * uploadedImage2.height / uploadedImage1.height;
+        redCircle2.style.left = `${rect2.left + otherX + window.scrollX - 25}px`;
+        redCircle2.style.top = `${rect2.top + otherY + window.scrollY - 25}px`;
+        redCircle2.style.display = 'block';
+    } else if (image === uploadedImage2) {
+        redCircle2.style.left = `${event.clientX + window.scrollX - 25}px`;
+        redCircle2.style.top = `${event.clientY + window.scrollY - 25}px`;
+        redCircle2.style.display = 'block';
+
+        const rect1 = uploadedImage1.getBoundingClientRect();
+        const otherX = (x / scaleX) * uploadedImage1.width / uploadedImage2.width;
+        const otherY = (y / scaleY) * uploadedImage1.height / uploadedImage2.height;
+        redCircle1.style.left = `${rect1.left + otherX + window.scrollX - 25}px`;
+        redCircle1.style.top = `${rect1.top + otherY + window.scrollY - 25}px`;
+        redCircle1.style.display = 'block';
+    }
 }
 
-function hideRedCircle() {
-    redCircle.style.display = 'none';
+function hideRedCircles() {
+    redCircle1.style.display = 'none';
+    redCircle2.style.display = 'none';
 }
 
-uploadedImage1.addEventListener('mousemove', moveRedCircle);
-uploadedImage1.addEventListener('mouseleave', hideRedCircle);
-uploadedImage2.addEventListener('mousemove', hideRedCircle);
+uploadedImage1.addEventListener('mousemove', (event) => moveRedCircles(event, uploadedImage1));
+uploadedImage1.addEventListener('mouseleave', hideRedCircles);
+uploadedImage2.addEventListener('mousemove', (event) => moveRedCircles(event, uploadedImage2));
+uploadedImage2.addEventListener('mouseleave', hideRedCircles);
 
 let differences = []; // Liste des différences
 const markers = []; // Stocke les marqueurs pour suppression
@@ -75,7 +105,7 @@ uploadedImage1.addEventListener("click", (event) => {
     const y = (event.clientY - rect1.top) * scaleY;
 
     // Vérification de la proximité avec une différence existante
-    const minDistance = 80;
+    const minDistance = 50;
     const isNearExistingDifference = differences.some((diff) => {
         const dx = (diff.x - x) ** 2;
         const dy = (diff.y - y) ** 2;

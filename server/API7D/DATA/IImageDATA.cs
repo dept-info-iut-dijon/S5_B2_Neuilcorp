@@ -16,7 +16,7 @@ namespace API7D.DATA
         /// Permet d'ajouter une paire d'images avec une liste de différences.
         /// </summary>
         /// <param name="imageDifference">Objet représentant la paire d'images et leurs différences</param>
-        void SetImagesDATA(ImageDifference imageDifference);
+        public void SetImagesDATA(string path1, string path2, List<Coordonnees> difference);
 
         /// <summary>
         /// Récupère tous les chemins des images disponibles dans la base de données.

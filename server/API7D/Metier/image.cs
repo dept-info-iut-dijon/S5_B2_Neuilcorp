@@ -44,14 +44,32 @@ namespace API7D.Metier
             return images;
         }
 
-        /// <summary>
-        /// Méthode non implémentée.
-        /// </summary>
-        /// <param name="image">L'objet ImageDifference représentant les images.</param>
-        /// <exception cref="NotImplementedException">Cette méthode n'est pas encore implémentée.</exception>
-        public void SetImages(ImageDifference image)
+
+        public void SetImages(byte[] image1 , byte[] image2, string name , List<Coordonnees> difference)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Crée le chemin vers le dossier "Image"
+                string imagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "Image");
+                if (!Directory.Exists(imagesFolder))
+                {
+                    Directory.CreateDirectory(imagesFolder); // Crée le dossier s'il n'existe pas
+                }
+
+                string filePath = Path.Combine(imagesFolder, $"{name}.png");
+                System.IO.File.WriteAllBytes(filePath, image1);
+
+                string filePath2 = Path.Combine(imagesFolder, $"{name}1.png");
+                System.IO.File.WriteAllBytes(filePath2, image2);
+
+                _data.SetImagesDATA($"Image/{name}.png", $"Image/{name}1.png",difference);
+
+
+
+            }
+            catch (Exception ex)
+            {
+            }
         }
 
         /// <summary>

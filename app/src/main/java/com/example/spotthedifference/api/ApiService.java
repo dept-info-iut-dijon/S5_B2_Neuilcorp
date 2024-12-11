@@ -115,4 +115,13 @@ public interface ApiService {
      */
     @POST("ImageControlleur/{sessionId}/selectImagePair")
     Call<Void> selectImagePair(@Path("sessionId") String sessionId, @Body int imagePairId);
+
+    /**
+     * Gère le départ d'un joueur ou la suppression d'une session si l'hôte quitte
+     * @param sessionId : l'identifiant de la session
+     * @param playerId : l'identifiant du joueur partant
+     * @return : un appel qui renvoie une réponse vide
+     */
+    @DELETE("api/GameSession/{sessionId}/player/{playerId}/remove")
+    Call<Void> removePlayerFromSession(@Path("sessionId") String sessionId, @Path("playerId") String playerId);
 }

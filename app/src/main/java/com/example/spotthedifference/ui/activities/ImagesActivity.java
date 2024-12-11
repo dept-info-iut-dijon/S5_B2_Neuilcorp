@@ -168,7 +168,6 @@ public class ImagesActivity extends AppCompatActivity {
         for (ImageWithPair imageDto : imageList) {
             Log.d("ImagesActivity", "Image ID: " + imageDto.getImageId());
             Log.d("ImagesActivity", "Image Pair ID: " + imageDto.getImagePairId());
-            Log.d("ImagesActivity", "Base64 Image Length: " + (imageDto.getBase64Image() != null ? imageDto.getBase64Image().length() : "null"));
 
             if (displayedPairs.contains(imageDto.getImagePairId())) {
                 continue;

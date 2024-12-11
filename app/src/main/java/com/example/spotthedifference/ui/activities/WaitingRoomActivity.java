@@ -64,85 +64,89 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_waiting_room);
 
-        // Initialisation des éléments de l'interface utilisateur
+        // Initialisation des composants
+        initializeUI();
+        initializeRetrofit();
+        initializeSignalRClient();
+
+        // Charger les détails de la session et configurer les boutons
+        loadSessionDetails(sessionId);
+        setupButtons();
+
+        // Gérer les observables pour SignalR
+        setupSignalREvents();
+    }
+
+    /**
+     * Initialise les composants de l'interface utilisateur et récupère les données transmises via Intent.
+     * Configure les textes pour afficher le code de session et le nom du joueur dans l'interface.
+     */
+    private void initializeUI() {
         sessionCodeTextView = findViewById(R.id.sessionCode);
         partyNameTextView = findViewById(R.id.partyName);
         playerNameTextView = findViewById(R.id.playerName);
         playersContainer = findViewById(R.id.playersContainer);
 
-        // Configuration de Retrofit pour les appels API
-        IRetrofitClient client = new RetrofitClient();
-        Retrofit retrofit = client.getUnsafeRetrofit();
-        apiService = retrofit.create(ApiService.class);
-
-        // Récupération des informations passées via Intent
         sessionId = getIntent().getStringExtra("sessionId");
         playerName = getIntent().getStringExtra("playerName");
         playerId = getIntent().getStringExtra("playerId");
 
-        // Initialisation du client SignalR et démarrage de la connexion
+        if (sessionId != null) {
+            sessionCodeTextView.setText(getString(R.string.Home_code_de_session) + " " + sessionId);
+        }
+
+        playerNameTextView.setText(getString(R.string.Waiting_nom_du_joueur) + " " + playerName);
+    }
+
+    /**
+     * Initialise la configuration Retrofit pour les appels API.
+     * Crée une instance de Retrofit via un client sécurisé ou non sécurisé
+     * et configure le service API.
+     */
+    private void initializeRetrofit() {
+        IRetrofitClient client = new RetrofitClient();
+        Retrofit retrofit = client.getUnsafeRetrofit();
+        apiService = retrofit.create(ApiService.class);
+    }
+
+    /**
+     * Initialise le client SignalR pour gérer la communication en temps réel.
+     * Configure les événements nécessaires et démarre la connexion au serveur.
+     * Rejoint le groupe de session et demande une synchronisation de l'état.
+     */
+    private void initializeSignalRClient() {
         signalRClient = new SignalRClient(playerId);
         signalRClient.setGameStartedListener(this);
         signalRClient.startConnection();
-
-        // Rejoindre le groupe de session SignalR
         signalRClient.joinSessionGroup(sessionId);
         signalRClient.requestSync(sessionId);
+    }
 
-        // Affichage du code de session
-        if (sessionId != null) {
-            sessionCodeTextView.setText(getString(R.string.code_de_session) + " " + sessionId);
-        }
-
-        // Affichage du nom du joueur
-        playerNameTextView.setText(getString(R.string.nom_du_joueur) + " " + playerName);
-
-        // Chargement des détails de la session
-        loadSessionDetails(sessionId);
-
-        // Configuration des boutons
-        Button exitButton = findViewById(R.id.exitButton);
-        Button readyButton = findViewById(R.id.readyButton);
-        Button copyButton = findViewById(R.id.copyButton);
-        Button chooseImageButton = findViewById(R.id.chooseImageButton);
-
-        chooseImageButton.setOnClickListener(v -> {
-            if (isHost()) {
-                Intent intent = new Intent(WaitingRoomActivity.this, ImagesActivity.class);
-                intent.putExtra("sessionId", sessionId);
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, "Seul l'hôte peut sélectionner une image.", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        readyButton.setOnClickListener(v -> toggleReadyStatus());
-        copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
-        exitButton.setOnClickListener(v -> deleteSessionAndExit());
-
-        // Gestion des événements de synchronisation
+    /**
+     * Configure les observables SignalR pour gérer les événements en temps réel.
+     * S'abonne aux différents événements tels que les changements d'état de session,
+     * les joueurs qui rejoignent/quittent, les messages de notification, etc.
+     * Met à jour l'interface utilisateur en fonction des événements reçus.
+     */
+    private void setupSignalREvents() {
         disposables.add(signalRClient.getSyncSessionStateObservable()
                 .subscribeOn(Schedulers.io())
-                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(session -> displayPlayers(session.getPlayers()),
                         throwable -> Log.e("WaitingRoomActivity", "Erreur SyncSessionState", throwable)));
 
-        // Gestion des événements PlayerJoined
         disposables.add(signalRClient.getPlayerJoinedObservable()
                 .subscribeOn(Schedulers.io())
-                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(playerName -> loadSessionDetails(sessionId),
                         throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerJoined observable", throwable)));
 
-        // Gestion des événements PlayerRemoved
         disposables.add(signalRClient.getPlayerRemovedObservable()
                 .subscribeOn(Schedulers.io())
-                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(playerName -> loadSessionDetails(sessionId),
                         throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerRemoved observable", throwable)));
 
-
-        // Gestion des événements PlayerReadyStatusChanged
         disposables.add(signalRClient.getPlayerReadyStatusChangedObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -159,10 +163,8 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                         Toast.makeText(this, "La session a été fermée par l'hôte.", Toast.LENGTH_SHORT).show();
                         redirectToHome();
                     });
-
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur SessionDeleted observable", throwable)));
 
-        // Gestion des événements ReadyNotAllowed
         disposables.add(signalRClient.getReadyNotAllowedObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -174,7 +176,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                             .show();
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de ReadyNotAllowed", throwable)));
 
-        // Gestion des événements NotifyMessage
         disposables.add(signalRClient.getNotifyMessageObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -182,6 +183,36 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                     Toast.makeText(this, message, Toast.LENGTH_LONG).show();
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de NotifyMessage", throwable)));
     }
+
+    /**
+     * Configure les boutons de l'interface utilisateur et leurs actions associées.
+     * - `chooseImageButton` : Permet à l'hôte de sélectionner une image.
+     * - `readyButton` : Permet de basculer le statut de préparation du joueur.
+     * - `copyButton` : Copie le code de session dans le presse-papiers.
+     * - `exitButton` : Permet de quitter la session ou de la supprimer si l'utilisateur est l'hôte.
+     */
+    private void setupButtons() {
+        Button exitButton = findViewById(R.id.exitButton);
+        Button readyButton = findViewById(R.id.readyButton);
+        Button copyButton = findViewById(R.id.copyButton);
+        Button chooseImageButton = findViewById(R.id.chooseImageButton);
+
+        chooseImageButton.setOnClickListener(v -> {
+            if (isHost()) {
+                Intent intent = new Intent(WaitingRoomActivity.this, ImagesActivity.class);
+                intent.putExtra("sessionId", sessionId);
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, R.string.Waiting_Toast_NonHoteSelectImage, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        readyButton.setOnClickListener(v -> toggleReadyStatus());
+        copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
+        exitButton.setOnClickListener(v -> deleteSessionAndExit());
+    }
+
+
 
     /**
      * Méthode appelée lorsque le jeu commence, elle reçoit les données de l'image
@@ -200,7 +231,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 boolean dirCreated = imageFile.getParentFile().mkdirs();
                 if (!dirCreated) {
                     Log.e("WaitingRoomActivity", "Impossible de créer le répertoire parent pour le fichier temporaire.");
-                    Toast.makeText(this, "Erreur : Impossible de créer le fichier temporaire.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.Waiting_Toast_ErreurCreationImageTemp, Toast.LENGTH_SHORT).show();
                     return;
                 }
             }
@@ -218,7 +249,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             finish();
         } catch (IOException e) {
             Log.e("WaitingRoomActivity", "Erreur lors de l'écriture ou de l'accès au fichier temporaire : " + e.getMessage(), e);
-            Toast.makeText(this, "Erreur lors de la sauvegarde de l'image.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.Waiting_Toast_ErreurSauvegardeImageTemp, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -254,7 +285,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
 
             if (playerNameView.getTag().equals(playerId)) {
                 TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
-                playerStatusView.setText(isReady ? R.string.pret : R.string.pas_pret);
+                playerStatusView.setText(isReady ? R.string.Waiting_pret : R.string.Waiting_pas_pret);
                 playerStatusView.setTextColor(isReady ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
                 break;
             }
@@ -275,7 +306,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                     displayPlayers(players);
                     if (!players.isEmpty()) {
                         String hostName = players.get(0).getName();
-                        String fullTextParty = getString(R.string.nom_de_la_partie_nom) + " " + hostName;
+                        String fullTextParty = getString(R.string.Waiting_nom_de_la_partie_nom) + " " + hostName;
                         partyNameTextView.setText(fullTextParty);
                     }
                 } else {
@@ -304,7 +335,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
 
             playerNameView.setText(player.getName());
             playerNameView.setTag(player.getPlayerId()); // Associe l'ID du joueur à la vue
-            playerStatusView.setText(player.isReady() ? R.string.pret : R.string.pas_pret);
+            playerStatusView.setText(player.isReady() ? R.string.Waiting_pret : R.string.Waiting_pas_pret);
             playerStatusView.setTextColor(player.isReady() ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
 
             playersContainer.addView(playerView);
@@ -321,7 +352,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Session ID", text);
         clipboard.setPrimaryClip(clip);
-        Toast.makeText(this, "Code de session copié", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.Waiting_Toast_SessionCodeCopie, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -354,8 +385,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                         //signalRClient.notifyPlayerRemoved(sessionId, playerId);
                         redirectToHome();
                     } else {
-                        Log.e("WaitingRoom", "Erreur lors du retrait du joueur (code: " + response.code() + 
-                              ") - playerId: " + playerId);
+                        Log.e("WaitingRoom", "Erreur lors du retrait du joueur (code: " + response.code() + ") - playerId: " + playerId);
                     }
                 }
 
@@ -384,5 +414,4 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         startActivity(intent);
         finish();
     }
-
 }

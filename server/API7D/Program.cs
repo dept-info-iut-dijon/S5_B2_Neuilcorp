@@ -16,7 +16,7 @@ builder.Services.AddLogging(logging =>
 });
 
 builder.Services.AddControllers(); // Ajouter les contrôleurs
-builder.Services.AddScoped<IImage, image>();
+builder.Services.AddScoped<IImage, Image>();
 builder.Services.AddSingleton<SessionService>();
 builder.Services.AddSingleton<ImageDATA>();
 

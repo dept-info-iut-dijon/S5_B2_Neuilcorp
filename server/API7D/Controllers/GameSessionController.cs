@@ -40,11 +40,11 @@ public class GameSessionController : ControllerBase
     [HttpPost("CreateSession")]
     public ActionResult<GameSession> CreateSession([FromBody] GameSession gameSession)
     {
+        _logger.LogInformation(gameSession.ToString());
         if (gameSession == null || gameSession.Players == null || gameSession.Players.Count == 0)
         {
             return BadRequest("Les données de session ou les informations sur l'hôte sont invalides.");
         }
-
         gameSession.SessionId = _codeGenerator.GenerateUniqueCode().ToString();
         Player host = gameSession.Players[0];
         gameSession.Players = new List<Player> { host };

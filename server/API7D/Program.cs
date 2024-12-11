@@ -1,9 +1,23 @@
+using API7D.DATA;
 using API7D.Metier;
+using API7D.Services;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.AddConsole();
+    logging.AddDebug();
+    //logging.AddFilter("Microsoft.AspNetCore", LogLevel.Information);
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddScoped<IImage, image>();
+builder.Services.AddSingleton<SessionService>();
+builder.Services.AddSingleton<ImageDATA>(); // Enregistrement de ImageDATA
 
 // Ajout de SignalR pour la communication en temps réel
 builder.Services.AddSignalR();
@@ -33,7 +47,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 // Utilisation de CORS
 app.UseCors("AllowAllOrigins");

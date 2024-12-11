@@ -1,5 +1,6 @@
 package com.example.spotthedifference
 
+import com.example.spotthedifference.models.Player
 import org.junit.Test
 import org.junit.Assert.*
 

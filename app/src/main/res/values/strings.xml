@@ -1,4 +1,24 @@
 <resources>
+    <string name="Home_CreationPartie">Créer une partie</string>
+    <string name="Home_CreerBouton">Créer</string>
+    <string name="Home_Annuler">Annuler</string>
+    <string name="Home_RejoindrePartie">Rejoindre une partie</string>
+    <string name="Home_RejoindreBouton">Rejoindre</string>
+    <string name="Home_ToastNomVide">Veuillez entrer un nom de joueur.</string>
+    <string name="Home_ToastCodeNomVide">Veuillez entrer un code de session et un nom de joueur.</string>
+    <string name="Home_ErreurConnexion">Erreur de connexion : %1$s</string>
+    <string name="Home_ErreurAjoutSession">Erreur lors de l\'ajout à la session.</string>
+    <string name="Home_EchecRequete">Échec de la requête : %1$s</string>
+    <string name="Home_ErreurCreationPartie">Erreur lors de la création de la partie.</string>
+    <string name="Home_ErreurRecuperationSession">Erreur lors de la récupération de la session.</string>
+
+    <string name="Images_Toast_ImageConfirmee">Image confirmée</string>
+    <string name="Images_Toast_ErreurConfirmation">Erreur de confirmation d\'image</string>
+    <string name="Images_Toast_EchecConnexion">Échec de connexion au serveur</string>
+    <string name="Images_Toast_AucuneImageSelectionnee">Aucune image sélectionnée</string>
+    <string name="Images_Toast_ImpossibleChargerImages">Impossible de charger les images</string>
+    <string name="Images_Toast_ErreurChargementImages">Erreur : %1$s</string>
+
     <string name="app_name">SpotTheDifference</string>
     <string name="valider_la_difference">Valider</string>
     <string name="copier">Copier</string>
@@ -14,17 +34,8 @@
     <string name="mode_chronometre">Mode chronométré</string>
     <string name="nombre_de_joueurs">Nombre de joueurs :</string>
     <string name="pret">Prêt</string>
-    <string name="joueur_1">Joueur 1 : </string>
-    <string name="joueur_2">Joueur 2 : </string>
-    <string name="joueur_3">Joueur 3 : </string>
-    <string name="joueur_4">Joueur 4 : </string>
-    <string name="joueur_5">Joueur 5 : </string>
-    <string name="joueur_6">Joueur 6 : </string>
-    <string name="joueur_7">Joueur 7 : </string>
-    <string name="joueur_8">Joueur 8 : </string>
-    <string name="joueur_9">Joueur 9 : </string>
-    <string name="joueur_10">Joueur 10 : </string>
     <string name="pas_pret">Pas prêt</string>
+
     <string name="quitter_la_partie">Quitter</string>
     <string name="nombre_de_joueurs_titre">Nombre de joueurs :</string>
     <string name="nombre_de_joueurs_hint">Saisir un nombre entre 2 et 10</string>

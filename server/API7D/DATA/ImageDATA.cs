@@ -18,7 +18,6 @@ namespace API7D.DATA
         /// </summary>
         public ImageDATA()
         {
-            // Connexion à une base de données SQLite locale
             _connectionString = Setting.DataBasePath;
         }
 

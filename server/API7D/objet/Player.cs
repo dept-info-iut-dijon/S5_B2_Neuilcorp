@@ -1,5 +1,8 @@
 ﻿namespace API7D.objet
 {
+    /// <summary>
+    /// cette classe reference le joueur
+    /// </summary>
     public class Player
     {
         private string playerId;

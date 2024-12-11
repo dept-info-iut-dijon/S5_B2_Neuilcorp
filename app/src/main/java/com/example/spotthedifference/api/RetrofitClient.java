@@ -1,5 +1,7 @@
 package com.example.spotthedifference.api;
 
+import com.example.spotthedifference.config.ServerConfig;
+
 import java.security.cert.CertificateException;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -14,7 +16,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class RetrofitClient implements IRetrofitClient {
 
-    private static final String BASE_URL = "https://203.55.81.18:7176/";
+    private static final String BASE_URL = ServerConfig.RETROFIT_BASE_URL;
 
     /**
      * Fournit une instance de Retrofit configurée pour ignorer les vérifications SSL.

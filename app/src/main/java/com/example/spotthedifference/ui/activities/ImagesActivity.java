@@ -13,6 +13,7 @@ import com.example.spotthedifference.R;
 import com.example.spotthedifference.api.ApiService;
 import com.example.spotthedifference.api.RetrofitClient;
 import com.example.spotthedifference.models.ImageWithPair;
+import com.example.spotthedifference.ui.utils.ScreenUtils;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,49 +38,96 @@ public class ImagesActivity extends AppCompatActivity {
     private ApiService apiService;
     private int selectedImagePairId = -1;
     private String sessionId;
+    private static final int GRID_COLUMN_COUNT = 3;
+    private static final int IMAGE_PADDING = 50;
+    private static final double IMAGE_RATIO = 1.5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_images);
 
+        // Initialisation des éléments de l'interface utilisateur
+        initializeUI();
+
+        // Initialisation du client API
+        initializeApiClient();
+
+        // Chargement des images depuis le serveur
+        fetchImagesWithPairs();
+
+        // Gestion des clics sur les boutons
+        setupButtonListeners();
+    }
+
+    /**
+     * Initialise les éléments de l'interface utilisateur.
+     */
+    private void initializeUI() {
         imageGrid = findViewById(R.id.image_grid);
         confirmButton = findViewById(R.id.confirmButton);
         sessionId = getIntent().getStringExtra("sessionId");
+    }
 
+    /**
+     * Initialise le client API pour communiquer avec le serveur.
+     */
+    private void initializeApiClient() {
         RetrofitClient retrofitClient = new RetrofitClient();
         apiService = retrofitClient.getUnsafeRetrofit().create(ApiService.class);
+    }
 
-        fetchImagesWithPairs();
-
-        confirmButton.setOnClickListener(v -> {
-            if (selectedImagePairId != -1) {
-                Call<Void> call = apiService.selectImagePair(sessionId, selectedImagePairId);
-                call.enqueue(new Callback<Void>() {
-                    @Override
-                    public void onResponse(Call<Void> call, Response<Void> response) {
-                        if (response.isSuccessful()) {
-                            Toast.makeText(ImagesActivity.this, "Image confirmée", Toast.LENGTH_SHORT).show();
-                            finish();
-                        } else {
-                            Toast.makeText(ImagesActivity.this, "Erreur de confirmation d'image", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<Void> call, Throwable t) {
-                        Toast.makeText(ImagesActivity.this, "Échec de connexion au serveur", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } else {
-                Toast.makeText(ImagesActivity.this, "Aucune image sélectionnée", Toast.LENGTH_SHORT).show();
-            }
-        });
+    /**
+     * Configure les gestionnaires de clics pour les boutons.
+     */
+    private void setupButtonListeners() {
+        confirmButton.setOnClickListener(v -> handleConfirmButtonClick());
 
         Button returnButton = findViewById(R.id.backButton);
-        returnButton.setOnClickListener(v -> {
-            finish();
+        returnButton.setOnClickListener(v -> finish());
+    }
+
+    /**
+     * Gère le clic sur le bouton de confirmation.
+     */
+    private void handleConfirmButtonClick() {
+        if (selectedImagePairId != -1) {
+            confirmImageSelection();
+        } else {
+            showToast(getString(R.string.Images_Toast_AucuneImageSelectionnee));
+        }
+    }
+
+    /**
+     * Envoie la sélection de l'image au serveur.
+     */
+    private void confirmImageSelection() {
+        Call<Void> call = apiService.selectImagePair(sessionId, selectedImagePairId);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    showToast(getString(R.string.Images_Toast_ImageConfirmee));
+                    finish();
+                } else {
+                    showToast(getString(R.string.Images_Toast_ErreurConfirmation));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                showToast(getString(R.string.Images_Toast_EchecConnexion));
+            }
         });
+    }
+
+    /**
+     * Affiche un message Toast avec le texte donné.
+     *
+     * @param message Message à afficher.
+     */
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -93,13 +141,13 @@ public class ImagesActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     displayImages(response.body());
                 } else {
-                    Toast.makeText(ImagesActivity.this, "Impossible de charger les images", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ImagesActivity.this, getString(R.string.Images_Toast_AucuneImageSelectionnee), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<ImageWithPair>> call, Throwable t) {
-                Toast.makeText(ImagesActivity.this, "Erreur : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(ImagesActivity.this, getString(R.string.Images_Toast_ErreurChargementImages) + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -114,8 +162,8 @@ public class ImagesActivity extends AppCompatActivity {
         Set<Integer> displayedPairs = new HashSet<>();
 
         // Calcul de la largeur et de la hauteur des images pour l'affichage en trois colonnes
-        int imageWidth = getResources().getDisplayMetrics().widthPixels / 3 - 50;
-        int imageHeight = (int) (imageWidth * 1.5);
+        int imageWidth = ScreenUtils.calculateImageWidth(this, GRID_COLUMN_COUNT, IMAGE_PADDING);
+        int imageHeight = ScreenUtils.calculateImageHeight(imageWidth, IMAGE_RATIO);
 
         for (ImageWithPair imageDto : imageList) {
             Log.d("ImagesActivity", "Image ID: " + imageDto.getImageId());

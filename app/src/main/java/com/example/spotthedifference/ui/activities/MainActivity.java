@@ -18,12 +18,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.spotthedifference.R;
 import com.example.spotthedifference.WebSocket.SignalRClient;
-import com.example.spotthedifference.api.ApiResponse;
 import com.example.spotthedifference.api.ApiService;
 import com.example.spotthedifference.api.IRetrofitClient;
 import com.example.spotthedifference.api.RetrofitClient;
 import com.example.spotthedifference.models.Coordonnees;
-import com.example.spotthedifference.ui.utils.ImageDisplayer;
+
 
 import java.io.IOException;
 

@@ -55,7 +55,7 @@ Le projet Spot the Difference! a pour objectif de développer une application mo
 ## Si vous voulez utiliser l'application directement
 
     Vous pouvez télécharger l'apk de l'application ici :
-  https://tinyurl.com/apkSTD
+  https://www.swisstransfer.com/d/756d5065-eea3-40b5-bea0-c67e011e9e02
 
 
 ## Si vous voulez compiler le projet vous-même

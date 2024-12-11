@@ -1,40 +1,51 @@
 ﻿using API7D.Metier;
 using API7D.objet;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace API7D.Services
 {
+    /// <summary>
+    /// cette classe permet de faire tout se qui touche au session creation destruction ect
+    /// </summary>
     public class SessionService
     {
         private readonly List<GameSession> _sessions = new List<GameSession>();
         private readonly IHubContext<GameSessionHub> _hubContext;
         private readonly ILogger<SessionService> _logger;
 
-
         public SessionService(IHubContext<GameSessionHub> hubContext, ILogger<SessionService> logger)
         {
             _hubContext = hubContext;
             _logger = logger;
         }
+
         /// <summary>
         /// Ajoute une nouvelle session de jeu.
         /// </summary>
         /// <param name="gameSession">La session de jeu à ajouter.</param>
+        /// <exception cref="ArgumentNullException">Lancée si <paramref name="gameSession"/> est null.</exception>
         public void AddSession(GameSession gameSession)
         {
+            if (gameSession == null)
+            {
+                throw new ArgumentNullException(nameof(gameSession), "La session de jeu ne peut pas être null.");
+            }
+
+            if (_sessions.Any(s => s.SessionId == gameSession.SessionId))
+            {
+                throw new InvalidOperationException($"Une session avec l'ID {gameSession.SessionId} existe déjà.");
+            }
+
             _sessions.Add(gameSession);
         }
 
         /// <summary>
-        /// Récupère toutes les sessions de jeu.
+        /// Récupère toutes les sessions de jeu (lecture seule).
         /// </summary>
-        /// <returns>Une liste de toutes les sessions de jeu.</returns>
-        public List<GameSession> GetAllSessions()
+        /// <returns>Une copie de la liste des sessions de jeu.</returns>
+        public IReadOnlyList<GameSession> GetAllSessions()
         {
-            return _sessions;
+            return _sessions.AsReadOnly();
         }
 
         /// <summary>
@@ -52,14 +63,21 @@ namespace API7D.Services
         /// </summary>
         /// <param name="sessionId">L'ID de la session à supprimer.</param>
         /// <returns>True si la session est supprimée, sinon False.</returns>
+        /// <exception cref="ArgumentException">Lancée si <paramref name="sessionId"/> est null ou vide.</exception>
         public bool RemoveSession(string sessionId)
         {
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                throw new ArgumentException("L'ID de la session est requis.", nameof(sessionId));
+            }
+
             var session = GetSessionById(sessionId);
             if (session != null)
             {
                 _sessions.Remove(session);
                 return true;
             }
+
             return false;
         }
 
@@ -67,8 +85,15 @@ namespace API7D.Services
         /// Met à jour une session existante en fonction de son ID.
         /// </summary>
         /// <param name="updatedSession">La session de jeu mise à jour.</param>
+        /// <exception cref="ArgumentNullException">Lancée si <paramref name="updatedSession"/> est null.</exception>
+        /// <exception cref="KeyNotFoundException">Lancée si l'ID de la session n'est pas trouvé.</exception>
         public void UpdateSession(GameSession updatedSession)
         {
+            if (updatedSession == null)
+            {
+                throw new ArgumentNullException(nameof(updatedSession), "La session mise à jour ne peut pas être null.");
+            }
+
             int index = _sessions.FindIndex(s => s.SessionId == updatedSession.SessionId);
 
             if (index >= 0)
@@ -77,7 +102,7 @@ namespace API7D.Services
             }
             else
             {
-                throw new KeyNotFoundException($"Session with ID {updatedSession.SessionId} not found.");
+                throw new KeyNotFoundException($"Session avec l'ID {updatedSession.SessionId} introuvable.");
             }
         }
 
@@ -122,6 +147,8 @@ namespace API7D.Services
         /// <param name="sessionId">Identifiant de la session.</param>
         /// <param name="isInZone">Résultat de validation de la différence (true ou false).</param>
         /// <returns>Tâche asynchrone représentant l'opération de notification.</returns>
+        /// <exception cref="ArgumentException">Lancée si <paramref name="sessionId"/> est null ou vide.</exception>
+        /// <exception cref="Exception">Lancée si une erreur se produit lors de la notification via SignalR.</exception>
         public async Task NotifyPlayers(string sessionId, bool isInZone)
         {
             if (string.IsNullOrEmpty(sessionId))
@@ -140,6 +167,7 @@ namespace API7D.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erreur lors de la notification des joueurs de la session {sessionId}.");
+                throw;
             }
         }
     }

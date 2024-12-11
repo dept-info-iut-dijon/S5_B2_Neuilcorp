@@ -61,17 +61,17 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
         final EditText playerNameInput = dialogView.findViewById(R.id.editPlayerName);
 
         new AlertDialog.Builder(this)
-                .setTitle("Créer une partie")
+                .setTitle(R.string.Home_CreationPartie)
                 .setView(dialogView)
-                .setPositiveButton("Créer", (dialog, which) -> {
+                .setPositiveButton(R.string.Home_CreerBouton, (dialog, which) -> {
                     String playerName = playerNameInput.getText().toString().trim();
                     if (playerName.isEmpty()) {
-                        showToast("Veuillez entrer un nom de joueur.");
+                        showToast(getString(R.string.Home_ToastNomVide));
                     } else {
                         createGameSession(playerName);
                     }
                 })
-                .setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton(R.string.Home_Annuler, (dialog, which) -> dialog.dismiss())
                 .create()
                 .show();
 
@@ -88,18 +88,18 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
         final EditText playerNameInput = dialogView.findViewById(R.id.playerNameEditText);
 
         new AlertDialog.Builder(this)
-                .setTitle("Rejoindre une partie")
+                .setTitle(R.string.Home_RejoindrePartie)
                 .setView(dialogView)
-                .setPositiveButton("Rejoindre", (dialog, which) -> {
+                .setPositiveButton(R.string.Home_RejoindreBouton, (dialog, which) -> {
                     String sessionId = sessionCodeInput.getText().toString().trim();
                     String playerName = playerNameInput.getText().toString().trim();
                     if (sessionId.isEmpty() || playerName.isEmpty()) {
-                        showToast("Veuillez entrer un code de session et un nom de joueur.");
+                        showToast(getString(R.string.Home_ToastCodeNomVide));
                     } else {
                         joinGameSession(sessionId, playerName);
                     }
                 })
-                .setNegativeButton("Annuler", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton(R.string.Home_Annuler, (dialog, which) -> dialog.dismiss())
                 .create()
                 .show();
 
@@ -113,13 +113,11 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
      */
     @Override
     public void createGameSession(String playerName) {
-        String playerId = UUID.randomUUID().toString();
-        Player hostPlayer = new Player(playerId, playerName);
+        Player hostPlayer = new Player(playerName);
         List<Player> players = new ArrayList<>();
         players.add(hostPlayer);
-
         GameSession newGameSession = new GameSession(players);
-        newGameSession.setSessionId(UUID.randomUUID().toString());
+        Log.d("GameSession", newGameSession.toString());
 
         apiService.createSession(newGameSession).enqueue(new Callback<GameSession>() {
             @Override
@@ -133,7 +131,7 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
 
             @Override
             public void onFailure(Call<GameSession> call, Throwable t) {
-                showErrorToast("Erreur de connexion : " + t.getMessage());
+                showErrorToast(R.string.Home_ErreurConnexion + t.getMessage());
             }
         });
     }
@@ -146,14 +144,13 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
      */
     @Override
     public void joinGameSession(String sessionId, String playerName) {
-        String playerId = UUID.randomUUID().toString();
-        Player player = new Player(playerId, playerName);
+        Player player = new Player(playerName);
 
         apiService.joinSession(sessionId, player).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    fetchSessionAndNavigate(sessionId, playerName, playerId);
+                    fetchSessionAndNavigate(sessionId, playerName, player.getPlayerId());
                 } else {
                     showErrorToast("Erreur lors de l'ajout à la session.");
                 }

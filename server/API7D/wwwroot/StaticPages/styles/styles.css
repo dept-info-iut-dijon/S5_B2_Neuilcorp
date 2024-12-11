@@ -7,8 +7,8 @@ color: #333;
 
 #red-circle-1, #red-circle-2 {
     position: absolute;
-    width: 50px;
-    height: 50px;
+    width: 75px;
+    height: 75px;
     border: 2px solid red;
     border-radius: 50%;
     pointer-events: none;
@@ -76,8 +76,8 @@ button {
 }
 .difference {
 position: absolute;
-width: 50px;
-height: 50px;
+width: 75px;
+height: 75px;
 border: 2px solid red;
 border-radius: 50%;
 pointer-events: none;

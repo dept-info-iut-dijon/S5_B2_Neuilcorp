@@ -31,26 +31,26 @@ function moveRedCircles(event, image) {
     const y = (event.clientY - rect.top) * scaleY;
 
     if (image === uploadedImage1) {
-        redCircle1.style.left = `${event.clientX + window.scrollX - 25}px`;
-        redCircle1.style.top = `${event.clientY + window.scrollY - 25}px`;
+        redCircle1.style.left = `${event.clientX + window.scrollX - 37.5}px`;
+        redCircle1.style.top = `${event.clientY + window.scrollY - 37.5}px`;
         redCircle1.style.display = 'block';
 
         const rect2 = uploadedImage2.getBoundingClientRect();
         const otherX = (x / scaleX) * uploadedImage2.width / uploadedImage1.width;
         const otherY = (y / scaleY) * uploadedImage2.height / uploadedImage1.height;
-        redCircle2.style.left = `${rect2.left + otherX + window.scrollX - 25}px`;
-        redCircle2.style.top = `${rect2.top + otherY + window.scrollY - 25}px`;
+        redCircle2.style.left = `${rect2.left + otherX + window.scrollX - 37.5}px`;
+        redCircle2.style.top = `${rect2.top + otherY + window.scrollY - 37.5}px`;
         redCircle2.style.display = 'block';
     } else if (image === uploadedImage2) {
-        redCircle2.style.left = `${event.clientX + window.scrollX - 25}px`;
-        redCircle2.style.top = `${event.clientY + window.scrollY - 25}px`;
+        redCircle2.style.left = `${event.clientX + window.scrollX - 37.5}px`;
+        redCircle2.style.top = `${event.clientY + window.scrollY - 37.5}px`;
         redCircle2.style.display = 'block';
 
         const rect1 = uploadedImage1.getBoundingClientRect();
         const otherX = (x / scaleX) * uploadedImage1.width / uploadedImage2.width;
         const otherY = (y / scaleY) * uploadedImage1.height / uploadedImage2.height;
-        redCircle1.style.left = `${rect1.left + otherX + window.scrollX - 25}px`;
-        redCircle1.style.top = `${rect1.top + otherY + window.scrollY - 25}px`;
+        redCircle1.style.left = `${rect1.left + otherX + window.scrollX - 37.5}px`;
+        redCircle1.style.top = `${rect1.top + otherY + window.scrollY - 37.5}px`;
         redCircle1.style.display = 'block';
     }
 }
@@ -105,7 +105,7 @@ uploadedImage1.addEventListener("click", (event) => {
     const y = (event.clientY - rect1.top) * scaleY;
 
     // Vérification de la proximité avec une différence existante
-    const minDistance = 50;
+    const minDistance = 75;
     const isNearExistingDifference = differences.some((diff) => {
         const dx = (diff.x - x) ** 2;
         const dy = (diff.y - y) ** 2;
@@ -119,15 +119,15 @@ uploadedImage1.addEventListener("click", (event) => {
     // Cercle rouge sur les deux images
     const marker1 = document.createElement("div");
     marker1.classList.add("difference");
-    marker1.style.left = `${event.clientX - rect1.left - 25}px`;
-    marker1.style.top = `${event.clientY - rect1.top - 25}px`;
+    marker1.style.left = `${event.clientX - rect1.left - 37.5}px`;
+    marker1.style.top = `${event.clientY - rect1.top - 37.5}px`;
     uploadedImage1.parentNode.appendChild(marker1);
 
     const rect2 = uploadedImage2.getBoundingClientRect();
     const marker2 = document.createElement("div");
     marker2.classList.add("difference");
-    marker2.style.left = `${(x / scaleX) - 25}px`;
-    marker2.style.top = `${(y / scaleY) - 25}px`;
+    marker2.style.left = `${(x / scaleX) - 37.5}px`;
+    marker2.style.top = `${(y / scaleY) - 37.5}px`;
     uploadedImage2.parentNode.appendChild(marker2);
 
     markers.push({ marker1, marker2 });

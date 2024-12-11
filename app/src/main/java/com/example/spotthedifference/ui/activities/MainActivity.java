@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         circleImageView = new ImageView(this);
         circleImageView.setImageResource(R.drawable.cercle_rouge);
         circleImageView.setVisibility(View.INVISIBLE);
-        layout.addView(circleImageView, new FrameLayout.LayoutParams(50, 50));
+        layout.addView(circleImageView, new FrameLayout.LayoutParams(75, 75));
 
         // Chargement et affichage de l'image depuis le chemin fourni
         Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
@@ -133,8 +133,8 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         imageView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 coordTemp = new Coordonnees((int) event.getX(), (int) event.getY());
-                circleImageView.setX(coordTemp.getX() - 25);
-                circleImageView.setY(coordTemp.getY() - 25);
+                circleImageView.setX(coordTemp.getX() - 37);
+                circleImageView.setY(coordTemp.getY() - 37);
                 circleImageView.setVisibility(View.VISIBLE);
                 validerButton.setEnabled(true);
                 return true;

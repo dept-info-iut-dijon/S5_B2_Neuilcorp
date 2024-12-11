@@ -48,13 +48,19 @@ namespace API7D.Controllers
         {
             byte[] returnedImage = _imageService.GetImages(id);
 
+            ActionResult<byte[]> result;
             if (returnedImage == null)
             {
-                return NotFound($"Image {id} non trouvée.");
+                result = NotFound($"Image {id} non trouvée.");
             }
-            //return returnedImage;
-            return new FileContentResult(returnedImage, "application/octet-stream");
+            else
+            {
+                result = new FileContentResult(returnedImage, "application/octet-stream");
+            }
+
+            return result;
         }
+
 
 
         /// <summary>
@@ -65,8 +71,12 @@ namespace API7D.Controllers
         public ActionResult<List<byte[]>> GetAllImage()
         {
             List<byte[]> returnedImage = _imageService.GetAllImages();
-            return returnedImage;
+
+            ActionResult<List<byte[]>> result = returnedImage.Any() ? Ok(returnedImage) : new ActionResult<List<byte[]>>(new List<byte[]>());
+
+            return result;
         }
+
 
         /// <summary>
         /// Récupère toutes les paires d'images disponibles.
@@ -75,9 +85,13 @@ namespace API7D.Controllers
         [HttpGet("allImagesWithPairs")]
         public ActionResult<List<ImageWithPair>> GetAllImagesWithPairs()
         {
-            var images = _imageService.GetAllImagesWithPairs();
-            return images;
+            List<ImageWithPair> images = _imageService.GetAllImagesWithPairs();
+
+            ActionResult<List<ImageWithPair>> result = images.Any() ? Ok(images) : NotFound("Aucune paire d'images disponible.");
+
+            return result;
         }
+
 
         /// <summary>
         /// Envoie une paire d'image sélectionnée aux joueurs d'une session
@@ -88,35 +102,40 @@ namespace API7D.Controllers
         public async Task<ActionResult> SendImagesToPlayers(string sessionId)
         {
             var session = _sessionService.GetSessionById(sessionId);
+            ActionResult result;
+
             if (session == null)
             {
-                return NotFound($"Session {sessionId} non trouvée.");
+                result = NotFound($"Session {sessionId} non trouvée.");
             }
-
-            if (session.ImagePairId == 0)
+            else if (session.ImagePairId == 0)
             {
                 await _hubContext.Clients.Group(sessionId).SendAsync("NotifyMessage", "L'hôte n'a pas encore choisi une paire d'images.");
-                return BadRequest("L'hôte n'a pas encore choisi une paire d'images.");
+                result = BadRequest("L'hôte n'a pas encore choisi une paire d'images.");
             }
-
-            var imagePairId = session.ImagePairId;
-            var images = _imageService.GetImagePair(imagePairId); // images[0] et images[1] contiennent les deux images
-
-            var melangePlayers = session.Players.OrderBy(_ => Guid.NewGuid()).ToList();
-
-            int imageSwitch = 0;
-            foreach (var player in melangePlayers)
+            else
             {
-                var imageToSend = (imageSwitch % 2 == 0) ? images.Image1 : images.Image2;
-                imageSwitch++;
+                var imagePairId = session.ImagePairId;
+                var images = _imageService.GetImagePair(imagePairId);
 
-                await _hubContext.Clients.Client(player.PlayerId).SendAsync("GameStarted", imageToSend);
-                _logger.LogInformation($"image envoyer a : {player.PlayerId}.");
+                var melangePlayers = session.Players.OrderBy(_ => Guid.NewGuid()).ToList();
+                int imageSwitch = 0;
 
+                foreach (var player in melangePlayers)
+                {
+                    var imageToSend = (imageSwitch % 2 == 0) ? images.Image1 : images.Image2;
+                    imageSwitch++;
+
+                    await _hubContext.Clients.Client(player.PlayerId).SendAsync("GameStarted", imageToSend);
+                    _logger.LogInformation($"Image envoyée à : {player.PlayerId}.");
+                }
+
+                result = Ok("Images envoyées aux joueurs.");
             }
 
-            return Ok("Images envoyées aux joueurs.");
+            return result;
         }
+
 
         /// <summary>
         /// Permet à l'hôte de sélectionner une paire d'images pour la session.
@@ -128,15 +147,21 @@ namespace API7D.Controllers
         public ActionResult SelectImagePair(string sessionId, [FromBody] int imagePairId)
         {
             var session = _sessionService.GetSessionById(sessionId);
+
+            ActionResult result;
             if (session == null)
             {
-                return NotFound($"Session {sessionId} non trouvée.");
+                result = NotFound($"Session {sessionId} non trouvée.");
+            }
+            else
+            {
+                session.ImagePairId = imagePairId;
+                _sessionService.UpdateSession(session);
+                result = Ok("Paire d'images sélectionnée pour la session.");
             }
 
-            session.ImagePairId = imagePairId;
-            _sessionService.UpdateSession(session);
-
-            return Ok("Paire d'images sélectionnée pour la session.");
+            return result;
         }
+
     }
 }

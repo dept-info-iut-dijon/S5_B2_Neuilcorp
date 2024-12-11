@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using API7D.objet;
 using Microsoft.Data.Sqlite;
 using API7D.Metier;
+using API7D.Database;
 
 namespace API7D.DATA
 {
@@ -18,7 +19,7 @@ namespace API7D.DATA
         public ImageDATA()
         {
             // Connexion à une base de données SQLite locale
-            _connectionString = "Data Source=./Database/DataBase_Image.db";
+            _connectionString = Setting.DataBasePath;
         }
 
         /// <summary>
@@ -155,20 +156,7 @@ namespace API7D.DATA
         /// <param name="image">L'objet image contenant les informations de l'image.</param>
         public void SetImagesDATA(ImageDifference image)
         {
-            /*using (var connection = new SqliteConnection(_connectionString))
-            {
-                connection.Open();
-
-                string query = "INSERT INTO images (ImageID, ImagePaire, ImageLink) VALUES (@ImageID, @ImagePaire, @ImageLink)";
-                using (var command = new SqliteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@ImageID", image.ImageId);
-                    command.Parameters.AddWithValue("@ImagePaire", image.ImagePaire);
-                    command.Parameters.AddWithValue("@ImageLink", image.ImageLink);
-
-                    command.ExecuteNonQuery();
-                }
-            }*/
+            throw new NotImplementedException();
         }
 
         public List<string> GetAllImagesDATA()

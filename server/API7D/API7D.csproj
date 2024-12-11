@@ -19,8 +19,4 @@
     <Resource Include="Image\2.png" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Database\" />
-  </ItemGroup>
-
 </Project>

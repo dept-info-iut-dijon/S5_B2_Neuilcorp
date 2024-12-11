@@ -40,20 +40,27 @@ public class GameSessionController : ControllerBase
     [HttpPost("CreateSession")]
     public ActionResult<GameSession> CreateSession([FromBody] GameSession gameSession)
     {
+        ActionResult actionResult = null;
         if (gameSession == null || gameSession.Players == null || gameSession.Players.Count == 0)
         {
-            return BadRequest("Les données de session ou les informations sur l'hôte sont invalides.");
+            actionResult = BadRequest("Les données de session ou les informations sur l'hôte sont invalides.");
+        }
+        else
+        {
+
+            gameSession.SessionId = _codeGenerator.GenerateUniqueCode().ToString();
+            Player host = gameSession.Players[0];
+            gameSession.Players = new List<Player> { host };
+            gameSession.GameCompleted = false;
+            gameSession.GameTimer = false;
+            _sessionService.AddSession(gameSession);
+            actionResult = Ok(gameSession);
+
         }
 
-        gameSession.SessionId = _codeGenerator.GenerateUniqueCode().ToString();
-        Player host = gameSession.Players[0];
-        gameSession.Players = new List<Player> { host };
-        gameSession.GameCompleted = false;
-        gameSession.GameTimer = false;
-        _sessionService.AddSession(gameSession);
-
-        return Ok(gameSession);
+        return actionResult;
     }
+
 
     /// <summary>
     /// Permet à un joueur de rejoindre une session de jeu existante.
@@ -64,33 +71,36 @@ public class GameSessionController : ControllerBase
     [HttpPost("{sessionId}/join")]
     public async Task<ActionResult> JoinSession(string sessionId, [FromBody] Player player)
     {
-        _logger.LogInformation($"Player {player?.Name ?? "Unknown"} is attempting to join session {sessionId}.");
+        ActionResult result = null; // Déclarer une variable de résultat
 
         if (player == null || string.IsNullOrEmpty(player.PlayerId))
         {
-            _logger.LogWarning($"Invalid player data for session {sessionId}.");
-            return BadRequest("Informations du joueur invalides.");
+            result = BadRequest("Informations du joueur invalides.");
         }
-
-        GameSession existingSession = _sessionService.GetSessionById(sessionId);
-        if (existingSession == null)
+        else
         {
-            _logger.LogWarning($"Session {sessionId} not found.");
-            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+            GameSession existingSession = _sessionService.GetSessionById(sessionId);
+            if (existingSession == null)
+            {
+                result = NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+            }
+            else
+            {
+                bool playerAlreadyInSession = existingSession.Players.Exists(p => p.PlayerId == player.PlayerId);
+                if (playerAlreadyInSession)
+                {
+                    result = BadRequest("Le joueur est déjà dans la session.");
+                }
+                else
+                {
+                    existingSession.Players.Add(player);
+                    await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player.Name);
+                    result = Ok($"Le joueur {player.Name} a rejoint la session {sessionId}.");
+                }
+            }
         }
 
-        bool playerAlreadyInSession = existingSession.Players.Exists(p => p.PlayerId == player.PlayerId);
-        if (playerAlreadyInSession)
-        {
-            _logger.LogWarning($"Player {player.PlayerId} is already in session {sessionId}.");
-            return BadRequest("Le joueur est déjà dans la session.");
-        }
-
-        existingSession.Players.Add(player);
-        _logger.LogInformation($"Player {player.Name} added to session {sessionId}.");
-
-        await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player.Name);
-        return Ok($"Le joueur {player.Name} a rejoint la session {sessionId}.");
+        return result;
     }
 
     /// <summary>
@@ -112,12 +122,18 @@ public class GameSessionController : ControllerBase
     public ActionResult<GameSession> GetSessionById(string sessionId)
     {
         GameSession existingSession = _sessionService.GetSessionById(sessionId);
+        ActionResult<GameSession> result;
+
         if (existingSession == null)
         {
-            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+            result = NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+        }
+        else
+        {
+            result = Ok(existingSession);
         }
 
-        return Ok(existingSession);
+        return result;
     }
 
     /// <summary>
@@ -129,13 +145,19 @@ public class GameSessionController : ControllerBase
     public ActionResult destructiondeSession(string sessionId)
     {
         bool sessionDeleted = _sessionService.RemoveSession(sessionId);
+        ActionResult result;
+
         if (!sessionDeleted)
         {
-            return BadRequest("La session n'existe pas ou n'a pas pu être supprimée.");
+            result = BadRequest("La session n'existe pas ou n'a pas pu être supprimée.");
+        }
+        else
+        {
+            _codeGenerator.InvalidateCode(int.Parse(sessionId));
+            result = Ok("Session détruite");
         }
 
-        _codeGenerator.InvalidateCode(int.Parse(sessionId));
-        return Ok("Session détruite");
+        return result;
     }
 
     /// <summary>
@@ -147,14 +169,19 @@ public class GameSessionController : ControllerBase
     public ActionResult<List<Player>> GetAllPlayersFromSession(string sessionId)
     {
         var gameSession = _sessionService.GetSessionById(sessionId);
+        ActionResult<List<Player>> result;
+
         if (gameSession == null)
         {
-            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+            result = NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+        }
+        else
+        {
+            result = Ok(gameSession.Players);
         }
 
-        return Ok(gameSession.Players);
+        return result;
     }
-
 
     /// <summary>
     /// Force la synchronisation de l'état de la session.
@@ -166,13 +193,20 @@ public class GameSessionController : ControllerBase
     {
         _logger.LogInformation($"Force sync requested for session {sessionId}.");
         GameSession existingSession = _sessionService.GetSessionById(sessionId);
+        ActionResult<GameSession> result;
+
         if (existingSession == null)
         {
             _logger.LogWarning($"Session {sessionId} not found for force sync.");
-            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+            result = NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+        }
+        else
+        {
+            _logger.LogInformation($"Force sync returning session state for {sessionId}.");
+            result = Ok(existingSession);
         }
 
-        _logger.LogInformation($"Force sync returning session state for {sessionId}.");
-        return Ok(existingSession);
+        return result;
     }
+
 }

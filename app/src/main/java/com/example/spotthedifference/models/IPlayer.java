@@ -13,13 +13,6 @@ public interface IPlayer {
     String getPlayerId();
 
     /**
-     * Définit l'identifiant du joueur.
-     *
-     * @param playerId L'ID du joueur.
-     */
-    void setPlayerId(String playerId);
-
-    /**
      * Obtient le nom du joueur.
      *
      * @return Le nom du joueur.

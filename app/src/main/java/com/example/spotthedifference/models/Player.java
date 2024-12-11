@@ -1,36 +1,49 @@
 package com.example.spotthedifference.models;
 
+import java.util.UUID;
+
+/**
+ * Représente un joueur participant à une session de jeu.
+ */
 public class Player implements IPlayer {
-    private String playerId;
+    private final String playerId; // Généré automatiquement
     private String name;
     private boolean isReady;
 
-    // Constructeur par défaut nécessaire pour la sérialisation
+    /**
+     * Constructeur par défaut nécessaire pour la sérialisation.
+     */
     public Player() {
+        this.playerId = UUID.randomUUID().toString();
+        this.isReady = false;
     }
 
-    // Constructeur avec paramètres sauf état
-    public Player(String playerId, String name) {
-        this.playerId = playerId;
+    /**
+     * Constructeur avec nom du joueur.
+     *
+     * @param name Nom du joueur.
+     */
+    public Player(String name) {
+        this.playerId = UUID.randomUUID().toString();
         this.name = name;
         this.isReady = false;
     }
 
-    // Constructeur avec paramètres sauf nom
-    public Player(String playerId, boolean isReady) {
-        this.playerId = playerId;
+    /**
+     * Constructeur complet (utilisé en interne uniquement si nécessaire).
+     *
+     * @param name    Nom du joueur.
+     * @param isReady Statut de préparation du joueur.
+     */
+    public Player(String name, boolean isReady) {
+        this.playerId = UUID.randomUUID().toString();
+        this.name = name;
         this.isReady = isReady;
     }
-
 
     @Override
     public String getPlayerId() {
         return playerId;
-    }
-
-    @Override
-    public void setPlayerId(String playerId) {
-        this.playerId = playerId;
     }
 
     @Override

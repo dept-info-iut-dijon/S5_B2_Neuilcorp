@@ -6,6 +6,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.spotthedifference.config.ServerConfig;
 import com.example.spotthedifference.models.GameSession;
 import com.google.gson.Gson;
 import com.example.spotthedifference.models.Player;
@@ -21,7 +22,7 @@ import io.reactivex.subjects.BehaviorSubject;
 
 public class SignalRClient {
 
-    private static final String SERVER_URL = "http://203.55.81.18:5195/gameSessionHub";
+    private static final String SERVER_URL = ServerConfig.SIGNALR_URL;
     private static final boolean DEBUG = true;
     private static final int MAX_RETRY_COUNT = 5;
 

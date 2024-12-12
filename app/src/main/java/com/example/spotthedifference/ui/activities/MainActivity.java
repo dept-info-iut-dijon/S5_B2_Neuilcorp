@@ -17,6 +17,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.spotthedifference.R;
+import com.example.spotthedifference.WebSocket.GameEndedListener;
 import com.example.spotthedifference.WebSocket.SignalRClient;
 import com.example.spotthedifference.api.ApiService;
 import com.example.spotthedifference.api.IRetrofitClient;
@@ -35,7 +36,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class MainActivity extends AppCompatActivity implements IMainActivity {
+public class MainActivity extends AppCompatActivity implements IMainActivity , GameEndedListener {
 
     private static final String TAG = "MainActivity";
     private SignalRClient signalRClient;
@@ -339,5 +340,12 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         circleImageView.setVisibility(View.INVISIBLE);
         coordTemp = null;
         imageView.setEnabled(true);
+    }
+
+    @Override
+    public void onGameEnd() {
+        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

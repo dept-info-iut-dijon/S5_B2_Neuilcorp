@@ -48,6 +48,7 @@ public class SignalRClient {
     private BehaviorSubject<String> SessionDeletedSubject = BehaviorSubject.create();
 
     private GameStartedListener gameStartedListener;
+    private GameEndedListener gameEndedListener;
     public BehaviorSubject<Boolean> getConnectionEstablishedObservable() {
         return connectionEstablishedSubject;
     }
@@ -83,6 +84,7 @@ public class SignalRClient {
         hubConnection.on("PlayerReadyStatusChanged", this::handlePlayerReadyStatusChanged, String.class, Boolean.class);
         hubConnection.on("SyncSessionState", this::handleSyncSessionState, String.class);
         hubConnection.on("GameStarted", this::handleGameStarted, String.class, Integer.class);
+        hubConnection.on("GameEnded", this::handleGameEnded);
         hubConnection.on("ReadyNotAllowed", readyNotAllowedSubject::onNext, String.class);
         hubConnection.on("NotifyMessage", notifyMessageSubject::onNext, String.class);
         hubConnection.on("ReceiveConnectionId", this::handleConnectionIdReceived, String.class);
@@ -136,6 +138,18 @@ public class SignalRClient {
     }
 
     /**
+     * Gestion de l'événement "GameStarted".
+     */
+    private void handleGameEnded() {
+        if (gameStartedListener != null) {
+            gameEndedListener.onGameEnd();
+        } else {
+            log("SignalRClient: GameStartedListener est null !", null);
+        }
+    }
+
+
+    /**
      * Gestion de l'événement "ReceiveConnectionId".
      */
     private void handleConnectionIdReceived(String connectionId) {
@@ -153,6 +167,12 @@ public class SignalRClient {
      */
     public void setGameStartedListener(GameStartedListener listener) {
         this.gameStartedListener = listener;
+        Log.d("SignalRClient", "GameStartedListener défini : " + (listener != null));
+    }
+
+
+    public void setGameEndedListener(GameEndedListener listener) {
+        this.gameEndedListener = listener;
         Log.d("SignalRClient", "GameStartedListener défini : " + (listener != null));
     }
 

@@ -8,6 +8,7 @@ const differencesList = document.getElementById("differences-list");
 const submitDifferencesButton = document.getElementById("submit-differences");
 const redCircle1 = document.getElementById("red-circle-1");
 const redCircle2 = document.getElementById("red-circle-2");
+const nameInput = document.getElementById("name");
 
 document.addEventListener('wheel', function(event) {
     if (event.ctrlKey || event.metaKey) {

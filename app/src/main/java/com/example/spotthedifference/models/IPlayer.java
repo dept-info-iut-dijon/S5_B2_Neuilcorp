@@ -1,42 +1,45 @@
 package com.example.spotthedifference.models;
 
 /**
- * Interface contenant toutes les méthodes de Player.
+ * Interface définissant le contrat pour un joueur dans le jeu.
+ * Fournit les méthodes nécessaires pour gérer l'identité et l'état d'un joueur.
  */
 public interface IPlayer {
 
     /**
-     * Obtient l'identifiant du joueur.
+     * Obtient l'identifiant unique du joueur.
+     * Cet ID est généré automatiquement à la création du joueur.
      *
-     * @return L'ID du joueur.
+     * @return L'identifiant unique du joueur.
      */
     String getPlayerId();
 
     /**
-     * Obtient le nom du joueur.
+     * Obtient le nom d'affichage du joueur.
      *
      * @return Le nom du joueur.
      */
     String getName();
 
     /**
-     * Définit le nom du joueur.
+     * Définit ou modifie le nom d'affichage du joueur.
      *
-     * @param name Le nom du joueur.
+     * @param name Le nouveau nom du joueur.
+     * @throws IllegalArgumentException si le nom est null ou vide.
      */
     void setName(String name);
 
     /**
-     * Vérifie si le joueur est prêt.
+     * Vérifie si le joueur est prêt à commencer la partie.
      *
-     * @return Vrai si le joueur est prêt, sinon faux.
+     * @return true si le joueur est prêt, false sinon.
      */
     boolean isReady();
 
     /**
-     * Définit l'état de préparation du joueur.
+     * Définit l'état de préparation du joueur pour la partie.
      *
-     * @param ready Vrai si le joueur est prêt, sinon faux.
+     * @param ready true pour indiquer que le joueur est prêt, false sinon.
      */
     void setReady(boolean ready);
 }

@@ -3,8 +3,14 @@ using Xunit;
 
 namespace TestsUnitaires.TestsObjet
 {
+    /// <summary>
+    /// Tests unitaires pour la classe Player.
+    /// </summary>
     public class PlayerTests
     {
+        /// <summary>
+        /// Vérifie que le constructeur avec paramètres initialise correctement un joueur.
+        /// </summary>
         [Fact]
         public void Constructor_InitializesCorrectly_WithParameters()
         {
@@ -39,24 +45,6 @@ namespace TestsUnitaires.TestsObjet
             player.Name = "Jane Doe";
 
             Assert.Equal("Jane Doe", player.Name);
-        }
-
-        [Fact]
-        public void ModifyPlayerId_ModifiesCorrectly()
-        {
-            var player = new Player("789", "Alice");
-            player.PlayerId = "987";
-
-            Assert.Equal("987", player.PlayerId);
-        }
-
-        [Fact]
-        public void ModifyName_ModifiesCorrectly()
-        {
-            var player = new Player("789", "Alice");
-            player.Name = "Bob";
-
-            Assert.Equal("Bob", player.Name);
         }
     }
 }

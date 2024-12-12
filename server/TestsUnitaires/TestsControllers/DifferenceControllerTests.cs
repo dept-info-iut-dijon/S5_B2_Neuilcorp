@@ -10,14 +10,14 @@ namespace TestsUnitaires.TestsControllers
     public class DifferenceControllerTests
     {
         /// <summary>
-        /// Vérifie que la méthode CheckDifference retourne un OkObjectResult avec une valeur vraie (true) lorsque les coordonnées fournies  se trouvent dans la zone de différence.
+        /// Vérifie que CheckDifference retourne un OkObjectResult avec true lorsque les coordonnées sont dans une zone de différence.
         /// </summary>
         [Fact]
         public void CheckDifference_Found()
         {
             var mockChecker = new Mock<IDifferanceChecker>();
             mockChecker.Setup(c => c.IsWithinDifference(It.IsAny<Coordonnees>())).Returns(true);
-            var controller = new DifferanceController();
+            var controller = new DifferanceController(mockChecker.Object);
 
             var coordonnees = new Coordonnees(128, 138);
 

@@ -119,6 +119,11 @@
         let differences = []; // Liste des différences
         const markers = []; // Stocke les marqueurs pour suppression
 
+        // Constantes pour la configuration
+        const MIN_DISTANCE = 80;  // Distance minimale entre les différences
+        const MARKER_SIZE = 25;   // Taille du marqueur en pixels
+        const API_ENDPOINT = "http://localhost:5195/ImageControlleur/compare";
+
         // Charger les images
         uploadForm.addEventListener("submit", (event) => {
             event.preventDefault();
@@ -156,11 +161,10 @@
             const y = (event.clientY - rect1.top) * scaleY;
 
             // Vérification de la proximité avec une différence existante
-            const minDistance = 80; // Distance minimale pour éviter les doublons
             const isNearExistingDifference = differences.some((diff) => {
                 const dx = (diff.x - x) ** 2;
                 const dy = (diff.y - y) ** 2;
-                return Math.sqrt(dx + dy) < minDistance;
+                return Math.sqrt(dx + dy) < MIN_DISTANCE;
             });
 
             if (isNearExistingDifference) {
@@ -170,8 +174,8 @@
             // Cercle rouge sur les deux images
             const marker1 = document.createElement("div");
             marker1.classList.add("difference");
-            marker1.style.left = `${event.clientX - rect1.left - 25}px`;
-            marker1.style.top = `${event.clientY - rect1.top - 25}px`;
+            marker1.style.left = `${event.clientX - rect1.left - MARKER_SIZE}px`;
+            marker1.style.top = `${event.clientY - rect1.top - MARKER_SIZE}px`;
             uploadedImage1.parentNode.appendChild(marker1);
 
             const rect2 = uploadedImage2.getBoundingClientRect();
@@ -238,7 +242,7 @@
             formData.append("name", name);
             formData.append("differences", differencesString);
 
-            fetch("http://localhost:5195/ImageControlleur/compare", {
+            fetch(API_ENDPOINT, {
                 method: "POST",
                 body: formData,
             })

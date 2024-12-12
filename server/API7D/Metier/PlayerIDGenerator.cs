@@ -9,7 +9,7 @@
         /// <summary>
         /// Génère un ID unique pour un joueur.
         /// </summary>
-        /// <returns>Un identifiant unique sous forme de chaine</returns>
+        /// <returns>Un identifiant unique sous forme de chaîne de caractères</returns>
         public static string GeneratePlayerId()
         {
             return Guid.NewGuid().ToString();

@@ -8,86 +8,49 @@ namespace API7D.objet
     /// </summary>
     public class GameSession
     {
-        private string sessionId;
-        private List<Player> players;
-        private bool gameCompleted;
-        private bool gameTimer;
-        private int imagePairId;
-        private Dictionary<string, (int x, int y)> playerSelections;
-        private Dictionary<string, bool> playerReadyStatus;
-
+        /// <summary>
+        /// Obtient ou définit l'ID de session.
+        /// </summary>
+        public string SessionId { get; set; }
 
         /// <summary>
-        /// Obtient ou définit l'ID de session
+        /// Obtient ou définit la liste des joueurs.
         /// </summary>
-        public string SessionId
-        {
-            get { return sessionId; }
-            set { sessionId = value; }
-        }
+        public List<Player> Players { get; set; }
 
         /// <summary>
-        /// Obtient ou définit la liste des joueurs
+        /// Obtient ou définit si le jeu est terminé.
         /// </summary>
-        public List<Player> Players
-        {
-            get { return players; }
-            set { players = value; }
-        }
-
-        /// <summary>
-        /// Obtient ou définit si le jeu est terminé
-        /// </summary>
-        public bool GameCompleted
-        {
-            get { return gameCompleted; }
-            set { gameCompleted = value; }
-        }
+        public bool GameCompleted { get; set; }
 
         /// <summary>
         /// Obtient ou définit l'état du minuteur du jeu
         /// </summary>
-        public bool GameTimer
-        {
-            get { return gameTimer; }
-            set { gameTimer = value; }
-        }
+        public bool GameTimer { get; set; }
 
         /// <summary>
-        /// Obient ou définit l'ID de la paire d'images
+        /// Obtient ou définit l'ID de la paire d'images.
         /// </summary>
-        public int ImagePairId
-        {
-            get { return imagePairId; }
-            set { imagePairId = value; }
-        }
+        public int ImagePairId { get; set; }
 
         /// <summary>
         /// Obtient ou définit un dictionnaire des sélections des joueurs avec les coordonnées x et y
         /// </summary>
-        public Dictionary<string, (int x, int y)> PlayerSelections
-        {
-            get { return playerSelections; }
-            set { playerSelections = value; }
-        }
+        public Dictionary<string, (int x, int y)> PlayerSelections { get; set; }
 
         /// <summary>
         /// Obtient ou définit un dictionnaire des statuts de prêt des joueurs
         /// </summary>
-        public Dictionary<string, bool> PlayerReadyStatus
-        {
-            get { return playerReadyStatus; }
-            set { playerReadyStatus = value; }
-        }
+        public Dictionary<string, bool> PlayerReadyStatus { get; set; }
 
         /// <summary>
         /// Constructeur par défaut de la session de jeu 
         /// </summary>
         public GameSession()
         {
-            players = new List<Player>();
-            playerSelections = new Dictionary<string, (int x, int y)>();
-            playerReadyStatus = new Dictionary<string, bool>();
+            Players = new List<Player>();
+            PlayerSelections = new Dictionary<string, (int x, int y)>();
+            PlayerReadyStatus = new Dictionary<string, bool>();
         }
 
         /// <summary>
@@ -96,7 +59,7 @@ namespace API7D.objet
         /// <returns>Retourne true si tous les joueurs sont prêts, sinon false</returns>
         public bool AreAllPlayersReady()
         {
-            return playerReadyStatus.Count == players.Count && !playerReadyStatus.ContainsValue(false);
+            return PlayerReadyStatus.Count == Players.Count && !PlayerReadyStatus.ContainsValue(false);
         }
 
         /// <summary>
@@ -105,16 +68,24 @@ namespace API7D.objet
         /// <returns>Retourne true si tous les joueurs ont fait une sélection sinon false</returns>
         public bool HaveAllPlayersSelected()
         {
-            return playerSelections.Count == players.Count;
+            return PlayerSelections.Count == Players.Count;
         }
 
-        // Méthode pour vérifier si un joueur est l'hôte de la session.
+        /// <summary>
+        /// Vérifie si un joueur est l'hôte de la session.
+        /// </summary>
+        /// <param name="playerId">L'ID du joueur à vérifier</param>
+        /// <returns>True si le joueur est l'hôte, sinon False</returns>
         public bool IsHost(string playerId)
         {
             return Players.Count > 0 && Players[0].PlayerId == playerId;
         }
 
-        // Méthode pour vérifier si un joueur existe dans la session.
+        /// <summary>
+        /// Vérifie si un joueur existe dans la session.
+        /// </summary>
+        /// <param name="playerId">L'ID du joueur à vérifier</param>
+        /// <returns>True si le joueur existe dans la session, sinon False</returns>
         public bool ContainsPlayer(string playerId)
         {
             return Players.Any(p => p.PlayerId == playerId);

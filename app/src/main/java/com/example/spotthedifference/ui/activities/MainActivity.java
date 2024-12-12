@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -35,6 +34,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
+/**
+ * Activité principale du jeu permettant aux joueurs de trouver les différences
+ * entre deux images. Gère les interactions utilisateur et la communication
+ * avec le serveur en temps réel.
+ */
 public class MainActivity extends AppCompatActivity implements IMainActivity {
 
     private static final String TAG = "MainActivity";
@@ -227,11 +231,14 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     }
 
     /**
-     * Vérifie si le joueur actuel est hôte ou non.
-     * @return true si le joueur est hôte, false s'il ne l'est pas.
+     * Vérifie si le joueur actuel est l'hôte de la session.
+     * TODO: Implémenter la vérification réelle du statut d'hôte
+     *
+     * @return true si le joueur est l'hôte, false sinon
      */
     private boolean isHost() {
-        return false; // temporaire
+        // TODO: Implémenter la logique de vérification d'hôte
+        return false;
     }
 
     /**

@@ -7,7 +7,7 @@ namespace TestsUnitaires.TestsMetier
     {
 
         /// <summary>
-        /// Teste que la méthode GenerateUniqueCode retourne un code à six chiffres.
+        /// Vérifie que GenerateUniqueCode génère un code à 6 chiffres.
         /// </summary>
         [Fact]
         public void GenerateUniqueCode_ReturnsSixDigitCode()
@@ -18,7 +18,7 @@ namespace TestsUnitaires.TestsMetier
         }
 
         /// <summary>
-        /// Teste que la méthode GenerateUniqueCode retourne des codes uniques.
+        /// Vérifie que GenerateUniqueCode génère des codes uniques.
         /// </summary>
         [Fact]
         public void GenerateUniqueCode_ReturnsUniqueCodes()
@@ -36,7 +36,7 @@ namespace TestsUnitaires.TestsMetier
         }
 
         /// <summary>
-        /// Teste que la méthode InvalidateCode permet de générer un nouveau code différent après l'invalidation.
+        /// Vérifie qu'un code invalidé peut être généré à nouveau.
         /// </summary>
         [Fact]
         public void InvalidateCode_AllowsGeneratingSameCodeAgain()

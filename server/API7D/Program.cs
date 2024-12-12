@@ -3,11 +3,11 @@ using API7D.Metier;
 using API7D.Services;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;  // Importation nécessaire pour Process
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuration des services
+// Configuration du logging
 builder.Services.AddLogging(logging =>
 {
     logging.ClearProviders();
@@ -15,54 +15,46 @@ builder.Services.AddLogging(logging =>
     logging.AddDebug();
 });
 
-builder.Services.AddControllers(); // Ajouter les contrôleurs
+// Configuration des services de base
+builder.Services.AddControllers();
 builder.Services.AddScoped<IImage, Image>();
 builder.Services.AddSingleton<SessionService>();
 builder.Services.AddSingleton<ImageDATA>();
 
-// Ajouter SignalR pour la communication en temps réel
+// Configuration de SignalR
 builder.Services.AddSignalR();
 
-// Ajouter le CORS pour permettre les requêtes depuis différentes origines
+// Configuration CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
         builder =>
         {
-            builder.AllowAnyOrigin()    // Permet toutes les origines
-                   .AllowAnyMethod()    // Permet toutes les méthodes (GET, POST, etc.)
-                   .AllowAnyHeader();   // Permet tous les en-têtes
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
         });
 });
 
-// Swagger configuration
+// Configuration de Swagger pour la documentation de l'API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Pipeline de requêtes HTTP
+// Configuration du pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-
-// Activer CORS
 app.UseCors("AllowAllOrigins");
-
-// Configurer l'autorisation
 app.UseAuthorization();
-
-// Configurer le Hub SignalR
 app.MapHub<GameSessionHub>("/gameSessionHub");
-
-
-// Activer les fichiers statiques (servir HTML/CSS/JS depuis wwwroot)
 app.UseStaticFiles();
 
-
+// Configuration de la route par dÃ©faut pour servir la page upload.html
 app.MapGet("/", async context =>
 {
     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "StaticPages", "upload.html");
@@ -79,22 +71,19 @@ app.MapGet("/", async context =>
     }
 });
 
-// Configurer les routes des contrôleurs
 app.MapControllers();
 
-// Lancer la page HTML automatiquement après le démarrage
+// Ouverture automatique du navigateur au dÃ©marrage
 Task.Run(() =>
 {
-    // Délai pour s'assurer que le serveur est bien démarré
     System.Threading.Thread.Sleep(1000);
 
-    // Ouvrir le navigateur par défaut à l'URL locale
     Process.Start(new ProcessStartInfo
     {
-        FileName = "http://localhost:5195",  // Modifier si nécessaire (en fonction de votre configuration)
+        FileName = "http://localhost:5195",
         UseShellExecute = true
     });
 });
 
-// Démarrer l'application
+// DÃ©marrer l'application
 app.Run();

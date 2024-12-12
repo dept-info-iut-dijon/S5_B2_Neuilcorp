@@ -33,13 +33,44 @@ import java.util.Set;
  */
 public class ImagesActivity extends AppCompatActivity {
 
+    /**
+     * Grille d'affichage des images.
+     */
     private GridLayout imageGrid;
+
+    /**
+     * Bouton de confirmation de la sélection.
+     */
     private Button confirmButton;
+
+    /**
+     * Service pour les appels API.
+     */
     private ApiService apiService;
+
+    /**
+     * ID de la paire d'images sélectionnée (-1 si aucune sélection).
+     */
     private int selectedImagePairId = -1;
+
+    /**
+     * ID de la session de jeu en cours.
+     */
     private String sessionId;
+
+    /**
+     * Nombre de colonnes dans la grille d'images.
+     */
     private static final int GRID_COLUMN_COUNT = 3;
+
+    /**
+     * Espacement entre les images en pixels.
+     */
     private static final int IMAGE_PADDING = 50;
+
+    /**
+     * Ratio hauteur/largeur des images.
+     */
     private static final double IMAGE_RATIO = 1.5;
 
     @Override

@@ -13,6 +13,11 @@ namespace API7D.Services
         private readonly IHubContext<GameSessionHub> _hubContext;
         private readonly ILogger<SessionService> _logger;
 
+        /// <summary>
+        /// Initialise une nouvelle instance du service de gestion des sessions.
+        /// </summary>
+        /// <param name="hubContext">Contexte du hub SignalR pour la communication en temps réel</param>
+        /// <param name="logger">Logger pour le traçage des événements</param>
         public SessionService(IHubContext<GameSessionHub> hubContext, ILogger<SessionService> logger)
         {
             _hubContext = hubContext;
@@ -46,8 +51,7 @@ namespace API7D.Services
         /// <returns>Une liste en lecture seule des sessions de jeu.</returns>
         public IReadOnlyList<GameSession> GetAllSessions()
         {
-            var result = _sessions.AsReadOnly();
-            return result;
+            return _sessions.AsReadOnly();
         }
 
         /// <summary>
@@ -57,8 +61,7 @@ namespace API7D.Services
         /// <returns>La session correspondante ou null si elle n'existe pas.</returns>
         public GameSession GetSessionById(string sessionId)
         {
-            GameSession result = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
-            return result;
+            return _sessions.FirstOrDefault(s => s.SessionId == sessionId);
         }
 
         /// <summary>
@@ -75,15 +78,7 @@ namespace API7D.Services
             }
 
             GameSession session = GetSessionById(sessionId);
-            bool result = false;
-
-            if (session != null)
-            {
-                _sessions.Remove(session);
-                result = true;
-            }
-
-            return result;
+            return session != null && _sessions.Remove(session);
         }
 
         /// <summary>

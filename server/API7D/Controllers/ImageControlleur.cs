@@ -11,7 +11,7 @@ namespace API7D.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ImageControlleur : ControllerBase
+    public class ImageController : ControllerBase
     {
         private readonly SessionService _sessionService;
         private readonly string _imageFolderPath;
@@ -21,29 +21,30 @@ namespace API7D.Controllers
 
 
         /// <summary>
-        /// Initialise une nouvelle instance de ImageControlleur.
+        /// Initialise une nouvelle instance de ImageController.
         /// </summary>
-        /// <param name="hubContext">Contexte SignalR permettant la communication en temsp réel</param>
+        /// <param name="hubContext">Contexte SignalR permettant la communication en temps réel</param>
         /// <param name="sessionService">Service de session de jeu</param>
-        /// <param name="imageService">Service de gestion d'image </param>
-        /// <param name="logger">Service de log </param>
-        public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService, IImage imageService, ILogger<GameSessionHub> logger)
+        /// <param name="imageService">Service de gestion d'image</param>
+        /// <param name="logger">Service de log</param>
+        public ImageController(IHubContext<GameSessionHub> hubContext, 
+            SessionService sessionService, IImage imageService, 
+            ILogger<GameSessionHub> logger)
         {
             _hubContext = hubContext;
             _sessionService = sessionService;
             _imageService = imageService;
-            // Spécifie le chemin vers le dossier contenant les images
             _imageFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Image");
             _logger = logger;
-
         }
 
         /// <summary>
-        /// permet de recuperer une image par son id
+        /// Récupère une image par son identifiant.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns>une réponse contenant l'image sous forme de tableau d'octet ou un code http 404</returns>
-
+        /// <param name="id">Identifiant de l'image à récupérer</param>
+        /// <returns>L'image sous forme de tableau d'octets</returns>
+        /// <response code="200">L'image a été trouvée</response>
+        /// <response code="404">L'image n'a pas été trouvée</response>
         [HttpPost("{id}")]
         public ActionResult<byte[]> GetImage(int id)
         {
@@ -112,7 +113,7 @@ namespace API7D.Controllers
             else if (session.ImagePairId == 0)
             {
                 await _hubContext.Clients.Group(sessionId).SendAsync("NotifyMessage", "L'hôte n'a pas encore choisi une paire d'images.");
-                result = BadRequest("L'hôte n'a pas encore choisi une paire d'images.");
+                result = BadRequest("L'h��te n'a pas encore choisi une paire d'images.");
             }
             else
             {
@@ -167,23 +168,18 @@ namespace API7D.Controllers
         /// <summary>
         /// Compare deux images représentées sous forme de tableaux de bytes.
         /// </summary>
-        /// <param name="image1">Premier tableau de bytes représentant une image.</param>
-        /// <param name="image2">Deuxième tableau de bytes représentant une image.</param>
-        /// <returns>
-        /// 200 OK : Si les deux images sont identiques.
-        /// 400 BadRequest : Si les images diffèrent ou si une erreur survient.
-        /// </returns>
-        /// <summary>
-        /// Compare deux images représentées sous forme de tableaux de bytes.
-        /// </summary>
-        /// <param name="image1">Premier tableau de bytes représentant une image.</param>
-        /// <param name="image2">Deuxième tableau de bytes représentant une image.</param>
-        /// <returns>
-        /// 200 OK : Si les deux images sont identiques.
-        /// 400 BadRequest : Si les images diffèrent ou si une erreur survient.
-        /// </returns>
+        /// <param name="image1">Premier tableau de bytes représentant une image</param>
+        /// <param name="image2">Deuxième tableau de bytes représentant une image</param>
+        /// <param name="name">Nom de la paire d'images</param>
+        /// <param name="differences">Liste des différences au format JSON</param>
+        /// <returns>200 OK si l'ajout est réussi</returns>
+        /// <response code="200">Les images ont été ajoutées avec succès</response>
+        /// <response code="400">Paramètres invalides ou manquants</response>
+        /// <response code="500">Erreur interne lors du traitement</response>
         [HttpPost("compare")]
-        public async Task<IActionResult> AddImage([FromForm] IFormFile image1, [FromForm] IFormFile image2, [FromForm] string name, [FromForm] string differences)
+        public async Task<IActionResult> AddImage([FromForm] IFormFile image1,
+            [FromForm] IFormFile image2, [FromForm] string name, 
+            [FromForm] string differences)
         {
             _logger.LogInformation("Requête reçue dans AddImage.");
 

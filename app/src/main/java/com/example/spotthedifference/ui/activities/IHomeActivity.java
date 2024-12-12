@@ -4,7 +4,8 @@ import android.content.Intent;
 import retrofit2.Response;
 
 /**
- * Interface contenant toutes les méthodes de HomeActivity.
+ * Interface définissant le contrat pour l'activité principale de l'application.
+ * Gère la création et la participation aux sessions de jeu.
  */
 public interface IHomeActivity {
 
@@ -22,7 +23,6 @@ public interface IHomeActivity {
      * Crée une session de jeu avec le nom du joueur.
      *
      * @param playerName Nom du joueur qui crée la session.
-     * @return true si la création de session est initiée avec succès, false sinon.
      */
     void createGameSession(String playerName);
 
@@ -31,7 +31,6 @@ public interface IHomeActivity {
      *
      * @param sessionId  Identifiant de la session à rejoindre.
      * @param playerName Nom du joueur qui rejoint la session.
-     * @return true si la tentative de rejoindre est initiée avec succès, false sinon.
      */
     void joinGameSession(String sessionId, String playerName);
 
@@ -58,7 +57,8 @@ public interface IHomeActivity {
 
     /**
      * Affiche un message d'erreur Toast pour informer l'utilisateur.
-     * @param message
+     *
+     * @param message Le message d'erreur à afficher.
      */
     void showErrorToast(String message);
 

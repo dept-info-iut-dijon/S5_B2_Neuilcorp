@@ -9,32 +9,36 @@ using Microsoft.Extensions.Logging;
 namespace API7D.Controllers
 {
     [Route("api/[controller]")]
-
-
     [ApiController]
     public class DifferanceController : ControllerBase
     {
-            private IDifferanceChecker checker;
-            private readonly SessionService _sessionService;
-            private readonly ILogger<DifferanceChecker> _logger;
+        private readonly IDifferanceChecker _checker;
+        private readonly SessionService _sessionService;
+        private readonly ILogger<DifferanceChecker> _logger;
 
-        public DifferanceController(SessionService sessionService , ILogger<DifferanceChecker> logger)
+        /// <summary>
+        /// Initialise une nouvelle instance du contrôleur de différences.
+        /// </summary>
+        /// <param name="sessionService">Service de gestion des sessions</param>
+        /// <param name="logger">Logger pour le traçage des événements</param>
+        public DifferanceController(SessionService sessionService, ILogger<DifferanceChecker> logger)
         {
             _logger = logger;
-            this.checker = new DifferanceChecker(logger);
+            _checker = new DifferanceChecker(logger);
             _sessionService = sessionService;
-
         }
 
         /// <summary>
-        /// permet de verifier les différences
+        /// Vérifie si les coordonnées correspondent à une différence dans l'image.
         /// </summary>
-        /// <param name="coordonnees">une coordonée X Y</param>
-        /// <param name="IdImage">L'identifiant de l'image à vérifier</param>
-        /// <returns>
-        /// 200 Ok : si la vérification est réussie
-        /// 400 Bad Request : si la vérification a échoué
-        /// </returns>
+        /// <param name="coordonnees">Coordonnées X,Y sélectionnées par le joueur</param>
+        /// <param name="sessionId">Identifiant de la session de jeu</param>
+        /// <param name="playerId">Identifiant du joueur</param>
+        /// <param name="imageId">Identifiant de l'image à vérifier</param>
+        /// <returns>200 OK avec succès=true si la différence est valide, 400 sinon</returns>
+        /// <response code="200">La vérification a réussi</response>
+        /// <response code="400">La vérification a échoué</response>
+        /// <response code="500">Erreur interne du serveur</response>
         [HttpPost("check")]
         public async Task<IActionResult> CheckDifference(
             [FromBody] Coordonnees coordonnees,
@@ -42,13 +46,11 @@ namespace API7D.Controllers
             [FromQuery] string playerId,
             [FromQuery] string imageId)
         {
-            _logger.LogWarning("j'ai reçu une requête pour vérifier une différence.");
-            IActionResult actionResult;
-
+            _logger.LogInformation("Réception d'une requête de vérification de différence");
+            
             try
             {
-                // Appelle la méthode asynchrone pour vérifier si la différence est valide
-                bool isInZone = await checker.IsWithinDifferenceAsync(
+                bool isInZone = await _checker.IsWithinDifferenceAsync(
                     coordonnees,
                     int.Parse(imageId),
                     sessionId,
@@ -57,15 +59,13 @@ namespace API7D.Controllers
                 );
 
                 await _sessionService.NotifyPlayers(sessionId, isInZone);
-                // Retourne une réponse HTTP avec le statut approprié
-                actionResult = Ok(new { success = isInZone });
+                return Ok(new { success = isInZone });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Une erreur est survenue lors de la vérification de la différence.");
-                actionResult = StatusCode(500, new { success = false, message = ex.Message });
+                _logger.LogError(ex, "Erreur lors de la vérification de la différence");
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
-            return actionResult;
         }
 
         /// <summary>
@@ -109,6 +109,5 @@ namespace API7D.Controllers
 
             return result;
         }
-
     }
 }

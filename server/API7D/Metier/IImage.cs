@@ -15,8 +15,11 @@ namespace API7D.Metier
         /// <summary>
         /// Ajoute une image avec une liste des différences.
         /// </summary>
-        /// <param name="image">Objet ImageDifference contenant les informations sur l'image et ses différences.</param>
-        void SetImages(byte[] image1 , byte[] image2 ,string name, List<Coordonnees> difference);
+        /// <param name="image1">Première image en bytes</param>
+        /// <param name="image2">Deuxième image en bytes</param>
+        /// <param name="name">Nom de base pour les fichiers</param>
+        /// <param name="difference">Liste des coordonnées des différences</param>
+        void SetImages(byte[] image1, byte[] image2, string name, List<Coordonnees> difference);
 
         /// <summary>
         /// Récupère toutes les images sous forme de tableau de bytes.
@@ -37,6 +40,14 @@ namespace API7D.Metier
         /// <returns>Liste contenant l'ID de l'image, l'ID de la paire et l'image en base64.</returns>
         List<ImageWithPair> GetAllImagesWithPairs();
 
-        public (byte[] Image1, byte[] Image2) ReadyImageToPlayer(string Idsession, SessionService _session);
+        /// <summary>
+        /// Prépare et récupère les images pour un joueur dans une session donnée.
+        /// </summary>
+        /// <param name="Idsession">Identifiant de la session</param>
+        /// <param name="_session">Service de gestion des sessions</param>
+        /// <returns>Tuple contenant les deux images de la paire</returns>
+        /// <exception cref="ArgumentException">Si la session est invalide</exception>
+        /// <exception cref="InvalidOperationException">Si aucune paire d'images n'est sélectionnée</exception>
+        (byte[] Image1, byte[] Image2) ReadyImageToPlayer(string Idsession, SessionService _session);
     }
 }

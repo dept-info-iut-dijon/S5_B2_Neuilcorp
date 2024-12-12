@@ -22,7 +22,6 @@ import com.example.spotthedifference.models.Player;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -31,9 +30,14 @@ import retrofit2.Retrofit;
 
 /**
  * Activité principale permettant de créer ou de rejoindre une session de jeu.
+ * Gère l'interface utilisateur pour l'initialisation des parties et la navigation
+ * vers la salle d'attente.
  */
 public class HomeActivity extends AppCompatActivity implements IHomeActivity {
 
+    /**
+     * Service API pour les communications avec le serveur.
+     */
     private ApiService apiService;
 
     @Override
@@ -164,7 +168,10 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
     }
 
     /**
-     * Navigue vers l'activité de salle d'attente.
+     * Navigue vers l'activité de salle d'attente avec les informations de session.
+     *
+     * @param session Session de jeu créée ou rejointe
+     * @param hostPlayer Joueur hôte de la session
      */
     private void navigateToWaitingRoom(GameSession session, Player hostPlayer) {
         Intent intent = new Intent(HomeActivity.this, WaitingRoomActivity.class);
@@ -176,7 +183,11 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
     }
 
     /**
-     * Récupère la session et navigue vers la salle d'attente.
+     * Récupère les détails de la session et navigue vers la salle d'attente.
+     *
+     * @param sessionId Identifiant de la session
+     * @param playerName Nom du joueur
+     * @param playerId Identifiant unique du joueur
      */
     private void fetchSessionAndNavigate(String sessionId, String playerName, String playerId) {
         apiService.getSessionById(sessionId).enqueue(new Callback<GameSession>() {

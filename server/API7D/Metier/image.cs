@@ -44,16 +44,22 @@ namespace API7D.Metier
             return images;
         }
 
-
-        public void SetImages(byte[] image1 , byte[] image2, string name , List<Coordonnees> difference)
+        /// <summary>
+        /// Enregistre une paire d'images avec leurs différences.
+        /// </summary>
+        /// <param name="image1">Première image en bytes</param>
+        /// <param name="image2">Deuxième image en bytes</param>
+        /// <param name="name">Nom de base pour les fichiers</param>
+        /// <param name="difference">Liste des coordonnées des différences</param>
+        /// <exception cref="IOException">Si une erreur survient lors de l'écriture des fichiers</exception>
+        public void SetImages(byte[] image1, byte[] image2, string name, List<Coordonnees> difference)
         {
             try
             {
-                // Crée le chemin vers le dossier "Image"
                 string imagesFolder = Path.Combine(Directory.GetCurrentDirectory(), "Image");
                 if (!Directory.Exists(imagesFolder))
                 {
-                    Directory.CreateDirectory(imagesFolder); // Crée le dossier s'il n'existe pas
+                    Directory.CreateDirectory(imagesFolder);
                 }
 
                 string filePath = Path.Combine(imagesFolder, $"{name}.png");
@@ -62,13 +68,11 @@ namespace API7D.Metier
                 string filePath2 = Path.Combine(imagesFolder, $"{name}1.png");
                 System.IO.File.WriteAllBytes(filePath2, image2);
 
-                _data.SetImagesDATA($"Image/{name}.png", $"Image/{name}1.png",difference);
-
-
-
+                _data.SetImagesDATA($"Image/{name}.png", $"Image/{name}1.png", difference);
             }
             catch (Exception ex)
             {
+                throw new IOException("Erreur lors de l'enregistrement des images", ex);
             }
         }
 

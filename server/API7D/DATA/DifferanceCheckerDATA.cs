@@ -4,21 +4,24 @@ using API7D.objet;
 
 namespace API7D.DATA
 {
-    public class DifferanceCheckerDATA : IDifferanceCheckerDATA
+    public class DifferenceCheckerData : IDifferenceCheckerData
     {
         private readonly string _connectionString;
 
-        public DifferanceCheckerDATA()
+        /// <summary>
+        /// Initialise une nouvelle instance de DifferenceCheckerData.
+        /// </summary>
+        public DifferenceCheckerData()
         {
-            // Connexion ‡ une base de donnÈes SQLite locale
+            // Connexion √† une base de donn√©es SQLite locale
             _connectionString = "Data Source=./Database/DataBase_Image.db";
         }
 
         /// <summary>
-        /// RÈcupËre la liste des coordonnÈes des diffÈrences pour un ID donnÈ.
+        /// R√©cup√®re la liste des coordonn√©es des diff√©rences pour un ID donn√©.
         /// </summary>
         /// <param name="id">ID de la paire d'images</param>
-        /// <returns>Liste des coordonnÈes des diffÈrences</returns>
+        /// <returns>Liste des coordonn√©es des diff√©rences pour la paire d'images sp√©cifi√©e</returns>
         public List<Coordonnees> GetListDifferanceCoordinatesFromId(int id)
         {
             var differanceCoordinates = new List<Coordonnees>();
@@ -50,9 +53,9 @@ namespace API7D.DATA
         }
 
         /// <summary>
-        /// RÈcupËre toutes les diffÈrences pour toutes les paires d'images.
+        /// R√©cup√®re toutes les diff√©rences pour toutes les paires d'images.
         /// </summary>
-        /// <returns>Dictionnaire avec l'ID de la paire comme clÈ et la liste de coordonnÈes comme valeur</returns>
+        /// <returns>Dictionnaire avec l'ID de la paire comme cl√© et la liste de coordonn√©es comme valeur</returns>
         public Dictionary<int, List<Coordonnees>> getAllDifferance()
         {
             var allDifferances = new Dictionary<int, List<Coordonnees>>();

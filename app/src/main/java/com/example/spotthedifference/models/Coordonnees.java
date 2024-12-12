@@ -1,7 +1,8 @@
 package com.example.spotthedifference.models;
 
 /**
- * Classe représentant les coordonnées X et Y.
+ * Classe représentant les coordonnées X et Y dans un système de coordonnées 2D.
+ * Implémente l'interface ICoordonnees pour assurer la cohérence du contrat.
  */
 public class Coordonnees implements ICoordonnees {
     private int x;
@@ -10,8 +11,8 @@ public class Coordonnees implements ICoordonnees {
     /**
      * Constructeur avec paramètres pour initialiser les coordonnées.
      *
-     * @param x Coordonnée X.
-     * @param y Coordonnée Y.
+     * @param x Coordonnée X dans le plan.
+     * @param y Coordonnée Y dans le plan.
      */
     public Coordonnees(int x, int y) {
         this.x = x;
@@ -19,9 +20,7 @@ public class Coordonnees implements ICoordonnees {
     }
 
     /**
-     * Obtient la coordonnée X.
-     *
-     * @return la valeur de X.
+     * {@inheritDoc}
      */
     @Override
     public int getX() {
@@ -29,9 +28,7 @@ public class Coordonnees implements ICoordonnees {
     }
 
     /**
-     * Définit la coordonnée X.
-     *
-     * @param x Nouvelle coordonnée X.
+     * {@inheritDoc}
      */
     @Override
     public void setX(int x) {
@@ -39,9 +36,7 @@ public class Coordonnees implements ICoordonnees {
     }
 
     /**
-     * Obtient la coordonnée Y.
-     *
-     * @return la valeur de Y.
+     * {@inheritDoc}
      */
     @Override
     public int getY() {
@@ -49,9 +44,7 @@ public class Coordonnees implements ICoordonnees {
     }
 
     /**
-     * Définit la coordonnée Y.
-     *
-     * @param y Nouvelle coordonnée Y.
+     * {@inheritDoc}
      */
     @Override
     public void setY(int y) {
@@ -59,12 +52,10 @@ public class Coordonnees implements ICoordonnees {
     }
 
     /**
-     * Fournit une représentation sous forme de chaîne pour déboguer les coordonnées.
-     *
-     * @return Une chaîne représentant les coordonnées (X, Y).
+     * {@inheritDoc}
      */
     @Override
     public String toString() {
-        return "Coordonnees{" + "x=" + x + ", y=" + y + '}';
+        return String.format("Coordonnees{x=%d, y=%d}", x, y);
     }
 }

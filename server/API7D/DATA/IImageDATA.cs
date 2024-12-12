@@ -3,19 +3,24 @@ using API7D.objet;
 
 namespace API7D.DATA
 {
-    public interface IImageDATA
+    public interface IImageData
     {
         /// <summary>
         /// Récupère le chemin d'une image spécifique par son ID.
         /// </summary>
         /// <param name="ID">ID de l'image</param>
         /// <returns>Le chemin de l'image</returns>
+        /// <exception cref="Exception">Si l'image n'est pas trouvée</exception>
         string GetImagesDATA(int ID);
 
         /// <summary>
         /// Permet d'ajouter une paire d'images avec une liste de différences.
         /// </summary>
-        /// <param name="imageDifference">Objet représentant la paire d'images et leurs différences</param>
+        /// <param name="path1">Chemin de la première image</param>
+        /// <param name="path2">Chemin de la deuxième image</param>
+        /// <param name="difference">Liste des coordonnées des différences</param>
+        /// <exception cref="ArgumentException">Si les chemins sont null ou vides</exception>
+        /// <exception cref="ArgumentNullException">Si la liste des différences est null</exception>
         public void SetImagesDATA(string path1, string path2, List<Coordonnees> difference);
 
         /// <summary>

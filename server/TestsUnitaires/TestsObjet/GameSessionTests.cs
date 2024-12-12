@@ -3,8 +3,14 @@ using Xunit;
 
 namespace TestsUnitaires.TestsObjet
 {
+    /// <summary>
+    /// Tests unitaires pour la classe GameSession.
+    /// </summary>
     public class GameSessionTests
     {
+        /// <summary>
+        /// Vérifie que le constructeur initialise correctement une session de jeu.
+        /// </summary>
         [Fact]
         public void Constructor_InitializesCorrectly()
         {
@@ -23,6 +29,9 @@ namespace TestsUnitaires.TestsObjet
             Assert.True(session.GameTimer);
         }
 
+        /// <summary>
+        /// Vérifie qu'un joueur peut être ajouté à une session.
+        /// </summary>
         [Fact]
         public void AddPlayer_AddsPlayerToSession()
         {

@@ -1,7 +1,5 @@
 package com.example.spotthedifference.api;
 
-import android.util.Log;
-
 import com.example.spotthedifference.models.Coordonnees;
 import com.example.spotthedifference.models.GameSession;
 import com.example.spotthedifference.models.Player;
@@ -42,7 +40,7 @@ public interface ApiService {
      * @return Un appel Retrofit indiquant si les coordonnées sont correctes.
      */
     @POST("api/Differance/check")
-    Call<Void> sendCoordinates(@Body Coordonnees coordonnees,@Query("sessionId") String sessionId,@Query("playerId") String playerId,@Query("imageId") String imagePairId);
+    Call<Void> sendCoordinates(@Body Coordonnees coordonnees, @Query("sessionId") String sessionId, @Query("playerId") String playerId, @Query("imageId") String imagePairId);
 
     /**
      * Récupère une image à partir de son ID.

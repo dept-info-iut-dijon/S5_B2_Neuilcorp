@@ -9,14 +9,15 @@ using API7D.Database;
 
 namespace API7D.DATA
 {
-    public class ImageDATA : IImageDATA
+    public class ImageData : IImageData
     {
         private readonly string _connectionString;
 
         /// <summary>
-        /// Initialise une nouvelle instance de ImageDATA avec une connexion SQLite.
+        /// Initialise une nouvelle instance de ImageData avec une connexion SQLite.
         /// </summary>
-        public ImageDATA()
+        /// <exception cref="InvalidOperationException">Si la chaîne de connexion n'est pas initialisée</exception>
+        public ImageData()
         {
             _connectionString = Setting.DataBasePath;
         }
@@ -24,8 +25,9 @@ namespace API7D.DATA
         /// <summary>
         /// Récupère le lien d'image correspondant à un ID donné.
         /// </summary>
-        /// <param name="ID">L'ID de l'image à récupérer.</param>
-        /// <returns>Le chemin d'accès à l'image.</returns>
+        /// <param name="ID">L'ID de l'image à récupérer</param>
+        /// <returns>Le chemin d'accès à l'image</returns>
+        /// <exception cref="Exception">Si l'image n'est pas trouvée</exception>
         public string GetImagesDATA(int ID)
         {
             string imagePath = null;
@@ -53,9 +55,9 @@ namespace API7D.DATA
 
 
         /// <summary>
-        /// Récupère une liste des images avec leurs données associées ( Id image, ID de la paire d'image)
+        /// Récupère une liste des images avec leurs données associées.
         /// </summary>
-        /// <returns>Une liste de tuple contenant les informations telles que : imageId, imagePairId, ImageLink</returns>
+        /// <returns>Une liste de tuples contenant (ImageId, ImagePairId, ImageLink)</returns>
         public List<(int ImageId, int ImagePairId, string ImageLink)> GetAllImagesWithPairData()
         {
             var imagesWithPairs = new List<(int ImageId, int PairId, string ImageLink)>(); // Utilisation des noms correspondants
@@ -64,7 +66,8 @@ namespace API7D.DATA
             {
                 connection.Open();
 
-                string query = @"SELECT i.ImageID,id.PairID,i.ImageLink FROM Image i LEFT JOIN ImageDifference id ON i.ImageID = id.Image1ID OR i.ImageID = id.Image2ID";
+                string query = @"
+            SELECT i.ImageID,id.PairID,i.ImageLink FROM Image i LEFT JOIN ImageDifference id ON i.ImageID = id.Image1ID OR i.ImageID = id.Image2ID";
 
                 using (var command = new SqliteCommand(query, connection))
                 {

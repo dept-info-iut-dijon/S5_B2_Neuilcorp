@@ -2,8 +2,14 @@
 
 namespace TestsUnitaires.TestsObjet
 {
+    /// <summary>
+    /// Tests unitaires pour la classe Coordonnees.
+    /// </summary>
     public class CoordonneesTests
     {
+        /// <summary>
+        /// Vérifie que le constructeur initialise correctement les coordonnées.
+        /// </summary>
         [Fact]
         public void Constructor_InitializesCoordinatesCorrectly()
         {
@@ -12,6 +18,9 @@ namespace TestsUnitaires.TestsObjet
             Assert.Equal(20, coord.Y);
         }
 
+        /// <summary>
+        /// Vérifie que les propriétés X et Y peuvent être modifiées correctement.
+        /// </summary>
         [Fact]
         public void Properties_SetterWorksCorrectly()
         {

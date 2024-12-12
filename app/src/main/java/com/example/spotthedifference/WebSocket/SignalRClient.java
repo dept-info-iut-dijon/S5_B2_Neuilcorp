@@ -45,7 +45,7 @@ public class SignalRClient {
     private BehaviorSubject<Player> playerJoinedSubject = BehaviorSubject.create();
     private BehaviorSubject<Player> playerReadyStatusChangedSubject = BehaviorSubject.create();
     private BehaviorSubject<Boolean> connectionEstablishedSubject = BehaviorSubject.create();
-    private BehaviorSubject<String> SessionDeletedSubject = BehaviorSubject.create();
+    private BehaviorSubject<String> sessionDeletedSubject = BehaviorSubject.create();
 
     private GameStartedListener gameStartedListener;
     public BehaviorSubject<Boolean> getConnectionEstablishedObservable() {
@@ -53,7 +53,7 @@ public class SignalRClient {
     }
     private BehaviorSubject<String> readyNotAllowedSubject = BehaviorSubject.create();
     private BehaviorSubject<String> notifyMessageSubject = BehaviorSubject.create();
-    private BehaviorSubject<String> PlayerRemovedSubject = BehaviorSubject.create();
+    private BehaviorSubject<String> playerRemovedSubject = BehaviorSubject.create();
 
     /**
      * Initialise le client SignalR en configurant la connexion et les événements.
@@ -86,7 +86,7 @@ public class SignalRClient {
         hubConnection.on("ReadyNotAllowed", readyNotAllowedSubject::onNext, String.class);
         hubConnection.on("NotifyMessage", notifyMessageSubject::onNext, String.class);
         hubConnection.on("ReceiveConnectionId", this::handleConnectionIdReceived, String.class);
-        hubConnection.on("SessionDeleted", SessionDeletedSubject::onNext, String.class);
+        hubConnection.on("SessionDeleted", sessionDeletedSubject::onNext, String.class);
     }
 
     /**
@@ -101,7 +101,7 @@ public class SignalRClient {
      * Gestion de l'événement "PlayerRemoved".
      */
     private void handlePlayerRemoved(Player player) {
-        PlayerRemovedSubject.onNext(player.getPlayerId());
+        playerRemovedSubject.onNext(player.getPlayerId());
         log("SignalRClient: PlayerRemoved reçu -> ID: " + player.getPlayerId() + ", Nom: " + player.getName(), null);
     }
 
@@ -222,7 +222,7 @@ public class SignalRClient {
      *
      * @return true si la connexion est active, false sinon.
      */
-    public boolean isConnected() {
+    private boolean isConnected() {
         return hubConnection != null && hubConnection.getConnectionState() == HubConnectionState.CONNECTED;
     }
 
@@ -439,7 +439,7 @@ public class SignalRClient {
      * @return Un {@link BehaviorSubject} émettant l'identifiant des sessions supprimées.
      */
     public BehaviorSubject<String> getSessionDeletedObservable() {
-        return SessionDeletedSubject;
+        return sessionDeletedSubject;
     }
 
     /**
@@ -448,6 +448,6 @@ public class SignalRClient {
      * @return Un {@link BehaviorSubject} émettant les identifiants des joueurs supprimés.
      */
     public BehaviorSubject<String> getPlayerRemovedObservable() {
-        return PlayerRemovedSubject;
+        return playerRemovedSubject;
     }
 }

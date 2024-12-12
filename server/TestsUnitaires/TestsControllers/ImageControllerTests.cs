@@ -18,9 +18,7 @@ namespace TestsUnitaires.TestsControllers
         private readonly Mock<IHubContext<GameSessionHub>> _mockHubContext;
 
         /// <summary>
-        /// Configure l'environnement de test
-        /// Initialise une nouvelle instance du controleur ImageControlleur
-        /// Initialise Mock pour simuler les services de session et d'image
+        /// Configure l'environnement de test avec les mocks nécessaires.
         /// </summary>
         public ImageControlleurTests()
         {

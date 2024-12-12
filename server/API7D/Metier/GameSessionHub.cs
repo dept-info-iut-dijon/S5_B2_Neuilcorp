@@ -48,9 +48,9 @@ namespace API7D.Metier
         }
 
         /// <summary>
-        /// Methode appelée lorsqu'un client se déconnecte.
+        /// Méthode appelée lorsqu'un client se déconnecte.
         /// </summary>
-        /// <param name="exception">Exception éventuellement générée lors de la déconnection</param>
+        /// <param name="exception">Exception éventuellement générée lors de la déconnexion</param>
         /// <returns>Tâche représentant l'opération asynchrone</returns>
         public override Task OnDisconnectedAsync(Exception exception)
         {
@@ -109,6 +109,11 @@ namespace API7D.Metier
             await Clients.Group(sessionId).SendAsync("SessionDeleted", sessionId);
         }
 
+        /// <summary>
+        /// Récupère l'ID de connexion associé à un joueur.
+        /// </summary>
+        /// <param name="playerId">Identifiant du joueur</param>
+        /// <returns>L'ID de connexion du joueur ou null si non trouvé</returns>
         public async Task<string> GetConnectionIdByPlayerId(string playerId)
         {
             if (PlayerConnections.ContainsKey(playerId))
@@ -153,10 +158,8 @@ namespace API7D.Metier
         /// </summary>
         /// <param name="sessionId">ID de session</param>
         /// <param name="playerId">ID des joueurs</param>
-        /// <param name="isReady">savoir si un joueur est prêt ou non</param>
-        /// <returns></returns>
-
-        //marche
+        /// <param name="isReady">État de préparation du joueur</param>
+        /// <returns>Tâche représentant l'opération asynchrone</returns>
         public async Task SetPlayerReadyStatus(string sessionId, string playerId, bool isReady)
         {
             _logger.LogInformation($"Received readiness update for player {playerId} in session {sessionId}. IsReady: {isReady}.");
@@ -185,9 +188,9 @@ namespace API7D.Metier
                 thisplayer.IsReady = false;
                 isReady = false;
             }
-            else { 
-            thisplayer.IsReady = isReady;
-
+            else 
+            { 
+                thisplayer.IsReady = isReady;
             }
             _logger.LogInformation($"Player {playerId} readiness updated to {isReady} in session {sessionId}.");
             await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
@@ -247,6 +250,12 @@ namespace API7D.Metier
             }
         }
             
+        /// <summary>
+        /// Notifie les joueurs du résultat d'une vérification de différence.
+        /// </summary>
+        /// <param name="sessionId">ID de la session</param>
+        /// <param name="isInZone">Indique si la différence a été trouvée</param>
+        /// <returns>Tâche représentant l'opération asynchrone</returns>
         public async Task NotifyResult(string sessionId, bool isInZone)
         {
             _logger.LogInformation($"Notification du résultat pour la session {sessionId}. Résultat : {isInZone}");

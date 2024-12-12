@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
-
 /// <summary>
 /// Contrôleur pour gérer les sessions de jeu, il fournit les endpoints pour créer, rejoindre et supprimer des sessions ainsi que pour gérer les joueurs dans une session.
+/// </summary>
 public class GameSessionController : ControllerBase
 {
     private readonly SessionService _sessionService;
@@ -140,25 +140,19 @@ public class GameSessionController : ControllerBase
     /// <summary>
     /// Supprime une session de jeu par son ID.
     /// </summary>
-    /// <param name="sessionId">L'ID de la session à supprimer.</param>
-    /// <returns>Un résultat Ok si la session est supprimée, ou un résultat BadRequest si elle n'existe pas.</returns>
+    /// <param name="sessionId">L'ID de la session à supprimer</param>
+    /// <returns>200 OK si la session est supprimée, 400 si elle n'existe pas</returns>
     [HttpDelete("{sessionId}")]
-    public ActionResult destructiondeSession(string sessionId)
+    public ActionResult DestroySession(string sessionId)
     {
         bool sessionDeleted = _sessionService.RemoveSession(sessionId);
-        ActionResult result;
-
         if (!sessionDeleted)
         {
-            result = BadRequest("La session n'existe pas ou n'a pas pu être supprimée.");
-        }
-        else
-        {
-            _codeGenerator.InvalidateCode(int.Parse(sessionId));
-            result = Ok("Session détruite");
+            return BadRequest("La session n'existe pas ou n'a pas pu être supprimée.");
         }
 
-        return result;
+        _codeGenerator.InvalidateCode(int.Parse(sessionId));
+        return Ok("Session détruite");
     }
 
     /// <summary>
@@ -187,27 +181,24 @@ public class GameSessionController : ControllerBase
     /// <summary>
     /// Force la synchronisation de l'état de la session.
     /// </summary>
-    /// <param name="sessionId">l'ID de la session à synchroniser</param>
-    /// <returns>L'état actuel de la session ou un message d'erreur</returns>
+    /// <param name="sessionId">L'ID de la session à synchroniser</param>
+    /// <returns>200 OK avec l'état de la session, 404 si la session n'existe pas</returns>
+    /// <response code="200">Retourne l'état actuel de la session</response>
+    /// <response code="404">La session n'a pas été trouvée</response>
     [HttpGet("{sessionId}/forceSync")]
     public ActionResult<GameSession> ForceSync(string sessionId)
     {
-        _logger.LogInformation($"Force sync requested for session {sessionId}.");
-        GameSession existingSession = _sessionService.GetSessionById(sessionId);
-        ActionResult<GameSession> result;
+        _logger.LogInformation($"Force sync requested for session {sessionId}");
+        var existingSession = _sessionService.GetSessionById(sessionId);
 
         if (existingSession == null)
         {
-            _logger.LogWarning($"Session {sessionId} not found for force sync.");
-            result = NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
-        }
-        else
-        {
-            _logger.LogInformation($"Force sync returning session state for {sessionId}.");
-            result = Ok(existingSession);
+            _logger.LogWarning($"Session {sessionId} not found for force sync");
+            return NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée");
         }
 
-        return result;
+        _logger.LogInformation($"Force sync returning session state for {sessionId}");
+        return Ok(existingSession);
     }
 
     /// <summary>

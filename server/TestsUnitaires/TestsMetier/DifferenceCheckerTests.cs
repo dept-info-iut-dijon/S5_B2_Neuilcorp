@@ -9,7 +9,7 @@ namespace TestsUnitaires.TestsMetier
         private readonly DifferanceCheckerDATA _differanceChecker;
 
         /// <summary>
-        /// Constructeur de la classe de test
+        /// Initialise une nouvelle instance de la classe de tests.
         /// </summary>
         public DifferanceCheckerTests()
         {
@@ -17,7 +17,7 @@ namespace TestsUnitaires.TestsMetier
         }
 
         /// <summary>
-        /// Teste que la méthode GetListDifferanceCoordinates retourne le bon nombre de coordonnées
+        /// Vérifie que GetListDifferanceCoordinates retourne le nombre correct de coordonnées.
         /// </summary>
         [Fact]
         public void GetListDifferanceCoordinates_ReturnsCorrectNumberOfCoordinates()
@@ -29,7 +29,7 @@ namespace TestsUnitaires.TestsMetier
         }
 
         /// <summary>
-        /// Teste que la méthode GetListDifferanceCoordinates contient les coordonnées attendues
+        /// Vérifie que GetListDifferanceCoordinates contient les coordonnées attendues.
         /// </summary>
         [Fact]
         public void GetListDifferanceCoordinates_ContainsExpectedCoordinates()

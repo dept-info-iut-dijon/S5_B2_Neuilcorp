@@ -46,17 +46,64 @@ import retrofit2.Retrofit;
  */
 public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRoomActivity, GameStartedListener{
 
+    /**
+     * TextView affichant le code de la session.
+     */
     private TextView sessionCodeTextView;
+
+    /**
+     * TextView affichant le nom de la partie.
+     */
     private TextView partyNameTextView;
+
+    /**
+     * TextView affichant le nom du joueur.
+     */
     private TextView playerNameTextView;
+
+    /**
+     * Conteneur pour la liste des joueurs.
+     */
     private LinearLayout playersContainer;
+
+    /**
+     * Service pour les appels API.
+     */
     private ApiService apiService;
+
+    /**
+     * Identifiant unique de la session.
+     */
     private String sessionId;
+
+    /**
+     * Nom du joueur.
+     */
     private String playerName;
+
+    /**
+     * ID du joueur.
+     */
     private String playerId;
+
+    /**
+     * Statut de préparation du joueur.
+     */
     private boolean isReady = false;
+
+    /**
+     * Client pour la communication en temps réel.
+     */
     private SignalRClient signalRClient;
+
+    /**
+     * Gestionnaire des souscriptions aux observables.
+     */
     private CompositeDisposable disposables = new CompositeDisposable();
+
+    /**
+     * Liste des joueurs.
+     */
     private List<Player> players = new ArrayList<>();
 
     @Override
@@ -360,38 +407,39 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
      */
     public void deleteSessionAndExit() {
         if (isHost()) {
-            // L'hôte quitte, supprimer la session
             apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
                         redirectToHome();
                     } else {
-                        Log.e("WaitingRoom", "Erreur lors de la suppression de la session : " + response.code());
+                        Log.e("WaitingRoom", "Erreur lors de la suppression de la session : " 
+                                + response.code());
                     }
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    Log.e("WaitingRoom", "Échec de la requête de suppression de la session : " + t.getMessage());
+                    Log.e("WaitingRoom", "Échec de la requête de suppression de la session : " 
+                            + t.getMessage());
                 }
             });
         } else {
-            // Un joueur non-hôte quitte
             apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
-                        //signalRClient.notifyPlayerRemoved(sessionId, playerId);
                         redirectToHome();
                     } else {
-                        Log.e("WaitingRoom", "Erreur lors du retrait du joueur (code: " + response.code() + ") - playerId: " + playerId);
+                        Log.e("WaitingRoom", "Erreur lors du retrait du joueur (code: " 
+                                + response.code() + ") - playerId: " + playerId);
                     }
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    Log.e("WaitingRoom", "Échec de la requête de retrait du joueur : " + t.getMessage());
+                    Log.e("WaitingRoom", "Échec de la requête de retrait du joueur : " 
+                            + t.getMessage());
                 }
             });
         }

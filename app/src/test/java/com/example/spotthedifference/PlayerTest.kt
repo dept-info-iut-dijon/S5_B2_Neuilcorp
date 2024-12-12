@@ -6,13 +6,21 @@ import org.junit.Assert.*
 
 class PlayerTest {
 
-    /// <summary>
-    /// Vérifie que le joueur se construit correctement.
-    /// </summary>
+    /**
+     * Vérifie que le joueur est correctement initialisé.
+     */
     @Test
-    fun testPlayerInitialization() {
+    fun testPlayerConstructor() {
         val player = Player("1", "Leo")
         assertEquals("Leo", player.name)
+    }
+
+    /**
+     * Vérifie que le nom du joueur peut être modifié.
+     */
+    @Test
+    fun testPlayerNameModification() {
+        val player = Player("1", "Leo")
         player.name = "oeL"
         assertEquals("oeL", player.name)
     }

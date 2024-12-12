@@ -9,18 +9,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-public class DifferanceChecker : IDifferanceChecker
+public class DifferenceChecker : IDifferenceChecker
 {
     private Dictionary<int, List<Coordonnees>> differences;
     private const int AcceptanceRadius = 100; // Rayon d'acceptation en pixels
-    private readonly ILogger<DifferanceChecker> _logger;
+    private readonly ILogger<DifferenceChecker> _logger;
 
     private readonly object _lock = new object(); // Synchronisation
     private readonly Dictionary<string, TaskCompletionSource<bool>> _sessionTasks = new Dictionary<string, TaskCompletionSource<bool>>();
 
-    public DifferanceChecker(ILogger<DifferanceChecker> logger)
+    /// <summary>
+    /// Initialise une nouvelle instance de DifferenceChecker.
+    /// </summary>
+    /// <param name="logger">Logger pour le traçage des événements</param>
+    public DifferenceChecker(ILogger<DifferenceChecker> logger)
     {
-        IDifferanceCheckerDATA data = new DifferanceCheckerDATA();
+        IDifferenceCheckerData data = new DifferenceCheckerData();
         this.differences = data.getAllDifferance();
         _logger = logger;
     }

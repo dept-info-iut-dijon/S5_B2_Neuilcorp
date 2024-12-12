@@ -3,21 +3,28 @@ using System.Collections.Generic;
 
 namespace API7D.Metier
 {
+    /// <summary>
+    /// Générateur de codes uniques pour les sessions de jeu.
+    /// </summary>
     public class SessionCodeGenerator
     {
         private readonly HashSet<int> generatedCodes;
         private readonly Random random;
 
+        /// <summary>
+        /// Initialise une nouvelle instance du générateur de codes de session.
+        /// </summary>
         public SessionCodeGenerator()
         {
-            generatedCodes = new HashSet<int>(); // plus perfomant qu'une list
+            generatedCodes = new HashSet<int>();
             random = new Random();
         }
 
         /// <summary>
-        /// permet de genrer des code de session a 6 chiffre unique
+        /// Génère un code de session unique à 6 chiffres.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Un code unique entre 100000 et 999999</returns>
+        /// <remarks>Les codes générés sont stockés pour éviter les doublons</remarks>
         public int GenerateUniqueCode()
         {
             int code;
@@ -32,9 +39,9 @@ namespace API7D.Metier
         }
 
         /// <summary>
-        /// supprime ce code des code generer 
+        /// Invalide un code de session en le retirant de la liste des codes générés.
         /// </summary>
-        /// <param name="code"> le code</param>
+        /// <param name="code">Le code à invalider</param>
         public void InvalidateCode(int code)
         {
             generatedCodes.Remove(code);

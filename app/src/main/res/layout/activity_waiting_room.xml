@@ -39,7 +39,7 @@
                     android:layout_width="0dp"
                     android:layout_height="65dp"
                     android:layout_weight="1"
-                    android:text="@string/code_de_session"
+                    android:text="@string/Home_code_de_session"
                     android:textColor="@android:color/black"
                     android:textSize="18sp" />
 
@@ -52,7 +52,7 @@
                     android:padding="5dp"
                     android:layout_marginEnd="15dp"
                     android:layout_marginTop="15dp"
-                    android:text="@string/copier"
+                    android:text="@string/Waiting_copier"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -61,7 +61,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/nom_de_la_partie_nom"
+                android:text="@string/Waiting_nom_de_la_partie_nom"
                 android:textStyle="bold"
                 android:textColor="@android:color/black" />
 
@@ -71,7 +71,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="@string/nom_joueur_hote"
+                android:text="@string/Waiting_nom_joueur_hote"
                 android:textColor="@android:color/black" />
         </LinearLayout>
 
@@ -89,34 +89,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="12dp"
-                android:text="@string/parametres_de_la_partie"
+                android:text="@string/Waiting_parametres_de_la_partie"
                 android:textColor="@android:color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!-- Nombre de joueurs
-            <TextView
-                android:id="@+id/numberOfPlayersTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/nombre_de_joueurs_titre"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
-
-            <EditText
-                android:id="@+id/playerCount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autofillHints="2"
-                android:hint="@string/nombre_de_joueurs_hint"
-                android:inputType="number"
-                android:maxLength="2"
-                android:textColor="@android:color/black"
-                android:layout_marginStart="-5dp"
-                android:textSize="13sp" /> -->
-
-            <!-- Nouveau bouton pour choisir une image -->
             <Button
                 android:id="@+id/chooseImageButton"
                 android:layout_width="match_parent"
@@ -125,19 +102,19 @@
                 android:layout_marginEnd="15dp"
                 android:background="@drawable/rounded_button"
                 android:padding="5dp"
-                android:text="@string/choisir_image"
+                android:text="@string/Waiting_choisir_image"
                 android:textColor="@color/button_text"
                 android:textStyle="bold" />
 
-            <!-- Toggle pour le mode chronométré
+            <!-- Toggle pour le mode chronométré -->
             <Switch
                 android:id="@+id/timerSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/mode_chronometre"
+                android:text="@string/Waiting_mode_chronometre"
                 android:textColor="@android:color/black"
-                tools:ignore="UseSwitchCompatOrMaterialXml" /> -->
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
 
             <!-- Bouton Prêt ancré en bas -->
         </LinearLayout>
@@ -150,7 +127,7 @@
             android:layout_marginEnd="15dp"
             android:background="@drawable/rounded_button"
             android:padding="5dp"
-            android:text="@string/pret"
+            android:text="@string/Waiting_pret"
             android:textColor="@color/button_text"
             android:textStyle="bold" />
     </LinearLayout>

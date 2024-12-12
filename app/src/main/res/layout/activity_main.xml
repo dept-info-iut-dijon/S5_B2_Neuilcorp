@@ -38,7 +38,7 @@
         android:layout_marginBottom="16dp"
         android:background="@drawable/rounded_button_valider"
         android:padding="16dp"
-        android:text="@string/valider_la_difference"
+        android:text="@string/Main_valider_la_difference"
         android:textColor="@color/button_text"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

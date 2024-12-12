@@ -17,7 +17,7 @@
         android:id="@+id/playerStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/pas_pret"
+        android:text="@string/Waiting_pas_pret"
         android:textColor="@color/error_color"
         android:textSize="16sp" />
 </LinearLayout>

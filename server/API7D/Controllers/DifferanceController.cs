@@ -3,6 +3,7 @@ using API7D.objet;
 using API7D.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.Extensions.Logging;
 
 namespace API7D.Controllers
@@ -42,6 +43,7 @@ namespace API7D.Controllers
             [FromQuery] string imageId)
         {
             _logger.LogWarning("j'ai reçu une requête pour vérifier une différence.");
+            IActionResult actionResult;
 
             try
             {
@@ -56,13 +58,14 @@ namespace API7D.Controllers
 
                 await _sessionService.NotifyPlayers(sessionId, isInZone);
                 // Retourne une réponse HTTP avec le statut approprié
-                return Ok(new { success = isInZone });
+                actionResult = Ok(new { success = isInZone });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Une erreur est survenue lors de la vérification de la différence.");
-                return StatusCode(500, new { success = false, message = ex.Message });
+                actionResult = StatusCode(500, new { success = false, message = ex.Message });
             }
+            return actionResult;
         }
 
         /// <summary>
@@ -76,29 +79,36 @@ namespace API7D.Controllers
         [HttpPost("add")]
         public IActionResult AddDifferance([FromBody] List<Coordonnees> coordonnees)
         {
+            IActionResult result;
+
             if (coordonnees == null || !coordonnees.Any())
             {
                 _logger.LogWarning("La liste de coordonnées est vide ou nulle.");
-                return BadRequest("La liste de coordonnées est vide ou invalide.");
+                result = BadRequest("La liste de coordonnées est vide ou invalide.");
             }
-
-            try
+            else
             {
-                // Logique d'ajout des différences
-                foreach (var coord in coordonnees)
+                try
                 {
-                    _logger.LogInformation($"Ajout de la coordonnée : X={coord.X}, Y={coord.Y}");
-                    // Vous pouvez appeler ici une méthode pour sauvegarder ces différences, si nécessaire.
-                    // Exemple : _sessionService.AddDifference(coord);
-                }
+                    // Logique d'ajout des différences
+                    foreach (var coord in coordonnees)
+                    {
+                        _logger.LogInformation($"Ajout de la coordonnée : X={coord.X}, Y={coord.Y}");
+                        // Appel à une méthode pour sauvegarder les différences, si nécessaire.
+                        // Exemple : _sessionService.AddDifference(coord);
+                    }
 
-                return Ok("Les différences ont été ajoutées avec succès.");
+                    result = Ok("Les différences ont été ajoutées avec succès.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erreur lors de l'ajout des différences.");
+                    result = StatusCode(500, new { success = false, message = "Une erreur est survenue lors de l'ajout des différences." });
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erreur lors de l'ajout des différences.");
-                return StatusCode(500, new { success = false, message = "Une erreur est survenue lors de l'ajout des différences." });
-            }
+
+            return result;
         }
+
     }
 }

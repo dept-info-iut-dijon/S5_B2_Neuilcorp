@@ -27,7 +27,7 @@ namespace API7D.Controllers
         /// <param name="sessionService">Service de session de jeu</param>
         /// <param name="imageService">Service de gestion d'image </param>
         /// <param name="logger">Service de log </param>
-        public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService, IImage imageService , ILogger<GameSessionHub> logger)
+        public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService, IImage imageService, ILogger<GameSessionHub> logger)
         {
             _hubContext = hubContext;
             _sessionService = sessionService;
@@ -49,13 +49,19 @@ namespace API7D.Controllers
         {
             byte[] returnedImage = _imageService.GetImages(id);
 
+            ActionResult<byte[]> result;
             if (returnedImage == null)
             {
-                return NotFound($"Image {id} non trouvée.");
+                result = NotFound($"Image {id} non trouvée.");
             }
-            //return returnedImage;
-            return new FileContentResult(returnedImage, "application/octet-stream");
+            else
+            {
+                result = new FileContentResult(returnedImage, "application/octet-stream");
+            }
+
+            return result;
         }
+
 
 
         /// <summary>
@@ -66,8 +72,12 @@ namespace API7D.Controllers
         public ActionResult<List<byte[]>> GetAllImage()
         {
             List<byte[]> returnedImage = _imageService.GetAllImages();
-            return returnedImage;
+
+            ActionResult<List<byte[]>> result = returnedImage.Any() ? Ok(returnedImage) : new ActionResult<List<byte[]>>(new List<byte[]>());
+
+            return result;
         }
+
 
         /// <summary>
         /// Récupère toutes les paires d'images disponibles.
@@ -76,9 +86,13 @@ namespace API7D.Controllers
         [HttpGet("allImagesWithPairs")]
         public ActionResult<List<ImageWithPair>> GetAllImagesWithPairs()
         {
-            var images = _imageService.GetAllImagesWithPairs();
-            return images;
+            List<ImageWithPair> images = _imageService.GetAllImagesWithPairs();
+
+            ActionResult<List<ImageWithPair>> result = images.Any() ? Ok(images) : NotFound("Aucune paire d'images disponible.");
+
+            return result;
         }
+
 
         /// <summary>
         /// Envoie une paire d'image sélectionnée aux joueurs d'une session
@@ -89,35 +103,40 @@ namespace API7D.Controllers
         public async Task<ActionResult> SendImagesToPlayers(string sessionId)
         {
             var session = _sessionService.GetSessionById(sessionId);
+            ActionResult result;
+
             if (session == null)
             {
-                return NotFound($"Session {sessionId} non trouvée.");
+                result = NotFound($"Session {sessionId} non trouvée.");
             }
-
-            if (session.ImagePairId == 0)
+            else if (session.ImagePairId == 0)
             {
                 await _hubContext.Clients.Group(sessionId).SendAsync("NotifyMessage", "L'hôte n'a pas encore choisi une paire d'images.");
-                return BadRequest("L'hôte n'a pas encore choisi une paire d'images.");
+                result = BadRequest("L'hôte n'a pas encore choisi une paire d'images.");
             }
-
-            var imagePairId = session.ImagePairId;
-            var images = _imageService.GetImagePair(imagePairId); // images[0] et images[1] contiennent les deux images
-
-            var melangePlayers = session.Players.OrderBy(_ => Guid.NewGuid()).ToList();
-
-            int imageSwitch = 0;
-            foreach (var player in melangePlayers)
+            else
             {
-                var imageToSend = (imageSwitch % 2 == 0) ? images.Image1 : images.Image2;
-                imageSwitch++;
+                var imagePairId = session.ImagePairId;
+                var images = _imageService.GetImagePair(imagePairId);
 
-                await _hubContext.Clients.Client(player.PlayerId).SendAsync("GameStarted", imageToSend);
-                _logger.LogInformation($"image envoyer a : {player.PlayerId}.");
+                var melangePlayers = session.Players.OrderBy(_ => Guid.NewGuid()).ToList();
+                int imageSwitch = 0;
 
+                foreach (var player in melangePlayers)
+                {
+                    var imageToSend = (imageSwitch % 2 == 0) ? images.Image1 : images.Image2;
+                    imageSwitch++;
+
+                    await _hubContext.Clients.Client(player.PlayerId).SendAsync("GameStarted", imageToSend);
+                    _logger.LogInformation($"Image envoyée à : {player.PlayerId}.");
+                }
+
+                result = Ok("Images envoyées aux joueurs.");
             }
 
-            return Ok("Images envoyées aux joueurs.");
+            return result;
         }
+
 
         /// <summary>
         /// Permet à l'hôte de sélectionner une paire d'images pour la session.
@@ -129,18 +148,31 @@ namespace API7D.Controllers
         public ActionResult SelectImagePair(string sessionId, [FromBody] int imagePairId)
         {
             var session = _sessionService.GetSessionById(sessionId);
+
+            ActionResult result;
             if (session == null)
             {
-                return NotFound($"Session {sessionId} non trouvée.");
+                result = NotFound($"Session {sessionId} non trouvée.");
+            }
+            else
+            {
+                session.ImagePairId = imagePairId;
+                _sessionService.UpdateSession(session);
+                result = Ok("Paire d'images sélectionnée pour la session.");
             }
 
-            session.ImagePairId = imagePairId;
-            _sessionService.UpdateSession(session);
-
-            return Ok("Paire d'images sélectionnée pour la session.");
+            return result;
         }
 
-
+        /// <summary>
+        /// Compare deux images représentées sous forme de tableaux de bytes.
+        /// </summary>
+        /// <param name="image1">Premier tableau de bytes représentant une image.</param>
+        /// <param name="image2">Deuxième tableau de bytes représentant une image.</param>
+        /// <returns>
+        /// 200 OK : Si les deux images sont identiques.
+        /// 400 BadRequest : Si les images diffèrent ou si une erreur survient.
+        /// </returns>
         /// <summary>
         /// Compare deux images représentées sous forme de tableaux de bytes.
         /// </summary>
@@ -155,67 +187,71 @@ namespace API7D.Controllers
         {
             _logger.LogInformation("Requête reçue dans AddImage.");
 
+            IActionResult response;
+
             // Validation des paramètres
             if (image1 == null || image2 == null || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(differences))
             {
                 _logger.LogWarning("Requête invalide : paramètres manquants ou nulles.");
-                return BadRequest("Tous les paramètres (image1, image2, name, differences) sont requis.");
+                response = BadRequest("Tous les paramètres (image1, image2, name, differences) sont requis.");
             }
-
-            try
+            else
             {
-                // Lire les données des fichiers images
-                byte[] imageData1;
-                byte[] imageData2;
-
-                using (var stream1 = new MemoryStream())
-                {
-                    await image1.CopyToAsync(stream1);
-                    imageData1 = stream1.ToArray();
-                }
-
-                using (var stream2 = new MemoryStream())
-                {
-                    await image2.CopyToAsync(stream2);
-                    imageData2 = stream2.ToArray();
-                }
-
-                // Désérialiser les différences
-                List<Coordonnees> differencesList;
                 try
                 {
-                    // First deserialize to a temporary list of dynamic objects to handle the doubles
-                    var tempList = JsonSerializer.Deserialize<List<Dictionary<string, double>>>(differences);
+                    // Lire les données des fichiers images
+                    byte[] imageData1;
+                    byte[] imageData2;
 
-                    // Then convert to Coordonnees with rounded values
-                    differencesList = tempList.Select(item => new Coordonnees(
-                        (int)Math.Round(item["x"]),
-                        (int)Math.Round(item["y"])
-                    )).ToList();
-
-                    if (differencesList == null || !differencesList.Any())
+                    using (var stream1 = new MemoryStream())
                     {
-                        _logger.LogWarning("Aucune différence valide n'a été trouvée.");
-                        return BadRequest("La liste des différences est vide ou invalide.");
+                        await image1.CopyToAsync(stream1);
+                        imageData1 = stream1.ToArray();
+                    }
+
+                    using (var stream2 = new MemoryStream())
+                    {
+                        await image2.CopyToAsync(stream2);
+                        imageData2 = stream2.ToArray();
+                    }
+
+                    // Désérialiser les différences
+                    List<Coordonnees> differencesList;
+                    try
+                    {
+                        var tempList = JsonSerializer.Deserialize<List<Dictionary<string, double>>>(differences);
+                        differencesList = tempList.Select(item => new Coordonnees(
+                            (int)Math.Round(item["x"]),
+                            (int)Math.Round(item["y"])
+                        )).ToList();
+
+                        if (differencesList == null || !differencesList.Any())
+                        {
+                            _logger.LogWarning("Aucune différence valide n'a été trouvée.");
+                            response = BadRequest("La liste des différences est vide ou invalide.");
+                        }
+                        else
+                        {
+                            // Appeler le service pour sauvegarder les données
+                            _imageService.SetImages(imageData1, imageData2, name, differencesList);
+                            _logger.LogInformation("Images et différences sauvegardées avec succès.");
+                            response = Ok("Données ajoutées avec succès.");
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError("Erreur lors de la désérialisation des différences.", ex);
+                        response = BadRequest("Le format des différences est invalide.");
                     }
                 }
-                catch (JsonException ex)
+                catch (Exception ex)
                 {
-                    _logger.LogError("Erreur lors de la désérialisation des différences.", ex);
-                    return BadRequest("Le format des différences est invalide.");
+                    _logger.LogError("Erreur lors du traitement de la requête AddImage.", ex);
+                    response = StatusCode(500, "Une erreur est survenue lors du traitement de la requête.");
                 }
-
-                // Appeler le service pour sauvegarder les données
-                _imageService.SetImages(imageData1, imageData2, name, differencesList);
-                _logger.LogInformation("Images et différences sauvegardées avec succès.");
-
-                return Ok("Données ajoutées avec succès.");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError("Erreur lors du traitement de la requête AddImage.", ex);
-                return StatusCode(500, "Une erreur est survenue lors du traitement de la requête.");
-            }
+
+            return response;
         }
 
     }

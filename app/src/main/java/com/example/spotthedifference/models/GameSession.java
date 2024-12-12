@@ -1,39 +1,44 @@
 package com.example.spotthedifference.models;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
- * Représente une session de jeu, contenant un ID de session, une liste de joueurs, un statut de complétion de jeu et un timer de jeu.
+ * Représente une session de jeu avec une gestion centralisée de ses propriétés
+ * et de son comportement.
  */
 public class GameSession implements IGameSession {
-    private String sessionId;
-    private List<Player> players;
-    private boolean gameCompleted;
-    private boolean gameTimer;
+    private final String sessionId; // Défini à l'intérieur, non modifiable
+    private final List<Player> players; // Liste immuable pour éviter les modifications extérieures
+    private boolean gameCompleted; // Gestion interne
+    private boolean gameTimer; // Gestion interne
 
     /**
-     * Constructeur de la session de jeu avec une liste de joueurs initiale.
-     *
-     * @param players Liste des joueurs participant à la session de jeu.
-     */
-    public GameSession(List<Player> players) {
-        this.players = players != null ? players : new ArrayList<>();
-        this.gameCompleted = false;
-        this.gameTimer = false;
-    }
-
-    /**
-     * Constructeur vide pour créer une session de jeu sans joueurs initialisés.
+     * Constructeur par défaut pour créer une session avec un ID généré automatiquement.
      */
     public GameSession() {
+        this.sessionId = UUID.randomUUID().toString(); // Génère un ID unique
         this.players = new ArrayList<>();
         this.gameCompleted = false;
         this.gameTimer = false;
     }
 
     /**
-     * Obtient l'ID de la session de jeu.
+     * Constructeur avec une liste initiale de joueurs.
+     *
+     * @param players Liste des joueurs participant à la session de jeu.
+     */
+    public GameSession(List<Player> players) {
+        this.sessionId = UUID.randomUUID().toString(); // Génère un ID unique
+        this.players = players != null ? new ArrayList<>(players) : new ArrayList<>();
+        this.gameCompleted = false;
+        this.gameTimer = false;
+    }
+
+    /**
+     * Retourne l'ID unique de la session, non modifiable.
      *
      * @return L'ID de la session.
      */
@@ -43,69 +48,24 @@ public class GameSession implements IGameSession {
     }
 
     /**
-     * Définit l'ID de la session de jeu.
+     * Retourne une liste immuable des joueurs participant à la session.
      *
-     * @param sessionId L'ID de la session.
-     */
-    @Override
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    /**
-     * Obtient la liste des joueurs participant à la session de jeu.
-     *
-     * @return Liste des joueurs.
+     * @return Liste immuable des joueurs.
      */
     @Override
     public List<Player> getPlayers() {
-        return players;
+        return Collections.unmodifiableList(players);
     }
 
     /**
-     * Définit la liste des joueurs participant à la session de jeu.
+     * Ajoute un joueur à la session.
      *
-     * @param players Liste des joueurs.
+     * @param player Le joueur à ajouter.
      */
-    @Override
-    public void setPlayers(List<Player> players) {
-        this.players = players != null ? players : new ArrayList<>();
-    }
-
-    /**
-     * Vérifie si le jeu est terminé.
-     *
-     * @return True si le jeu est terminé, sinon false.
-     */
-    public boolean isGameCompleted() {
-        return gameCompleted;
-    }
-
-    /**
-     * Définit le statut de complétion du jeu.
-     *
-     * @param gameCompleted True si le jeu est terminé, sinon false.
-     */
-    public void setGameCompleted(boolean gameCompleted) {
-        this.gameCompleted = gameCompleted;
-    }
-
-    /**
-     * Vérifie si le timer de jeu est actif.
-     *
-     * @return True si le timer est actif, sinon false.
-     */
-    public boolean isGameTimer() {
-        return gameTimer;
-    }
-
-    /**
-     * Définit le statut du timer de jeu.
-     *
-     * @param gameTimer True pour activer le timer, sinon false.
-     */
-    public void setGameTimer(boolean gameTimer) {
-        this.gameTimer = gameTimer;
+    public void addPlayer(Player player) {
+        if (player != null && !players.contains(player)) {
+            players.add(player);
+        }
     }
 
     /**
@@ -119,10 +79,41 @@ public class GameSession implements IGameSession {
     }
 
     /**
-     * Représentation sous forme de chaîne de la session de jeu pour le débogage.
+     * Vérifie si le jeu est terminé.
      *
-     * @return Chaîne représentant l'ID de la session, le statut et les joueurs.
+     * @return true si le jeu est terminé, sinon false.
      */
+    @Override
+    public boolean isGameCompleted() {
+        return gameCompleted;
+    }
+
+    /**
+     * Marque la session comme terminée. Gestion interne uniquement.
+     */
+    public void completeGame() {
+        this.gameCompleted = true;
+    }
+
+    /**
+     * Vérifie si le minuteur est actif.
+     *
+     * @return true si le minuteur est actif, sinon false.
+     */
+    @Override
+    public boolean isGameTimer() {
+        return gameTimer;
+    }
+
+    /**
+     * Active ou désactive le minuteur. Gestion interne uniquement.
+     *
+     * @param isActive true pour activer le minuteur, sinon false.
+     */
+    public void setGameTimer(boolean isActive) {
+        this.gameTimer = isActive;
+    }
+
     @Override
     public String toString() {
         return "GameSession{" +

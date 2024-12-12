@@ -6,6 +6,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.spotthedifference.config.ServerConfig;
 import com.example.spotthedifference.models.GameSession;
 import com.google.gson.Gson;
 import com.example.spotthedifference.models.Player;
@@ -18,10 +19,20 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
 
-
+/**
+ * SignalRClient est une classe responsable de gérer la connexion et la communication en temps réel
+ * avec le serveur SignalR. Elle fournit des méthodes pour envoyer et recevoir des messages, gérer
+ * les événements de session et synchroniser l'état entre les clients connectés.
+ *
+ * Les fonctionnalités incluent :
+ * - Connexion et reconnexion au serveur.
+ * - Gestion des événements tels que la synchronisation des sessions, les changements de statut des joueurs,
+ *   les notifications de jeu commencé ou terminé, et les messages du serveur.
+ * - Observables pour surveiller les mises à jour en temps réel et réagir en conséquence.
+ */
 public class SignalRClient {
 
-    private static final String SERVER_URL = "http://203.55.81.18:5195/gameSessionHub";
+    private static final String SERVER_URL = ServerConfig.SIGNALR_URL;
     private static final boolean DEBUG = true;
     private static final int MAX_RETRY_COUNT = 5;
 
@@ -45,70 +56,116 @@ public class SignalRClient {
     private BehaviorSubject<String> PlayerRemovedSubject = BehaviorSubject.create();
 
     /**
-     * Constructeur de SignalRClient. Initialise la connexion au serveur SignalR et
-     * configure les événements pour écouter les changements de statut des joueurs.
+     * Initialise le client SignalR en configurant la connexion et les événements.
+     *
+     * @param playerid L'identifiant unique du joueur pour cette session.
      */
     public SignalRClient(String playerid) {
-        playerId = playerid;
-        hubConnection = HubConnectionBuilder.create(SERVER_URL).build();
-
-        hubConnection.on("PlayerJoined", player -> {
-            playerJoinedSubject.onNext(player);
-            log("SignalRClient: PlayerJoined reçu -> ID: " + player.getPlayerId() + ", Nom: " + player.getName(), null);
-        }, Player.class);
-
-        hubConnection.on("PlayerRemoved", player -> {
-            PlayerRemovedSubject.onNext(playerId);
-            log("SignalRClient: PlayerRemoved reçu -> ID: " + player.getPlayerId() + ", Nom: " + player.getName(), null);
-        }, Player.class);
-
-        hubConnection.on("PlayerReadyStatusChanged", (playerId, isReady) -> {
-            playerReadyStatusChangedSubject.onNext(new Player(playerId, isReady));
-        }, String.class, Boolean.class);
-
-        hubConnection.on("SyncSessionState", sessionState -> {
-            GameSession session = new Gson().fromJson(sessionState, GameSession.class);
-            syncSessionStateSubject.onNext(session);
-            log("SignalRClient: SyncSessionState reçu", null);
-        }, String.class);
-
-        hubConnection.on("GameStarted", (base64Data, imagePairId) -> {
-            byte[] imageData = Base64.decode(base64Data, Base64.DEFAULT);
-            Log.d("SignalRClient", "Image reçue et décodée, taille : " + imageData.length + "imagePairId : " + imagePairId);
-
-            if (gameStartedListener != null) {
-                log("SignalRClient: GameStarted appelé", null);
-                gameStartedListener.onGameStarted(imageData, imagePairId);
-            }else {
-                Log.e("SignalRClient", "GameStartedListener est null !");
-            }
-        }, String.class, Integer.class);
-
-        hubConnection.on("ReadyNotAllowed", (message) -> {
-            readyNotAllowedSubject.onNext(message);
-        }, String.class);
-
-        hubConnection.on("NotifyMessage", (message) -> {
-            notifyMessageSubject.onNext(message);
-        }, String.class);
-
-        hubConnection.on("ReceiveConnectionId", (connectionId) -> {
-            Log.d("SignalRClient", "ConnectionId reçu : " + connectionId);
-        }, String.class);
-
-        hubConnection.on("SessionDeleted", sessionId -> {
-            SessionDeletedSubject.onNext(sessionId);
-            log("SignalRClient: Session fermée pour sessionId = " + sessionId, null);
-        }, String.class);
+        this.playerId = playerid;
+        initializeHubConnection();
+        setupHubEvents();
     }
 
+
+    /**
+     * Initialise la connexion HubConnection avec le serveur SignalR.
+     */
+    private void initializeHubConnection() {
+        hubConnection = HubConnectionBuilder.create(SERVER_URL).build();
+    }
+
+    /**
+     * Configure tous les événements SignalR pris en charge par le client.
+     */
+    private void setupHubEvents() {
+        hubConnection.on("PlayerJoined", this::handlePlayerJoined, Player.class);
+        hubConnection.on("PlayerRemoved", this::handlePlayerRemoved, Player.class);
+        hubConnection.on("PlayerReadyStatusChanged", this::handlePlayerReadyStatusChanged, String.class, Boolean.class);
+        hubConnection.on("SyncSessionState", this::handleSyncSessionState, String.class);
+        hubConnection.on("GameStarted", this::handleGameStarted, String.class, Integer.class);
+        hubConnection.on("ReadyNotAllowed", readyNotAllowedSubject::onNext, String.class);
+        hubConnection.on("NotifyMessage", notifyMessageSubject::onNext, String.class);
+        hubConnection.on("ReceiveConnectionId", this::handleConnectionIdReceived, String.class);
+        hubConnection.on("SessionDeleted", SessionDeletedSubject::onNext, String.class);
+    }
+
+    /**
+     * Gestion de l'événement "PlayerJoined".
+     */
+    private void handlePlayerJoined(Player player) {
+        playerJoinedSubject.onNext(player);
+        log("SignalRClient: PlayerJoined reçu -> ID: " + player.getPlayerId() + ", Nom: " + player.getName(), null);
+    }
+
+    /**
+     * Gestion de l'événement "PlayerRemoved".
+     */
+    private void handlePlayerRemoved(Player player) {
+        PlayerRemovedSubject.onNext(player.getPlayerId());
+        log("SignalRClient: PlayerRemoved reçu -> ID: " + player.getPlayerId() + ", Nom: " + player.getName(), null);
+    }
+
+    /**
+     * Gestion de l'événement "PlayerReadyStatusChanged".
+     */
+    private void handlePlayerReadyStatusChanged(String playerId, Boolean isReady) {
+        playerReadyStatusChangedSubject.onNext(new Player(playerId, isReady));
+    }
+
+    /**
+     * Gestion de l'événement "SyncSessionState".
+     */
+    private void handleSyncSessionState(String sessionState) {
+        GameSession session = new Gson().fromJson(sessionState, GameSession.class);
+        syncSessionStateSubject.onNext(session);
+        log("SignalRClient: SyncSessionState reçu", null);
+    }
+
+    /**
+     * Gestion de l'événement "GameStarted".
+     */
+    private void handleGameStarted(String base64Data, Integer imagePairId) {
+        byte[] imageData = Base64.decode(base64Data, Base64.DEFAULT);
+        log("SignalRClient: Image reçue et décodée, taille : " + imageData.length + " imagePairId : " + imagePairId, null);
+
+        if (gameStartedListener != null) {
+            gameStartedListener.onGameStarted(imageData, imagePairId);
+        } else {
+            log("SignalRClient: GameStartedListener est null !", null);
+        }
+    }
+
+    /**
+     * Gestion de l'événement "ReceiveConnectionId".
+     */
+    private void handleConnectionIdReceived(String connectionId) {
+        log("SignalRClient: ConnectionId reçu : " + connectionId, null);
+    }
+
+    /**
+     * Définit un écouteur pour l'événement de début de jeu.
+     *
+     * Cet écouteur sera appelé lorsque le serveur SignalR émettra un événement "GameStarted",
+     * fournissant les données nécessaires pour démarrer la partie (comme l'image et son identifiant).
+     *
+     * @param listener L'instance de {@link GameStartedListener} qui doit être notifiée
+     *                 lorsque l'événement de début de jeu est déclenché.
+     */
     public void setGameStartedListener(GameStartedListener listener) {
         this.gameStartedListener = listener;
         Log.d("SignalRClient", "GameStartedListener défini : " + (listener != null));
     }
 
     /**
-     * Démarre la connexion WebSocket au serveur SignalR avec gestion de la reconnexion.
+     * Démarre la connexion WebSocket au serveur SignalR.
+     *
+     * Cette méthode initialise une nouvelle connexion SignalR en libérant toute connexion précédente
+     * via {@link #disposeConnection()}. Une fois la connexion établie avec succès, elle notifie
+     * l'état de la connexion via le {@link BehaviorSubject} connectionEstablishedSubject, réinitialise
+     * le compteur de tentatives de reconnexion, et enregistre le joueur actuel via {@link #registerPlayer(String)}.
+     *
+     * En cas d'erreur lors de la connexion, la méthode {@link #handleError(Throwable, String)} est appelée
+     * pour gérer l'erreur et tenter une reconnexion.
      */
     public void startConnection() {
         disposeConnection();
@@ -130,7 +187,16 @@ public class SignalRClient {
     }
 
     /**
-     * Tente une reconnexion automatique en cas de déconnexion, avec un délai croissant.
+     * Tente une reconnexion automatique au serveur SignalR.
+     *
+     * Cette méthode vérifie l'état de la connexion via {@link #isConnected()} et,
+     * si la connexion est inactive et que le nombre maximum de tentatives de reconnexion
+     * n'a pas été atteint, elle planifie une nouvelle tentative de connexion après un délai.
+     * Le délai augmente de manière exponentielle avec chaque tentative, jusqu'à un maximum
+     * de 60 secondes.
+     *
+     * Si le nombre de tentatives dépasse {@link #MAX_RETRY_COUNT}, un message est logué
+     * indiquant l'échec des tentatives de reconnexion.
      */
     private void attemptReconnection() {
         if (!isConnected() && retryCount < MAX_RETRY_COUNT) {
@@ -161,7 +227,14 @@ public class SignalRClient {
     }
 
     /**
-     * Arrête la connexion WebSocket au serveur SignalR.
+     * Arrête la connexion SignalR pour un joueur spécifique.
+     *
+     * Cette méthode notifie d'abord le serveur SignalR du départ du joueur via
+     * {@link #notifyPlayerRemoved(String, String)}. Ensuite, elle libère les ressources de connexion
+     * via {@link #disposeConnection()} et arrête la connexion SignalR de manière bloquante.
+     *
+     * @param sessionId L'identifiant de la session dont le joueur se retire.
+     * @param playerId  L'identifiant du joueur qui quitte la session.
      */
     public void stopConnection(String sessionId, String playerId) {
         notifyPlayerRemoved(sessionId, playerId);
@@ -226,6 +299,16 @@ public class SignalRClient {
         }
     }
 
+    /**
+     * Notifie le serveur SignalR du départ d'un joueur de la session.
+     *
+     * Cette méthode envoie un message "PlayerLeft" au serveur avec les informations de session
+     * et d'identifiant du joueur, si la connexion est active. Si la connexion est inactive,
+     * une tentative de reconnexion est déclenchée via {@link #attemptReconnection()}.
+     *
+     * @param sessionId L'identifiant de la session dont le joueur se retire.
+     * @param playerId  L'identifiant du joueur qui quitte la session.
+     */
     public void notifyPlayerRemoved(String sessionId, String playerId) {
         if (isConnected()) {
             hubConnection.send("PlayerLeft", sessionId, playerId);
@@ -267,7 +350,7 @@ public class SignalRClient {
     /**
      * Retourne un observable pour les événements de joueurs rejoignant la session.
      *
-     * @return Un BehaviorSubject émettant les noms des joueurs qui rejoignent.
+     * @return Un {@link BehaviorSubject} émettant des objets {@link Player} représentant les joueurs qui rejoignent.
      */
     public BehaviorSubject<Player> getPlayerJoinedObservable() {
         return playerJoinedSubject;
@@ -276,7 +359,7 @@ public class SignalRClient {
     /**
      * Retourne un observable pour les changements de statut de préparation des joueurs.
      *
-     * @return Un BehaviorSubject émettant les statuts de préparation des joueurs.
+     * @return Un {@link BehaviorSubject} émettant des objets {@link Player} contenant les statuts de préparation.
      */
     public BehaviorSubject<Player> getPlayerReadyStatusChangedObservable() {
         return playerReadyStatusChangedSubject;
@@ -296,6 +379,11 @@ public class SignalRClient {
         }
     }
 
+    /**
+     * Retourne l'objet HubConnection utilisé pour gérer la connexion SignalR.
+     *
+     * @return L'objet {@link HubConnection}.
+     */
     public HubConnection getHubConnection() {
         return hubConnection;
     }
@@ -303,30 +391,32 @@ public class SignalRClient {
     /**
      * Retourne un observable pour les événements de synchronisation de session.
      *
-     * @return Un BehaviorSubject émettant l'état complet de la session.
+     * @return Un {@link BehaviorSubject} émettant des objets {@link GameSession} représentant l'état complet de la session.
      */
     public BehaviorSubject<GameSession> getSyncSessionStateObservable() {
         return syncSessionStateSubject;
     }
 
     /**
-     * retourne l'observable qui émet un message lorsque l'état de préparation n'est pas autorisé.
-     * @return readyNotAllowedSubject : emet des messages sur l'état
+     * Retourne un observable pour les messages informant qu'un état de préparation n'est pas autorisé.
+     *
+     * @return Un {@link BehaviorSubject} émettant des chaînes de caractères contenant les messages d'erreur.
      */
     public BehaviorSubject<String> getReadyNotAllowedObservable() {
         return readyNotAllowedSubject;
     }
 
     /**
-     * Retourne l'observable qui émet un message de notification
-     * @return
+     * Retourne un observable pour les messages de notification envoyés par le serveur.
+     *
+     * @return Un {@link BehaviorSubject} émettant des chaînes de caractères contenant les messages de notification.
      */
     public BehaviorSubject<String> getNotifyMessageObservable() {
         return notifyMessageSubject;
     }
 
     /**
-     * Libère les ressources de la connexion en arrêtant tout abonnement en cours.
+     * Libère les ressources de la connexion en arrêtant tout abonnement actif.
      */
     private void disposeConnection() {
         if (connectionDisposable != null && !connectionDisposable.isDisposed()) {
@@ -334,14 +424,29 @@ public class SignalRClient {
         }
     }
 
+    /**
+     * Notifie le serveur que la session a été supprimée.
+     *
+     * @param sessionId L'identifiant de la session supprimée.
+     */
     public void notifySessionDeleted(String sessionId) {
         hubConnection.send("SessionDeleted", sessionId);
     }
 
+    /**
+     * Retourne un observable pour les événements de suppression de session.
+     *
+     * @return Un {@link BehaviorSubject} émettant l'identifiant des sessions supprimées.
+     */
     public BehaviorSubject<String> getSessionDeletedObservable() {
         return SessionDeletedSubject;
     }
 
+    /**
+     * Retourne un observable pour les événements de joueurs supprimés de la session.
+     *
+     * @return Un {@link BehaviorSubject} émettant les identifiants des joueurs supprimés.
+     */
     public BehaviorSubject<String> getPlayerRemovedObservable() {
         return PlayerRemovedSubject;
     }

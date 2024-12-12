@@ -18,12 +18,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.spotthedifference.R;
 import com.example.spotthedifference.WebSocket.SignalRClient;
-import com.example.spotthedifference.api.ApiResponse;
 import com.example.spotthedifference.api.ApiService;
 import com.example.spotthedifference.api.IRetrofitClient;
 import com.example.spotthedifference.api.RetrofitClient;
 import com.example.spotthedifference.models.Coordonnees;
-import com.example.spotthedifference.ui.utils.ImageDisplayer;
+
 
 import java.io.IOException;
 
@@ -46,18 +45,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     private Coordonnees coordTemp;
     private ApiService apiService;
     private AlertDialog waitingDialog;
-    private static final int TIMEOUT_DURATION = 30000;
-    private Handler timeoutHandler = new Handler();
-    private Runnable timeoutRunnable = () -> {
-        Toast.makeText(MainActivity.this, "Temps écoulé. Veuillez réessayer.", Toast.LENGTH_LONG).show();
-        resetUI();
-    };
-    private void startTimeout() {
-        timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_DURATION);
-    }
-    private void stopTimeout() {
-        timeoutHandler.removeCallbacks(timeoutRunnable);
-    }
     private String sessionId;
     private String playerId;
     private Button exitButton;
@@ -66,70 +53,112 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("MainActivity", "MainActivity démarrée !");
+        Log.d(TAG, "MainActivity démarrée !");
         setContentView(R.layout.activity_main);
 
-        // Récupération des données transmises via l'intent
+        // Étapes d'initialisation
+        initializeIntentData();
+        initializeUIComponents();
+        initializeRetrofitClient();
+        initializeSignalRClient();
+        loadImageFromPath();
+        setupListeners();
+        setupDisposables();
+
+        Log.d(TAG, "MainActivity initialisée avec succès.");
+    }
+
+    /**
+     * Récupère les données transmises via l'intent.
+     */
+    private void initializeIntentData() {
         Intent intent = getIntent();
-        String sessionId = intent.getStringExtra("sessionId");
-        String playerId = intent.getStringExtra("playerId");
+        sessionId = intent.getStringExtra("sessionId");
+        playerId = intent.getStringExtra("playerId");
 
         String imagePath = intent.getStringExtra("imagePath");
         String imagePairIdString = intent.getStringExtra("imagePairId");
 
-        signalRClient = new SignalRClient(playerId);
-        signalRClient.startConnection();
-        signalRClient.joinSessionGroup(sessionId);
-        signalRClient.requestSync(sessionId);
-
-        Log.d("MainActivity", "SignalRClient démarré pour le joueur : " + playerId);
-        signalRClient.getHubConnection().on("ResultNotification", (result) -> {
-            runOnUiThread(() -> {
-                Log.d("MainActivity", "Notification SignalR reçue : " + result);
-                hideWaitingDialog();
-                showResultDialog((Boolean) result);
-            });
-        }, Boolean.class);
-
-
-        // Validation des données reçues
         if (sessionId == null || playerId == null || imagePath == null) {
             Toast.makeText(this, "Données manquantes, retour à l'accueil.", Toast.LENGTH_LONG).show();
-            finish(); // Ferme l'activité si les données essentielles manquent
+            finish();
             return;
         }
 
-        Log.d("MainActivity", "Session ID : " + sessionId + ", Player ID : " + playerId + ", Image Pair ID : " + imagePairIdString);
+        Log.d(TAG, "Session ID : " + sessionId + ", Player ID : " + playerId + ", Image Pair ID : " + imagePairIdString);
+    }
 
-        // Initialisation des composants de l'interface utilisateur
+    /**
+     * Initialise les composants de l'interface utilisateur.
+     */
+    private void initializeUIComponents() {
         imageView = findViewById(R.id.imageView);
-        FrameLayout layout = findViewById(R.id.frameLayout);
         validerButton = findViewById(R.id.validateButton);
         validerButton.setEnabled(false);
 
         circleImageView = new ImageView(this);
         circleImageView.setImageResource(R.drawable.cercle_rouge);
         circleImageView.setVisibility(View.INVISIBLE);
+      
+        FrameLayout layout = findViewById(R.id.frameLayout);
         layout.addView(circleImageView, new FrameLayout.LayoutParams(75, 75));
 
-        // Chargement et affichage de l'image depuis le chemin fourni
-        Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-        if (bitmap != null) {
-            Log.d("MainActivity", "Image chargée avec succès depuis le chemin : " + imagePath);
-            imageView.setImageBitmap(bitmap);
-        } else {
-            Log.e("MainActivity", "Erreur : Impossible de charger l'image depuis le chemin fourni.");
-            Toast.makeText(this, "Impossible de charger l'image.", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
 
-        // Initialisation de l'API pour l'envoi des coordonnées
+        
+
+
+        exitButton = findViewById(R.id.exitButton);
+    }
+
+    /**
+     * Initialise Retrofit pour les appels API.
+     */
+    private void initializeRetrofitClient() {
         IRetrofitClient client = new RetrofitClient();
         Retrofit retrofit = client.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
+    }
 
-        // Configuration des écouteurs
+    /**
+     * Configure SignalR pour la communication en temps réel.
+     */
+    private void initializeSignalRClient() {
+        signalRClient = new SignalRClient(playerId);
+        signalRClient.startConnection();
+        signalRClient.joinSessionGroup(sessionId);
+        signalRClient.requestSync(sessionId);
+
+        signalRClient.getHubConnection().on("ResultNotification", (result) -> {
+            runOnUiThread(() -> {
+                Log.d(TAG, "Notification SignalR reçue : " + result);
+                hideWaitingDialog();
+                showResultDialog((Boolean) result);
+            });
+        }, Boolean.class);
+
+        Log.d(TAG, "SignalRClient configuré pour le joueur : " + playerId);
+    }
+
+    /**
+     * Charge l'image depuis le chemin fourni et l'affiche dans l'interface utilisateur.
+     */
+    private void loadImageFromPath() {
+        String imagePath = getIntent().getStringExtra("imagePath");
+        Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+        if (bitmap != null) {
+            Log.d(TAG, "Image chargée avec succès depuis le chemin : " + imagePath);
+            imageView.setImageBitmap(bitmap);
+        } else {
+            Log.e(TAG, "Erreur : Impossible de charger l'image depuis le chemin fourni.");
+            Toast.makeText(this, "Impossible de charger l'image.", Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
+
+    /**
+     * Configure les écouteurs pour les interactions utilisateur.
+     */
+    private void setupListeners() {
         imageView.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 coordTemp = new Coordonnees((int) event.getX(), (int) event.getY());
@@ -144,37 +173,41 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
 
         validerButton.setOnClickListener(v -> {
             if (coordTemp != null) {
-                Log.d("MainActivity", "Coordonnées valides : " + coordTemp.getX() + ", " + coordTemp.getY());
+                Log.d(TAG, "Coordonnées valides : " + coordTemp.getX() + ", " + coordTemp.getY());
                 showWaitingDialog();
-                startTimeout();
-                sendCoordinatesToServer(coordTemp, sessionId, playerId, imagePairIdString);
+                sendCoordinatesToServer(coordTemp, sessionId, playerId, getIntent().getStringExtra("imagePairId"));
                 validerButton.setEnabled(false);
                 imageView.setEnabled(false);
                 circleImageView.setVisibility(View.INVISIBLE);
             }
         });
 
-        exitButton = findViewById(R.id.exitButton);
-        exitButton.setOnClickListener(v -> deleteSessionAndExit(sessionId,playerId));
+        exitButton.setOnClickListener(v -> deleteSessionAndExit(sessionId, playerId));
+    }
 
+
+    /**
+     * Configure les observables SignalR pour gérer les événements.
+     */
+    private void setupDisposables() {
         disposables.add(signalRClient.getSessionDeletedObservable()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(closedSessionId -> {
-                if (closedSessionId.equals(sessionId)) {
-                    Toast.makeText(this, "Un joueur a quitté la session, la partie est terminée", Toast.LENGTH_SHORT).show();
-                    redirectToHome();
-                }
-            }, throwable -> Log.e(TAG, "Erreur SessionClosed observable", throwable)));
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(closedSessionId -> {
+                    if (closedSessionId.equals(sessionId)) {
+                        Toast.makeText(this, "Un joueur a quitté la session, la partie est terminée.", Toast.LENGTH_SHORT).show();
+                        redirectToHome();
+                    }
+                }, throwable -> Log.e(TAG, "Erreur SessionClosed observable", throwable)));
 
         disposables.add(signalRClient.getPlayerRemovedObservable()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(removedPlayerId -> {
-                if (!isHost() && !removedPlayerId.equals(playerId)) {
-                    redirectToWaitingRoom();
-                }
-            }, throwable -> Log.e(TAG, "Erreur PlayerRemoved observable", throwable)));
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(removedPlayerId -> {
+                    if (!isHost() && !removedPlayerId.equals(playerId)) {
+                        redirectToWaitingRoom();
+                    }
+                }, throwable -> Log.e(TAG, "Erreur PlayerRemoved observable", throwable)));
     }
 
     /**
@@ -295,7 +328,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
      */
     @Override
     public void showResultDialog(boolean isSuccess) {
-        stopTimeout();
         String message = isSuccess ? "Bravo vous avez trouvé une différence !" : "Aïe... Au moins un des joueur semble s'être trompé.";
         new AlertDialog.Builder(MainActivity.this)
                 .setMessage(message)

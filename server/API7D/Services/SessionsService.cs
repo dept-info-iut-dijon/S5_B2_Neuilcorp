@@ -1,40 +1,53 @@
 ﻿using API7D.Metier;
 using API7D.objet;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace API7D.Services
 {
+    /// <summary>
+    /// Service responsable de la gestion des sessions de jeu.
+    /// </summary>
     public class SessionService
     {
         private readonly List<GameSession> _sessions = new List<GameSession>();
         private readonly IHubContext<GameSessionHub> _hubContext;
         private readonly ILogger<SessionService> _logger;
 
-
         public SessionService(IHubContext<GameSessionHub> hubContext, ILogger<SessionService> logger)
         {
             _hubContext = hubContext;
             _logger = logger;
         }
+
         /// <summary>
         /// Ajoute une nouvelle session de jeu.
         /// </summary>
         /// <param name="gameSession">La session de jeu à ajouter.</param>
+        /// <exception cref="ArgumentNullException">Lancée si <paramref name="gameSession"/> est null.</exception>
+        /// <exception cref="InvalidOperationException">Lancée si une session avec le même ID existe déjà.</exception>
         public void AddSession(GameSession gameSession)
         {
+            if (gameSession == null)
+            {
+                throw new ArgumentNullException(nameof(gameSession), "La session de jeu ne peut pas être null.");
+            }
+
+            if (_sessions.Any(s => s.SessionId == gameSession.SessionId))
+            {
+                throw new InvalidOperationException($"Une session avec l'ID {gameSession.SessionId} existe déjà.");
+            }
+
             _sessions.Add(gameSession);
         }
 
         /// <summary>
-        /// Récupère toutes les sessions de jeu.
+        /// Récupère une copie immuable de toutes les sessions de jeu.
         /// </summary>
-        /// <returns>Une liste de toutes les sessions de jeu.</returns>
-        public List<GameSession> GetAllSessions()
+        /// <returns>Une liste en lecture seule des sessions de jeu.</returns>
+        public IReadOnlyList<GameSession> GetAllSessions()
         {
-            return _sessions;
+            var result = _sessions.AsReadOnly();
+            return result;
         }
 
         /// <summary>
@@ -44,7 +57,8 @@ namespace API7D.Services
         /// <returns>La session correspondante ou null si elle n'existe pas.</returns>
         public GameSession GetSessionById(string sessionId)
         {
-            return _sessions.FirstOrDefault(s => s.SessionId == sessionId);
+            GameSession result = _sessions.FirstOrDefault(s => s.SessionId == sessionId);
+            return result;
         }
 
         /// <summary>
@@ -52,32 +66,49 @@ namespace API7D.Services
         /// </summary>
         /// <param name="sessionId">L'ID de la session à supprimer.</param>
         /// <returns>True si la session est supprimée, sinon False.</returns>
+        /// <exception cref="ArgumentException">Lancée si <paramref name="sessionId"/> est null ou vide.</exception>
         public bool RemoveSession(string sessionId)
         {
-            var session = GetSessionById(sessionId);
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                throw new ArgumentException("L'ID de la session est requis.", nameof(sessionId));
+            }
+
+            GameSession session = GetSessionById(sessionId);
+            bool result = false;
+
             if (session != null)
             {
                 _sessions.Remove(session);
-                return true;
+                result = true;
             }
-            return false;
+
+            return result;
         }
 
         /// <summary>
         /// Met à jour une session existante en fonction de son ID.
         /// </summary>
         /// <param name="updatedSession">La session de jeu mise à jour.</param>
+        /// <exception cref="ArgumentNullException">Lancée si <paramref name="updatedSession"/> est null.</exception>
+        /// <exception cref="KeyNotFoundException">Lancée si l'ID de la session n'est pas trouvé.</exception>
         public void UpdateSession(GameSession updatedSession)
         {
-            int index = _sessions.FindIndex(s => s.SessionId == updatedSession.SessionId);
+            if (updatedSession == null)
+            {
+                throw new ArgumentNullException(nameof(updatedSession), "La session mise à jour ne peut pas être null.");
+            }
 
-            if (index >= 0)
+            int index = _sessions.FindIndex(s => s.SessionId == updatedSession.SessionId);
+            bool sessionExists = index >= 0;
+
+            if (sessionExists)
             {
                 _sessions[index] = updatedSession;
             }
             else
             {
-                throw new KeyNotFoundException($"Session with ID {updatedSession.SessionId} not found.");
+                throw new KeyNotFoundException($"Session avec l'ID {updatedSession.SessionId} introuvable.");
             }
         }
 
@@ -90,30 +121,30 @@ namespace API7D.Services
         public bool RemovePlayerFromSession(string sessionId, string playerId)
         {
             GameSession session = GetSessionById(sessionId);
-            if (session == null || !session.ContainsPlayer(playerId))
+            bool result = false;
+
+            if (session != null && session.ContainsPlayer(playerId))
             {
-                return false;
+                Player playerToRemove = session.Players.FirstOrDefault(p => p.PlayerId == playerId);
+
+                if (playerToRemove != null)
+                {
+                    session.Players.Remove(playerToRemove);
+
+                    // Si le joueur est l'hôte, supprimer la session
+                    if (session.IsHost(playerId))
+                    {
+                        RemoveSession(sessionId);
+                    }
+                    else
+                    {
+                        UpdateSession(session);
+                    }
+                    result = true;
+                }
             }
 
-            Player playerToRemove = session.Players.FirstOrDefault(p => p.PlayerId == playerId);
-
-            if (playerToRemove != null)
-            {
-                session.Players.Remove(playerToRemove);
-
-                // Si le joueur est l'hôte, supprimer la session
-                if (session.IsHost(playerId))
-                {
-                    RemoveSession(sessionId);
-                }
-                else
-                {
-                    UpdateSession(session);
-                }
-                return true;
-            }
-
-            return false;
+            return result;
         }
 
         /// <summary>
@@ -122,6 +153,8 @@ namespace API7D.Services
         /// <param name="sessionId">Identifiant de la session.</param>
         /// <param name="isInZone">Résultat de validation de la différence (true ou false).</param>
         /// <returns>Tâche asynchrone représentant l'opération de notification.</returns>
+        /// <exception cref="ArgumentException">Lancée si <paramref name="sessionId"/> est null ou vide.</exception>
+        /// <exception cref="Exception">Lancée si une erreur se produit lors de la notification via SignalR.</exception>
         public async Task NotifyPlayers(string sessionId, bool isInZone)
         {
             if (string.IsNullOrEmpty(sessionId))
@@ -134,12 +167,12 @@ namespace API7D.Services
             {
                 // Notifie tous les clients appartenant au groupe SignalR correspondant à la session
                 await _hubContext.Clients.Group(sessionId).SendAsync("ResultNotification", isInZone);
-
                 _logger.LogInformation($"Tous les joueurs de la session {sessionId} ont été notifiés du résultat : {isInZone}.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Erreur lors de la notification des joueurs de la session {sessionId}.");
+                throw;
             }
         }
     }

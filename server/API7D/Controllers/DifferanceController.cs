@@ -55,8 +55,21 @@ namespace API7D.Controllers
                     _sessionService,
                     playerId
                 );
-
                 await _sessionService.NotifyPlayers(sessionId, isInZone);
+                GameSession existingSession = _sessionService.GetSessionById(sessionId);
+
+
+
+                if (existingSession.GameCompleted)
+                {
+                    //signialR ici
+                }
+
+
+
+
+
+
                 // Retourne une réponse HTTP avec le statut approprié
                 actionResult = Ok(new { success = isInZone });
             }

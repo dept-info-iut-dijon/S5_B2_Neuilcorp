@@ -246,13 +246,28 @@ namespace API7D.Metier
                 _logger.LogInformation($"Sync state sent to client {Context.ConnectionId} for session {sessionId}.");
             }
         }
-            
-        public async Task NotifyResult(string sessionId, bool isInZone)
-        {
-            _logger.LogInformation($"Notification du résultat pour la session {sessionId}. Résultat : {isInZone}");
 
-            await _sessionService.NotifyPlayers(sessionId, isInZone);
+        public async Task NotifyEnd(string sessionId)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                _logger.LogError("SessionId ne peut pas être null ou vide.");
+                throw new ArgumentException("SessionId est requis.", nameof(sessionId));
+            }
+
+            try
+            {
+                // Notifie tous les clients appartenant au groupe SignalR correspondant à la session
+                await _hubContext.Clients.Group(sessionId).SendAsync("GameEnded");
+                _logger.LogInformation($"Tous les joueurs de la session {sessionId} ont été notifiés de la fin du jeu.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la notification des joueurs de la session {sessionId}.");
+                throw;
+            }
         }
+
 
     }
 }

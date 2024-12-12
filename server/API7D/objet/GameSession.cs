@@ -15,6 +15,7 @@ namespace API7D.objet
         private int imagePairId;
         private Dictionary<string, (int x, int y)> playerSelections;
         private Dictionary<string, bool> playerReadyStatus;
+        private List<Coordonnees> differenceTrouver;
 
 
         /// <summary>
@@ -78,6 +79,12 @@ namespace API7D.objet
         {
             get { return playerReadyStatus; }
             set { playerReadyStatus = value; }
+        }
+
+        public List<Coordonnees> DifferenceTrouver
+        {
+            get { return differenceTrouver; }
+            set { differenceTrouver = value; }
         }
 
         /// <summary>

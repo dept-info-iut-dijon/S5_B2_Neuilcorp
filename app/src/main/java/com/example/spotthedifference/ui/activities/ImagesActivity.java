@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.spotthedifference.R;
@@ -34,6 +35,7 @@ public class ImagesActivity extends AppCompatActivity {
 
     private GridLayout imageGrid;
     private Button confirmButton;
+    private ProgressBar progressBar;
     private ApiService apiService;
     private int selectedImagePairId = -1;
     private String sessionId;
@@ -45,6 +47,7 @@ public class ImagesActivity extends AppCompatActivity {
 
         imageGrid = findViewById(R.id.image_grid);
         confirmButton = findViewById(R.id.confirmButton);
+        progressBar = findViewById(R.id.progressBar);
         sessionId = getIntent().getStringExtra("sessionId");
 
         RetrofitClient retrofitClient = new RetrofitClient();
@@ -86,10 +89,12 @@ public class ImagesActivity extends AppCompatActivity {
      * Récupère les paires d'images du serveur et les affiche dans la grille.
      */
     private void fetchImagesWithPairs() {
+        progressBar.setVisibility(View.VISIBLE);
         Call<List<ImageWithPair>> call = apiService.getAllImagesWithPairs();
         call.enqueue(new Callback<List<ImageWithPair>>() {
             @Override
             public void onResponse(Call<List<ImageWithPair>> call, Response<List<ImageWithPair>> response) {
+                progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
                     displayImages(response.body());
                 } else {
@@ -99,6 +104,7 @@ public class ImagesActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<ImageWithPair>> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(ImagesActivity.this, "Erreur : " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

@@ -342,10 +342,15 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
      */
     @Override
     public void showExpiredTimerDialog(Integer NombreExpiration) {
+        Log.d("MainActivity", "showExpiredTimerDialog called with NombreExpiration: " + NombreExpiration);
+
         String message = "Le Timer a expiré avant que tout les joueurs ne soumettent de différence, c'est la "+ NombreExpiration + "eme fois";
         new AlertDialog.Builder(MainActivity.this)
                 .setMessage(message)
-                .setPositiveButton("OK", (dialog, which) -> resetUI())
+                .setPositiveButton("OK", (dialog, which) ->{
+                    resetUI();
+                    resetTimerCountdown(timerDuration);
+                })
                 .show();
     }
 
@@ -370,6 +375,12 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
         });
     }
 
+    private void resetTimerCountdown(int duration) {
+        timerHandler.removeCallbacksAndMessages(null); // Arrête toutes les tâches en cours
+        startTimerCountdown(duration); // Redémarre le timer avec la nouvelle durée
+        Log.d(TAG, "TimerCountdown réinitialisé avec une durée de " + duration + " secondes.");
+    }
+
     private void startTimerCountdown(int duration) {
         timerHandler.postDelayed(new Runnable() {
             int timeRemaining = duration;
@@ -386,4 +397,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
             }
         }, 0);
     }
+    
+
 }

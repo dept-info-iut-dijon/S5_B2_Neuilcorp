@@ -4,7 +4,9 @@ using API7D.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using System.Numerics;
 
 namespace API7D.Controllers
 {
@@ -17,8 +19,10 @@ namespace API7D.Controllers
             private IDifferanceChecker checker;
             private readonly SessionService _sessionService;
             private readonly ILogger<DifferanceChecker> _logger;
+            private readonly IHubContext<GameSessionHub> _hubContext; 
 
-        public DifferanceController(SessionService sessionService , ILogger<DifferanceChecker> logger)
+
+        public DifferanceController(SessionService sessionService , ILogger<DifferanceChecker> logger, IHubContext<GameSessionHub> hubContext)
         {
             _logger = logger;
             this.checker = new DifferanceChecker(logger);
@@ -58,17 +62,10 @@ namespace API7D.Controllers
                 await _sessionService.NotifyPlayers(sessionId, isInZone);
                 GameSession existingSession = _sessionService.GetSessionById(sessionId);
 
-
-
                 if (existingSession.GameCompleted)
                 {
-                    //signialR ici
+                    await _hubContext.Clients.Group(sessionId).SendAsync("GameEnded");
                 }
-
-
-
-
-
 
                 // Retourne une réponse HTTP avec le statut approprié
                 actionResult = Ok(new { success = isInZone });

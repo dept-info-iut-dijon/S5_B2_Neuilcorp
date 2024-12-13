@@ -15,7 +15,7 @@ namespace API7D.objet
         private int imagePairId;
         private Dictionary<string, (int x, int y)> playerSelections;
         private Dictionary<string, bool> playerReadyStatus;
-        private List<Coordonnees> differenceTrouver;
+        private List<Coordonnees> differenceTrouver = new List<Coordonnees>();
 
 
         /// <summary>

@@ -24,6 +24,7 @@
     <string name="Waiting_parametres_de_la_partie"><u>Paramètres de la partie :</u></string>
     <string name="Waiting_nom_du_joueur">Votre nom :</string>
     <string name="Waiting_nom_de_la_partie_nom">Partie de : </string>
+    <string name="Waiting_Image_choisie">Image choisie : </string>
     <string name="Waiting_copier">Copier</string>
     <string name="Waiting_pret">Prêt</string>
     <string name="Waiting_pas_pret">Pas prêt</string>

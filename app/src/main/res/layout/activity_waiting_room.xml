@@ -73,6 +73,26 @@
                 android:layout_marginTop="4dp"
                 android:text="@string/Waiting_nom_joueur_hote"
                 android:textColor="@android:color/black" />
+
+            <TextView
+                android:id="@+id/ImageChoisie"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/Waiting_Image_choisie"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
+
+            <!-- Affichage de l'image choisie pour jouer -->
+            <ImageView
+                android:id="@+id/imageSelection"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_marginTop="16dp"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:contentDescription="Image sélectionnée"
+                android:visibility="visible" />
         </LinearLayout>
 
         <!-- Partie basse gauche : Paramètres de la partie -->

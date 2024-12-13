@@ -2,8 +2,8 @@ package com.example.spotthedifference
 
 import com.example.spotthedifference.models.GameSession
 import com.example.spotthedifference.models.Player
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.junit.Assert.*
 
 class GameSessionTest {
 
@@ -12,8 +12,8 @@ class GameSessionTest {
     /// </summary>
     @Test
     fun testGameSessionInitialization() {
-        val jean = Player("1", "Jean")
-        val leo = Player("2", "Leo")
+        val jean = Player("Jean")
+        val leo = Player("Leo")
         val listPlayers =  ArrayList<Player>()
         listPlayers.add(jean)
         listPlayers.add(leo)

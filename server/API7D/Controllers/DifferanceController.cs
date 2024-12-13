@@ -65,6 +65,8 @@ namespace API7D.Controllers
 
                 if (existingSession.GameCompleted)
                 {
+                    _logger.LogInformation("envoie de GameEnded");
+                    await Task.Delay(1000);
                     await _hubContext.Clients.Group(sessionId).SendAsync("GameEnded");
                 }
 

@@ -48,4 +48,9 @@ public class Coordonnees
         }
         return result;
     }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X, Y);
+    }
 }

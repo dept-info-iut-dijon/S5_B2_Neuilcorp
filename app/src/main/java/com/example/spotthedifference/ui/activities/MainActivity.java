@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(closedSessionId -> {
                     if (closedSessionId.equals(sessionId)) {
-                        Toast.makeText(this, "Un joueur a quitté la session, la partie est terminée.", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(this, "Un joueur a quitté la session, la partie est terminée.", Toast.LENGTH_SHORT).show();
                         redirectToHome();
                     }
                 }, throwable -> Log.e(TAG, "Erreur SessionClosed observable", throwable)));
@@ -365,24 +365,13 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
     }
 
     @Override
-    public void onGameEnded(int Attempts, int MissedAttempts) {
+    public void onGameEnded(int Attempts, int MissedAttempts, int TimerExpired) {
         Log.d("MainActivity", "GameEnded reçu");
         runOnUiThread(() -> {
             // Affiche un message Toast pour informer l'utilisateur
-            showGameEndedPopup(Attempts,MissedAttempts);
+            showGameEndedPopup(Attempts,MissedAttempts,TimerExpired);
 
             // Notifie SignalR de la suppression de la session
-            signalRClient.notifySessionDeleted(sessionId);
-
-            // Crée un intent pour passer à HomeActivity
-            Intent intent = new Intent(this, HomeActivity.class);
-            intent.putExtra("ATTEMPTS", Attempts); // Ajoute le nombre de tentatives
-            intent.putExtra("MISSED_ATTEMPTS", MissedAttempts); // Ajoute le nombre de tentatives ratées
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            // Démarre l'activité et termine la current activity
-            startActivity(intent);
-            finish();
         });
     }
 
@@ -408,11 +397,27 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
             }
         },0);
     }
-    private void showGameEndedPopup(int attempts, int missedAttempts) {
+    private void showGameEndedPopup(int attempts, int missedAttempts, int TimerExpired) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Partie terminée");
-        builder.setMessage("Tentatives réussies : " + attempts + "\nTentatives ratées : " + missedAttempts);
-        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+        String message = "Tentatives réussies : " + attempts + "\nTentatives ratées : " + missedAttempts ;
+        if (timerDuration != 0)
+        {
+            message += "\nNombre de timers expirés : "+TimerExpired;
+        }
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", (dialog, which) ->
+        {
+            dialog.dismiss();
+
+            signalRClient.notifySessionDeleted(sessionId);
+
+            Intent intent = new Intent(this, HomeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+
+        });
         builder.create().show();
     }
 }

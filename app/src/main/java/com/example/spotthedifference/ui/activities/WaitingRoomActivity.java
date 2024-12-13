@@ -12,6 +12,11 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageView;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+import android.app.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
@@ -24,6 +29,7 @@ import com.example.spotthedifference.api.IRetrofitClient;
 import com.example.spotthedifference.api.RetrofitClient;
 import com.example.spotthedifference.models.GameSession;
 import com.example.spotthedifference.models.Player;
+import com.example.spotthedifference.models.ImageWithPair;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,6 +64,8 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
     private SignalRClient signalRClient;
     private CompositeDisposable disposables = new CompositeDisposable();
     private List<Player> players = new ArrayList<>();
+    private static final int SELECT_IMAGE_REQUEST = 1;
+    private ImageView selectedImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +94,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         partyNameTextView = findViewById(R.id.partyName);
         playerNameTextView = findViewById(R.id.playerName);
         playersContainer = findViewById(R.id.playersContainer);
+        selectedImageView = findViewById(R.id.imageSelection);
 
         sessionId = getIntent().getStringExtra("sessionId");
         playerName = getIntent().getStringExtra("playerName");
@@ -201,7 +210,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             if (isHost()) {
                 Intent intent = new Intent(WaitingRoomActivity.this, ImagesActivity.class);
                 intent.putExtra("sessionId", sessionId);
-                startActivity(intent);
+                startActivityForResult(intent, SELECT_IMAGE_REQUEST);
             } else {
                 Toast.makeText(this, R.string.Waiting_Toast_NonHoteSelectImage, Toast.LENGTH_SHORT).show();
             }
@@ -211,8 +220,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
         exitButton.setOnClickListener(v -> deleteSessionAndExit());
     }
-
-
 
     /**
      * Méthode appelée lorsque le jeu commence, elle reçoit les données de l'image
@@ -413,5 +420,70 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
+    }
+
+    /**
+     * Récupère l'id de l'image sélectionnée dans ImagesActivity afin de pouvoir l'afficher
+     * dans le lobby avec fetchAndDisplayImage.
+     *
+     * @param requestCode Le code de requête entier initialement fourni à
+     *                    startActivityForResult(), permettant d'identifier d'où provient
+     *                    ce résultat.
+     * @param resultCode Le code de résultat entier retourné par l'activité enfant
+     *                   via son setResult().
+     * @param data Un Intent contenant l'ID de la paire d'images sélectionnée dans
+     *             ImagesActivity.
+     *
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == SELECT_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            int selectedImagePairId = data.getIntExtra("selectedImagePairId", -1);
+            if (selectedImagePairId != -1) {
+                Log.d("WaitingRoomActivity", "Image sélectionnée avec l'ID : " + selectedImagePairId);
+                fetchAndDisplayImage(selectedImagePairId);
+            }
+        }
+    }
+
+    /**
+     * Récupère l'image depuis le serveur grâce à son id puis l'affiche sur le lobby
+     *
+     * @param imagePairId L'id de l'image sélectionnée
+     */
+    private void fetchAndDisplayImage(int imagePairId) {
+        Call<List<ImageWithPair>> call = apiService.getAllImagesWithPairs();
+        call.enqueue(new Callback<List<ImageWithPair>>() {
+            @Override
+            public void onResponse(Call<List<ImageWithPair>> call, Response<List<ImageWithPair>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    for (ImageWithPair image : response.body()) {
+                        if (image.getImagePairId() == imagePairId) {
+                            // Convertir et afficher l'image
+                            String base64Image = image.getBase64Image();
+                            if (base64Image != null && !base64Image.isEmpty()) {
+                                byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+                                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                                
+                                runOnUiThread(() -> {
+                                    selectedImageView.setVisibility(View.VISIBLE);
+                                    selectedImageView.setImageBitmap(bitmap);
+                                });
+                            }
+                            break;
+                        }
+                    }
+                } else {
+                    Log.e("WaitingRoomActivity", "Erreur lors de la récupération de l'image");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ImageWithPair>> call, Throwable t) {
+                Log.e("WaitingRoomActivity", "Échec de la requête : " + t.getMessage());
+            }
+        });
     }
 }

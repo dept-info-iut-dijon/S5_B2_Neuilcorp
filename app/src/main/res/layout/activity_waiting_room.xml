@@ -116,6 +116,17 @@
                 android:textColor="@android:color/black"
                 tools:ignore="UseSwitchCompatOrMaterialXml" />
 
+            <!-- Affichage de l'image choisie pour jouer -->
+            <ImageView
+                android:id="@+id/imageSelection"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_marginTop="16dp"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:contentDescription="Image sélectionnée"
+                android:visibility="visible" />
+
             <!-- Bouton Prêt ancré en bas -->
         </LinearLayout>
 

@@ -25,6 +25,8 @@ import java.util.List;
 import android.util.Log;
 import java.util.HashSet;
 import java.util.Set;
+import android.content.Intent;
+import android.app.Activity;
 
 /**
  * Activité permettant aux utilisateurs de sélectionner une image parmi une grille d'images
@@ -107,6 +109,10 @@ public class ImagesActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("selectedImagePairId", selectedImagePairId);
+                    setResult(Activity.RESULT_OK, resultIntent);
+                    
                     showToast(getString(R.string.Images_Toast_ImageConfirmee));
                     finish();
                 } else {

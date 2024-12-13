@@ -17,6 +17,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.spotthedifference.R;
+import com.example.spotthedifference.WebSocket.GameEndedListener;
 import com.example.spotthedifference.WebSocket.SignalRClient;
 import com.example.spotthedifference.api.ApiService;
 import com.example.spotthedifference.api.IRetrofitClient;
@@ -35,7 +36,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class MainActivity extends AppCompatActivity implements IMainActivity {
+public class MainActivity extends AppCompatActivity implements IMainActivity , GameEndedListener {
 
     private static final String TAG = "MainActivity";
     private SignalRClient signalRClient;
@@ -127,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         signalRClient.startConnection();
         signalRClient.joinSessionGroup(sessionId);
         signalRClient.requestSync(sessionId);
+        signalRClient.setGameEndedListener(this);
 
         signalRClient.getHubConnection().on("ResultNotification", (result) -> {
             runOnUiThread(() -> {
@@ -199,15 +201,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                         redirectToHome();
                     }
                 }, throwable -> Log.e(TAG, "Erreur SessionClosed observable", throwable)));
-
-        disposables.add(signalRClient.getPlayerRemovedObservable()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(removedPlayerId -> {
-                    if (!isHost() && !removedPlayerId.equals(playerId)) {
-                        redirectToWaitingRoom();
-                    }
-                }, throwable -> Log.e(TAG, "Erreur PlayerRemoved observable", throwable)));
     }
 
     /**
@@ -244,17 +237,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     private void redirectToHome() {
         Intent intent = new Intent(this, HomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
-    }
-
-    /**
-     * Redirige vers l'activité WaitingRoomActivity.
-     */
-    private void redirectToWaitingRoom() {
-        Intent intent = new Intent(this, WaitingRoomActivity.class);
-        intent.putExtra("sessionId", sessionId);
-        intent.putExtra("playerId", playerId);
         startActivity(intent);
         finish();
     }
@@ -343,5 +325,16 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
         circleImageView.setVisibility(View.INVISIBLE);
         coordTemp = null;
         imageView.setEnabled(true);
+    }
+
+    @Override
+    public void onGameEnded() {
+        Log.d("MainActivity","GameEnded recu" );
+        runOnUiThread(() -> {
+            Toast.makeText(this, "La partie est terminée. Retour à l'accueil.", Toast.LENGTH_LONG).show();
+
+            signalRClient.notifySessionDeleted(sessionId);
+            redirectToHome();
+        });
     }
 }

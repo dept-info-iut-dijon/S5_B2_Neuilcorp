@@ -67,6 +67,7 @@ public class DifferanceChecker : IDifferanceChecker
     /// </summary>
     private bool ValidatePlayerSelections(GameSession gameSession, List<Coordonnees> pairDifferences)
     {
+        List<Coordonnees> gamesessionDiffList = gameSession.DifferenceTrouver;
         bool isDifferenceValid = false;
         var playerSelec = gameSession.PlayerSelections;
         foreach (var difference in pairDifferences)
@@ -74,8 +75,20 @@ public class DifferanceChecker : IDifferanceChecker
             _logger.LogInformation($"Validation pour la différence centrée sur ({difference.X}, {difference.Y}).");
             if (AllPlayersSelectedSameDifference(playerSelec.Values, difference))
             {
-                _logger.LogInformation("Tous les joueurs ont validé cette différence.");
-                isDifferenceValid = true;
+                if (!gameSession.DifferenceTrouver.Contains(difference))
+                {
+                    gameSession.DifferenceTrouver.Add(difference);
+                    _logger.LogInformation("Tous les joueurs ont validé cette différence.");
+                    isDifferenceValid = true;
+
+                }
+                else
+                {
+                    _logger.LogInformation("cette difference a deja été trouver");
+                    isDifferenceValid = false;
+                }
+
+
                 break;
             }
         }
@@ -132,6 +145,7 @@ public class DifferanceChecker : IDifferanceChecker
         SessionService sessionService,
         string playerId)
     {
+        
         _logger.LogInformation($"Vérification de la différence pour le joueur {playerId} dans la session {sessionId} avec les coordonnées ({coordinate.X}, {coordinate.Y}) et l'image paire {idImagePaire}.");
         var gameSession = sessionService.GetSessionById(sessionId);
 
@@ -156,6 +170,10 @@ public class DifferanceChecker : IDifferanceChecker
 
             ResetPlayerSelections(gameSession, sessionId);
             sessionTask.SetResult(isDifferenceValid);
+            if (gameSession.DifferenceTrouver.Count() == differences[idImagePaire].Count())
+            {
+                gameSession.GameCompleted = true;
+            }
         }
 
         return await sessionTask.Task;

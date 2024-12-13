@@ -37,4 +37,20 @@ public class Coordonnees
         this.X = x;
         this.Y = y;
     }
+
+    public override bool Equals(object obj)
+    {
+        bool result = false;
+        if (obj is Coordonnees other)
+        {
+
+            result = this.X == other.X && this.Y == other.Y;
+        }
+        return result;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X, Y);
+    }
 }

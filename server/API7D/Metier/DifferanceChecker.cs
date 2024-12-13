@@ -85,7 +85,7 @@ public class DifferanceChecker : IDifferanceChecker
                 else
                 {
                     _logger.LogInformation("cette difference a deja été trouver");
-                    isDifferenceValid = false;
+                    isDifferenceValid = true;
                 }
 
 

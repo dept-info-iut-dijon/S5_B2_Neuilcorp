@@ -50,6 +50,15 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
 
         createGameButton.setOnClickListener(v -> showCreateGameDialog());
         joinGameButton.setOnClickListener(v -> showJoinGameDialog());
+
+        Button closeAppButton = findViewById(R.id.closeAppButton);
+        closeAppButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish(); // Ferme l'activité courante
+                System.exit(0); // Terminer complètement l'application
+            }
+        });
     }
 
     /**

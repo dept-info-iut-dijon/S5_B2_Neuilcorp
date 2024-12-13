@@ -406,6 +406,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
                     timerTextView.setText("Temps écoulé !");
                 }
             }
-        });
+        },0);
     }
 }

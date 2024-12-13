@@ -41,6 +41,16 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        // Vérifiez si l'Intent contient les données Attempts et MissedAttempts
+        Intent intent = getIntent();
+        if (intent.hasExtra("ATTEMPTS") && intent.hasExtra("MISSED_ATTEMPTS")) {
+            int attempts = intent.getIntExtra("ATTEMPTS", 0);
+            int missedAttempts = intent.getIntExtra("MISSED_ATTEMPTS", 0);
+
+            // Affichez le pop-up avec les données reçues
+            showGameEndedPopup(attempts, missedAttempts);
+        }
+
         IRetrofitClient client = new RetrofitClient();
         Retrofit retrofit = client.getUnsafeRetrofit();
         apiService = retrofit.create(ApiService.class);
@@ -51,6 +61,7 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
         createGameButton.setOnClickListener(v -> showCreateGameDialog());
         joinGameButton.setOnClickListener(v -> showJoinGameDialog());
     }
+
 
     /**
      * Affiche une boîte de dialogue permettant de créer une nouvelle session de jeu.
@@ -234,5 +245,14 @@ public class HomeActivity extends AppCompatActivity implements IHomeActivity {
     public void showToast(String message) {
         Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT).show();
     }
+
+    private void showGameEndedPopup(int attempts, int missedAttempts) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Partie terminée");
+        builder.setMessage("Tentatives réussies : " + attempts + "\nTentatives ratées : " + missedAttempts);
+        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+        builder.create().show();
+    }
+
 
 }

@@ -84,14 +84,13 @@ public class SignalRClient {
         hubConnection.on("PlayerReadyStatusChanged", this::handlePlayerReadyStatusChanged, String.class, Boolean.class);
         hubConnection.on("SyncSessionState", this::handleSyncSessionState, String.class);
         hubConnection.on("GameStarted", this::handleGameStarted, String.class, Integer.class, Integer.class);
-        hubConnection.on("GameEnded", this::handleGameEnded);
+        hubConnection.on("GameEnded", this::handleGameEnded, Integer.class , Integer.class);
         hubConnection.on("ReadyNotAllowed", readyNotAllowedSubject::onNext, String.class);
         hubConnection.on("NotifyMessage", notifyMessageSubject::onNext, String.class);
         hubConnection.on("ReceiveConnectionId", this::handleConnectionIdReceived, String.class);
         hubConnection.on("SessionDeleted", SessionDeletedSubject::onNext, String.class);
         hubConnection.on("TimerStarted", this::handleTimerStarted, Integer.class, String.class);
         hubConnection.on("GameStatisticsUpdated", this::handleGameStatisticsUpdated, Integer.class, Integer.class, Integer.class);
-
     }
 
     /**
@@ -142,12 +141,20 @@ public class SignalRClient {
 
     /**
      * Gestion de l'événement "GameStarted".
+     * Gestion de l'événement "GameEnded".
      */
     private void handleGameEnded() {
+    private void handleGameEnded(int totalAttempts, int missedAttempts) {
         if (gameEndedListener != null) {
             gameEndedListener.onGameEnded();
+            // Notifie l'écouteur de la fin de la partie
+            gameEndedListener.onGameEnded(totalAttempts , missedAttempts);
+
+            log("SignalRClient: Notification de fin de jeu envoyée avec succès.", null);
         } else {
             log("SignalRClient: GameEndedListener est null !", null);
+            // Gère le cas où l'écouteur est null
+            log("SignalRClient: GameEndedListener est null ! Aucune action de fin de jeu n'a pu être effectuée.", null);
         }
     }
 

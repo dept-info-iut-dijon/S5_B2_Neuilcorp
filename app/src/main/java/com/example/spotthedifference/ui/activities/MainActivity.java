@@ -367,11 +367,25 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
     @Override
     public void onGameEnded() {
         Log.d("MainActivity","GameEnded recu" );
+    public void onGameEnded(int Attempts, int MissedAttempts) {
+        Log.d("MainActivity", "GameEnded reçu");
         runOnUiThread(() -> {
+            // Affiche un message Toast pour informer l'utilisateur
             Toast.makeText(this, "La partie est terminée. Retour à l'accueil.", Toast.LENGTH_LONG).show();
 
+            // Notifie SignalR de la suppression de la session
             signalRClient.notifySessionDeleted(sessionId);
             redirectToHome();
+
+            // Crée un intent pour passer à HomeActivity
+            Intent intent = new Intent(this, HomeActivity.class);
+            intent.putExtra("ATTEMPTS", Attempts); // Ajoute le nombre de tentatives
+            intent.putExtra("MISSED_ATTEMPTS", MissedAttempts); // Ajoute le nombre de tentatives ratées
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            // Démarre l'activité et termine la current activity
+            startActivity(intent);
+            finish();
         });
     }
 
@@ -395,8 +409,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
                     timerTextView.setText("Temps écoulé !");
                 }
             }
-        }, 0);
+        });
     }
-    
-
 }

@@ -6,7 +6,7 @@ import java.util.*;
  * Représente une session de jeu avec une gestion centralisée de ses propriétés
  * et de son comportement.
  */
-public class GameSession {
+public class GameSession implements IGameSession {
     private final String sessionId; // Défini à l'intérieur, non modifiable
     private final List<Player> players; // Liste immuable pour éviter les modifications extérieures
     private boolean gameCompleted; // Gestion interne
@@ -24,7 +24,7 @@ public class GameSession {
         this.players = player;
         this.playerSelections = new HashMap<>();
         this.playerReadyStatus = new HashMap<>();
-        this.differenceFound = new ArrayList<>();
+        this.differenceFound = null;
         this.gameCompleted = false;
         this.gameTimer = false;
     }

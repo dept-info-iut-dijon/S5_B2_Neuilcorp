@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -25,12 +26,9 @@ import com.example.spotthedifference.api.RetrofitClient;
 import com.example.spotthedifference.models.Coordonnees;
 
 
-import java.io.IOException;
-
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -49,6 +47,9 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
     private String sessionId;
     private String playerId;
     private Button exitButton;
+    private int timerDuration;
+    private TextView timerTextView;
+    private Handler timerHandler = new Handler();
     private CompositeDisposable disposables = new CompositeDisposable();
 
     @Override
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
         loadImageFromPath();
         setupListeners();
         setupDisposables();
+        startTimerCountdown(timerDuration);
 
         Log.d(TAG, "MainActivity initialisée avec succès.");
     }
@@ -76,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
         Intent intent = getIntent();
         sessionId = intent.getStringExtra("sessionId");
         playerId = intent.getStringExtra("playerId");
+        timerDuration = intent.getIntExtra("timerDuration", 0); // Récupération du TimerDuration
 
         String imagePath = intent.getStringExtra("imagePath");
         String imagePairIdString = intent.getStringExtra("imagePairId");
@@ -87,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
         }
 
         Log.d(TAG, "Session ID : " + sessionId + ", Player ID : " + playerId + ", Image Pair ID : " + imagePairIdString);
+        Log.d(TAG, "Timer Duration : " + timerDuration + " secondes.");
     }
 
     /**
@@ -96,17 +100,14 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
         imageView = findViewById(R.id.imageView);
         validerButton = findViewById(R.id.validateButton);
         validerButton.setEnabled(false);
-
+        timerTextView = findViewById(R.id.timerTextView);
+        if (timerDuration == 0) {timerTextView.setVisibility(View.GONE);} //on cache le compteur si la durée du timer est a zero
         circleImageView = new ImageView(this);
         circleImageView.setImageResource(R.drawable.cercle_rouge);
         circleImageView.setVisibility(View.INVISIBLE);
       
         FrameLayout layout = findViewById(R.id.frameLayout);
         layout.addView(circleImageView, new FrameLayout.LayoutParams(75, 75));
-
-
-        
-
 
         exitButton = findViewById(R.id.exitButton);
     }
@@ -137,6 +138,32 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
                 showResultDialog((Boolean) result);
             });
         }, Boolean.class);
+
+        signalRClient.getHubConnection().on("TimerExpired", (result) -> {
+            runOnUiThread(() -> {
+                Log.d(TAG, "TimerExpired SignalR reçue : " + result);
+                hideWaitingDialog();
+                showExpiredTimerDialog((Integer) result);
+            });
+        }, Integer.class);
+
+        signalRClient.getGameStatisticsObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(statistics -> {
+                    int attempts = statistics[0];
+                    int missedAttempts = statistics[1];
+                    int timersExpired = statistics[2];
+
+                    Log.d(TAG, "Statistiques mises à jour : Tentatives = " + attempts +
+                            ", Ratés = " + missedAttempts + ", Timers expirés = " + timersExpired);
+
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "Statistiques : Tentatives = " + attempts +
+                                ", Ratés = " + missedAttempts +
+                                ", Timers expirés = " + timersExpired, Toast.LENGTH_SHORT).show();
+                    });
+                }, throwable -> Log.e(TAG, "Erreur GameStatisticsUpdated observable", throwable));
 
         Log.d(TAG, "SignalRClient configuré pour le joueur : " + playerId);
     }
@@ -221,14 +248,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
                 Log.e(TAG, "Échec de la suppression de session", t);
             }
         });
-    }
-
-    /**
-     * Vérifie si le joueur actuel est hôte ou non.
-     * @return true si le joueur est hôte, false s'il ne l'est pas.
-     */
-    private boolean isHost() {
-        return false; // temporaire
     }
 
     /**
@@ -318,6 +337,19 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
     }
 
     /**
+     * Méthode pour afficher un message indiquant que le timer à expirer
+     * @param NombreExpiration le nombre d'expiration du timer
+     */
+    @Override
+    public void showExpiredTimerDialog(Integer NombreExpiration) {
+        String message = "Le Timer a expiré avant que tout les joueurs ne soumettent de différence, c'est la "+ NombreExpiration + "eme fois";
+        new AlertDialog.Builder(MainActivity.this)
+                .setMessage(message)
+                .setPositiveButton("OK", (dialog, which) -> resetUI())
+                .show();
+    }
+
+    /**
      * Réinitialise l'interface utilisateur après un résultat.
      */
     private void resetUI() {
@@ -336,5 +368,22 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
             signalRClient.notifySessionDeleted(sessionId);
             redirectToHome();
         });
+    }
+
+    private void startTimerCountdown(int duration) {
+        timerHandler.postDelayed(new Runnable() {
+            int timeRemaining = duration;
+
+            @Override
+            public void run() {
+                if (timeRemaining >= 0) {
+                    timerTextView.setText("Temps restant : " + timeRemaining + "s");
+                    timeRemaining--;
+                    timerHandler.postDelayed(this, 1000);
+                } else {
+                    timerTextView.setText("Temps écoulé !");
+                }
+            }
+        }, 0);
     }
 }

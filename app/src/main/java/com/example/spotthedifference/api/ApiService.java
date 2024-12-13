@@ -124,4 +124,8 @@ public interface ApiService {
      */
     @DELETE("api/GameSession/{sessionId}/player/{playerId}/remove")
     Call<Void> removePlayerFromSession(@Path("sessionId") String sessionId, @Path("playerId") String playerId);
+
+    @POST("api/GameSession/{sessionId}/setTimerDuration")
+    Call<Void> setTimerDuration(@Path("sessionId") String sessionId, @Body int duration);
+
 }

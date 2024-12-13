@@ -45,6 +45,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
+import android.widget.Switch;
+import android.widget.EditText;
+
+
 /**
  * La classe WaitingRoomActivity représente l'activité de la salle d'attente
  * dans l'application. Elle permet aux joueurs de se connecter à une session
@@ -66,6 +70,11 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
     private List<Player> players = new ArrayList<>();
     private static final int SELECT_IMAGE_REQUEST = 1;
     private ImageView selectedImageView;
+    private Switch timerSwitch;
+    private LinearLayout timerSettingsContainer;
+    private EditText timerDurationInput;
+    private Button validateTimerButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +114,11 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         }
 
         playerNameTextView.setText(getString(R.string.Waiting_nom_du_joueur) + " " + playerName);
+
+        timerSwitch = findViewById(R.id.timerSwitch);
+        timerSettingsContainer = findViewById(R.id.timerSettingsContainer);
+        timerDurationInput = findViewById(R.id.timerDurationInput);
+        validateTimerButton = findViewById(R.id.validateTimerButton);
     }
 
     /**
@@ -216,6 +230,36 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             }
         });
 
+
+            timerSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isHost()) {
+                    if (isChecked) {
+                        timerSettingsContainer.setVisibility(View.VISIBLE);
+                    } else {
+                        timerSettingsContainer.setVisibility(View.GONE);
+                    }
+                }
+                else {
+                    Toast.makeText(this, "Seul l'hôte peut configurer le timer.", Toast.LENGTH_SHORT).show();
+                    timerSwitch.setChecked(false);
+                }
+            });
+
+            validateTimerButton.setOnClickListener(v -> {
+                if (isHost()) {
+                    String durationStr = timerDurationInput.getText().toString();
+                    if (!durationStr.isEmpty()) {
+                        int timerDuration = Integer.parseInt(durationStr);
+                        sendTimerDurationToServer(timerDuration);
+                    } else {
+                        Toast.makeText(this, "Veuillez entrer une durée valide.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else {
+                    Toast.makeText(this, "Seul l'hôte peut configurer le timer.", Toast.LENGTH_SHORT).show();
+                }
+            });
+
         readyButton.setOnClickListener(v -> toggleReadyStatus());
         copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
         exitButton.setOnClickListener(v -> deleteSessionAndExit());
@@ -228,11 +272,11 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
      * @param imageData
      */
     @Override
-    public void onGameStarted(byte[] imageData, Integer imagePairId) {
+    public void onGameStarted(byte[] imageData, Integer imagePairId, Integer timerDuration) {
         Log.d("WaitingRoomActivity", "Image reçue via GameStartedCallback. Taille : " + imageData.length + " imagePairId : " + imagePairId);
+        Log.d("WaitingRoomActivity", "TimerDuration reçu : " + timerDuration);
 
         File imageFile = new File(getCacheDir(), "tempImage.jpg");
-
         try {
             if (!imageFile.getParentFile().exists()) {
                 boolean dirCreated = imageFile.getParentFile().mkdirs();
@@ -247,17 +291,20 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 fos.write(imageData);
             }
 
+            // Passer le TimerDuration dans l'Intent
             Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
             intent.putExtra("imagePath", imageFile.getAbsolutePath());
             intent.putExtra("sessionId", sessionId);
             intent.putExtra("playerId", playerId);
             intent.putExtra("imagePairId", imagePairId.toString());
+            intent.putExtra("timerDuration", timerDuration);
             startActivity(intent);
             finish();
         } catch (IOException e) {
             Log.e("WaitingRoomActivity", "Erreur lors de l'écriture ou de l'accès au fichier temporaire : " + e.getMessage(), e);
             Toast.makeText(this, R.string.Waiting_Toast_ErreurSauvegardeImageTemp, Toast.LENGTH_SHORT).show();
         }
+
     }
 
     /**
@@ -486,4 +533,24 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
             }
         });
     }
+
+    private void sendTimerDurationToServer(int duration) {
+        // Appel API pour envoyer la durée du timer
+        apiService.setTimerDuration(sessionId, duration).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(WaitingRoomActivity.this, "Durée du timer définie à " + duration + " secondes.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(WaitingRoomActivity.this, "Erreur lors de l'envoi de la durée du timer.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(WaitingRoomActivity.this, "Échec de la connexion au serveur.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 }

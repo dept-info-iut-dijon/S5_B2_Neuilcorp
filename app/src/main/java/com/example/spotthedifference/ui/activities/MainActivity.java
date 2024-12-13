@@ -369,7 +369,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
         Log.d("MainActivity", "GameEnded reçu");
         runOnUiThread(() -> {
             // Affiche un message Toast pour informer l'utilisateur
-            Toast.makeText(this, "La partie est terminée. Retour à l'accueil.", Toast.LENGTH_LONG).show();
+            showGameEndedPopup(Attempts,MissedAttempts);
 
             // Notifie SignalR de la suppression de la session
             signalRClient.notifySessionDeleted(sessionId);
@@ -407,5 +407,12 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
                 }
             }
         },0);
+    }
+    private void showGameEndedPopup(int attempts, int missedAttempts) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Partie terminée");
+        builder.setMessage("Tentatives réussies : " + attempts + "\nTentatives ratées : " + missedAttempts);
+        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+        builder.create().show();
     }
 }

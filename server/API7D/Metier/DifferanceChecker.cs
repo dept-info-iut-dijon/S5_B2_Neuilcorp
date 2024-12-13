@@ -173,7 +173,10 @@ public class DifferanceChecker : IDifferanceChecker
                     gameSession.GameCompleted = true;
                 }
 
-                ResetTimer(gameSession);
+                if (gameSession.TimerDuration > 0 && gameSession.GameTimer == true)
+                { 
+                    ResetTimer(gameSession); 
+                }
             }
 
             await sessionTask.Task;

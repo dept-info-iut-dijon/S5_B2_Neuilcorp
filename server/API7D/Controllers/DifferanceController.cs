@@ -74,9 +74,28 @@ namespace API7D.Controllers
 
                 if (existingSession.GameCompleted)
                 {
-                    _logger.LogInformation("envoie de GameEnded");
-                    await Task.Delay(1000);
-                    await _hubContext.Clients.Group(sessionId).SendAsync("GameEnded");
+                    if (string.IsNullOrEmpty(sessionId))
+                    {
+                        _logger.LogError("SessionId ne peut pas être null ou vide.");
+                        throw new ArgumentException("SessionId est requis.", nameof(sessionId));
+                    }
+
+                  
+                        // Récupère la session correspondante à partir d'une source (par exemple, un service ou un repository)
+                        GameSession session = _sessionService.GetSessionById(sessionId);
+
+                        if (session == null)
+                        {
+                            _logger.LogError($"Session avec l'ID {sessionId} introuvable.");
+                            throw new InvalidOperationException($"La session {sessionId} n'existe pas.");
+                        }
+
+                        // Notifie tous les clients appartenant au groupe SignalR correspondant à la session
+                        await _hubContext.Clients.Group(sessionId).SendAsync("GameEnded", session.Attempts, session.MissedAttempts, session.TimersExpired);
+
+                        _logger.LogInformation($"Tous les joueurs de la session {sessionId} ont été notifiés de la fin du jeu.");
+                    
+                    
                 }
             }
             catch (Exception ex)

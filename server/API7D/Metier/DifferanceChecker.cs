@@ -80,7 +80,15 @@ public class DifferanceChecker : IDifferanceChecker
                     gameSession.DifferenceTrouver.Add(difference);
                     _logger.LogInformation("Tous les joueurs ont validé cette différence.");
                     isDifferenceValid = true;
+
                 }
+                else
+                {
+                    _logger.LogInformation("cette difference a deja été trouver");
+                    isDifferenceValid = true;
+                }
+
+
                 break;
             }
         }

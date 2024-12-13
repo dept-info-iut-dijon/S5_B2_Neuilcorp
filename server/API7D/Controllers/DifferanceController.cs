@@ -27,6 +27,7 @@ namespace API7D.Controllers
             _logger = logger;
             this.checker = new DifferanceChecker(logger);
             _sessionService = sessionService;
+            _hubContext = hubContext;
 
         }
 

@@ -365,8 +365,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
     }
 
     @Override
-    public void onGameEnded() {
-        Log.d("MainActivity","GameEnded recu" );
     public void onGameEnded(int Attempts, int MissedAttempts) {
         Log.d("MainActivity", "GameEnded reçu");
         runOnUiThread(() -> {
@@ -375,7 +373,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
 
             // Notifie SignalR de la suppression de la session
             signalRClient.notifySessionDeleted(sessionId);
-            redirectToHome();
 
             // Crée un intent pour passer à HomeActivity
             Intent intent = new Intent(this, HomeActivity.class);

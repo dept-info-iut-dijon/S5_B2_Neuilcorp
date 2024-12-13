@@ -140,19 +140,15 @@ public class SignalRClient {
     }
 
     /**
-     * Gestion de l'événement "GameStarted".
      * Gestion de l'événement "GameEnded".
      */
-    private void handleGameEnded() {
     private void handleGameEnded(int totalAttempts, int missedAttempts) {
         if (gameEndedListener != null) {
-            gameEndedListener.onGameEnded();
             // Notifie l'écouteur de la fin de la partie
             gameEndedListener.onGameEnded(totalAttempts , missedAttempts);
 
             log("SignalRClient: Notification de fin de jeu envoyée avec succès.", null);
         } else {
-            log("SignalRClient: GameEndedListener est null !", null);
             // Gère le cas où l'écouteur est null
             log("SignalRClient: GameEndedListener est null ! Aucune action de fin de jeu n'a pu être effectuée.", null);
         }

@@ -5,6 +5,6 @@ public interface GameEndedListener {
         /**
          * Méthode appelée lorsque le jeu se fini.
          */
-        void onGameEnd();
+        void onGameEnded();
 
 }

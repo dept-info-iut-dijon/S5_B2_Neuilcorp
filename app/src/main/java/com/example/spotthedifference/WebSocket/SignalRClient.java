@@ -49,9 +49,6 @@ public class SignalRClient {
 
     private GameStartedListener gameStartedListener;
     private GameEndedListener gameEndedListener;
-    public BehaviorSubject<Boolean> getConnectionEstablishedObservable() {
-        return connectionEstablishedSubject;
-    }
     private BehaviorSubject<String> readyNotAllowedSubject = BehaviorSubject.create();
     private BehaviorSubject<String> notifyMessageSubject = BehaviorSubject.create();
     private BehaviorSubject<String> PlayerRemovedSubject = BehaviorSubject.create();
@@ -141,10 +138,10 @@ public class SignalRClient {
      * Gestion de l'événement "GameStarted".
      */
     private void handleGameEnded() {
-        if (gameStartedListener != null) {
-            gameEndedListener.onGameEnd();
+        if (gameEndedListener != null) {
+            gameEndedListener.onGameEnded();
         } else {
-            log("SignalRClient: GameStartedListener est null !", null);
+            log("SignalRClient: GameEndedListener est null !", null);
         }
     }
 
@@ -173,7 +170,7 @@ public class SignalRClient {
 
     public void setGameEndedListener(GameEndedListener listener) {
         this.gameEndedListener = listener;
-        Log.d("SignalRClient", "GameStartedListener défini : " + (listener != null));
+        Log.d("SignalRClient", "GameEndedListener défini : " + (listener != null));
     }
 
     /**

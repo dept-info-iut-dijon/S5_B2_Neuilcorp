@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
         signalRClient.startConnection();
         signalRClient.joinSessionGroup(sessionId);
         signalRClient.requestSync(sessionId);
+        signalRClient.setGameEndedListener(this);
 
         signalRClient.getHubConnection().on("ResultNotification", (result) -> {
             runOnUiThread(() -> {
@@ -196,15 +197,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
                         redirectToHome();
                     }
                 }, throwable -> Log.e(TAG, "Erreur SessionClosed observable", throwable)));
-
-        disposables.add(signalRClient.getPlayerRemovedObservable()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(removedPlayerId -> {
-                    if (!isHost() && !removedPlayerId.equals(playerId)) {
-                        redirectToWaitingRoom();
-                    }
-                }, throwable -> Log.e(TAG, "Erreur PlayerRemoved observable", throwable)));
     }
 
     /**
@@ -241,17 +233,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
     private void redirectToHome() {
         Intent intent = new Intent(this, HomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
-    }
-
-    /**
-     * Redirige vers l'activité WaitingRoomActivity.
-     */
-    private void redirectToWaitingRoom() {
-        Intent intent = new Intent(this, WaitingRoomActivity.class);
-        intent.putExtra("sessionId", sessionId);
-        intent.putExtra("playerId", playerId);
         startActivity(intent);
         finish();
     }
@@ -343,9 +324,13 @@ public class MainActivity extends AppCompatActivity implements IMainActivity , G
     }
 
     @Override
-    public void onGameEnd() {
-        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-        startActivity(intent);
-        finish();
+    public void onGameEnded() {
+        Log.d("MainActivity","GameEnded recu" );
+        runOnUiThread(() -> {
+            Toast.makeText(this, "La partie est terminée. Retour à l'accueil.", Toast.LENGTH_LONG).show();
+
+            signalRClient.notifySessionDeleted(sessionId);
+            redirectToHome();
+        });
     }
 }

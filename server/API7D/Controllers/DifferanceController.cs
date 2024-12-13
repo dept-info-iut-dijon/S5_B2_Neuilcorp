@@ -25,7 +25,7 @@ namespace API7D.Controllers
         public DifferanceController(SessionService sessionService , ILogger<DifferanceChecker> logger, IHubContext<GameSessionHub> hubContext)
         {
             _logger = logger;
-            this.checker = new DifferanceChecker(logger);
+            this.checker = new DifferanceChecker();
             _sessionService = sessionService;
             _hubContext = hubContext;
 
@@ -36,12 +36,8 @@ namespace API7D.Controllers
         /// </summary>
         /// <param name="coordonnees">une coordonée X Y</param>
         /// <param name="IdImage">L'identifiant de l'image à vérifier</param>
-        /// <returns>
-        /// 200 Ok : si la vérification est réussie
-        /// 400 Bad Request : si la vérification a échoué
-        /// </returns>
         [HttpPost("check")]
-        public async Task<IActionResult> CheckDifference(
+        public async void CheckDifference(
             [FromBody] Coordonnees coordonnees,
             [FromQuery] string sessionId,
             [FromQuery] string playerId,
@@ -53,32 +49,59 @@ namespace API7D.Controllers
             try
             {
                 // Appelle la méthode asynchrone pour vérifier si la différence est valide
-                bool isInZone = await checker.IsWithinDifferenceAsync(
+                int result = await checker.IsWithinDifferenceAsync(
                     coordonnees,
                     int.Parse(imageId),
                     sessionId,
                     _sessionService,
                     playerId
                 );
-                await _sessionService.NotifyPlayers(sessionId, isInZone);
+                switch (result)
+                {
+                    case 0:
+                        await _sessionService.NotifyPlayers(sessionId, false);
+                        break;
+                    case 1:
+                        await _sessionService.NotifyTimerExpired(sessionId);
+                        break;
+                    case 2:
+                        await _sessionService.NotifyPlayers(sessionId, true);
+                        break;
+
+                }
+
                 GameSession existingSession = _sessionService.GetSessionById(sessionId);
 
                 if (existingSession.GameCompleted)
                 {
-                    _logger.LogInformation("envoie de GameEnded");
-                    await Task.Delay(1000);
-                    await _hubContext.Clients.Group(sessionId).SendAsync("GameEnded");
-                }
+                    if (string.IsNullOrEmpty(sessionId))
+                    {
+                        _logger.LogError("SessionId ne peut pas être null ou vide.");
+                        throw new ArgumentException("SessionId est requis.", nameof(sessionId));
+                    }
 
-                // Retourne une réponse HTTP avec le statut approprié
-                actionResult = Ok(new { success = isInZone });
+                  
+                        // Récupère la session correspondante à partir d'une source (par exemple, un service ou un repository)
+                        GameSession session = _sessionService.GetSessionById(sessionId);
+
+                        if (session == null)
+                        {
+                            _logger.LogError($"Session avec l'ID {sessionId} introuvable.");
+                            throw new InvalidOperationException($"La session {sessionId} n'existe pas.");
+                        }
+
+                        // Notifie tous les clients appartenant au groupe SignalR correspondant à la session
+                        await _hubContext.Clients.Group(sessionId).SendAsync("GameEnded", session.Attempts, session.MissedAttempts, session.TimersExpired);
+
+                        _logger.LogInformation($"Tous les joueurs de la session {sessionId} ont été notifiés de la fin du jeu.");
+                    
+                    
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Une erreur est survenue lors de la vérification de la différence.");
-                actionResult = StatusCode(500, new { success = false, message = ex.Message });
             }
-            return actionResult;
         }
 
         /// <summary>
@@ -123,5 +146,31 @@ namespace API7D.Controllers
             return result;
         }
 
+        /// <summary>
+        /// Récupère le statut actuel du timer pour une session.
+        /// </summary>
+        /// <param name="sessionId">ID de la session.</param>
+        /// <returns>Statut du timer et détails associés.</returns>
+        [HttpGet("{sessionId}/timer/status")]
+        public IActionResult GetTimerStatus(string sessionId)
+        {
+            var session = _sessionService.GetSessionById(sessionId);
+            if (session == null)
+            {
+                return NotFound($"Session {sessionId} introuvable.");
+            }
+
+            var elapsedTime = (DateTime.UtcNow - session.TimerStartTime).TotalSeconds;
+            var timeRemaining = session.TimerDuration - elapsedTime;
+
+            return Ok(new
+            {
+                TimerActive = session.TimerActive,
+                TimeRemaining = timeRemaining > 0 ? timeRemaining : 0,
+                Attempts = session.Attempts,
+                MissedAttempts = session.MissedAttempts,
+                TimersExpired = session.TimersExpired
+            });
+        }
     }
 }

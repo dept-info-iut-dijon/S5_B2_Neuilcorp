@@ -136,6 +136,36 @@
                 android:textColor="@android:color/black"
                 tools:ignore="UseSwitchCompatOrMaterialXml" />
 
+            <!-- Champ de saisie pour la durée du timer et bouton de validation -->
+            <LinearLayout
+                android:id="@+id/timerSettingsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:layout_marginTop="8dp">
+
+                <!-- Champ de saisie pour le temps en secondes -->
+                <EditText
+                    android:id="@+id/timerDurationInput"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Durée du timer (s)"
+                    android:inputType="number"
+                    android:padding="8dp"
+                    android:layout_marginEnd="8dp" />
+
+                <!-- Bouton de validation de la durée -->
+                <Button
+                    android:id="@+id/validateTimerButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Valider"
+                    android:background="@drawable/rounded_button"
+                    android:padding="8dp" />
+            </LinearLayout>
+
             <!-- Bouton Prêt ancré en bas -->
         </LinearLayout>
 

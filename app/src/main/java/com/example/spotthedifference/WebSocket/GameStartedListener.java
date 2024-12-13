@@ -17,5 +17,5 @@ public interface GameStartedListener {
      * @param imagePairId  L'identifiant de la paire d'images associées au jeu en cours.
      *                     Cet identifiant permet de suivre les images utilisées dans la partie.
      */
-    void onGameStarted(byte[] imageData, Integer imagePairId);
+    void onGameStarted(byte[] imageData, Integer imagePairId, Integer TimerDuration);
 }

@@ -52,6 +52,9 @@ public class SignalRClient {
     private BehaviorSubject<String> readyNotAllowedSubject = BehaviorSubject.create();
     private BehaviorSubject<String> notifyMessageSubject = BehaviorSubject.create();
     private BehaviorSubject<String> PlayerRemovedSubject = BehaviorSubject.create();
+    private BehaviorSubject<Integer> timerDurationSubject = BehaviorSubject.create();
+    private BehaviorSubject<int[]> gameStatisticsSubject = BehaviorSubject.create();
+
 
     /**
      * Initialise le client SignalR en configurant la connexion et les événements.
@@ -80,12 +83,14 @@ public class SignalRClient {
         hubConnection.on("PlayerRemoved", this::handlePlayerRemoved, Player.class);
         hubConnection.on("PlayerReadyStatusChanged", this::handlePlayerReadyStatusChanged, String.class, Boolean.class);
         hubConnection.on("SyncSessionState", this::handleSyncSessionState, String.class);
-        hubConnection.on("GameStarted", this::handleGameStarted, String.class, Integer.class);
-        hubConnection.on("GameEnded", this::handleGameEnded);
+        hubConnection.on("GameStarted", this::handleGameStarted, String.class, Integer.class, Integer.class);
+        hubConnection.on("GameEnded", this::handleGameEnded, Integer.class , Integer.class, Integer.class);
         hubConnection.on("ReadyNotAllowed", readyNotAllowedSubject::onNext, String.class);
         hubConnection.on("NotifyMessage", notifyMessageSubject::onNext, String.class);
         hubConnection.on("ReceiveConnectionId", this::handleConnectionIdReceived, String.class);
         hubConnection.on("SessionDeleted", SessionDeletedSubject::onNext, String.class);
+        hubConnection.on("TimerStarted", this::handleTimerStarted, Integer.class, String.class);
+        hubConnection.on("GameStatisticsUpdated", this::handleGameStatisticsUpdated, Integer.class, Integer.class, Integer.class);
     }
 
     /**
@@ -123,25 +128,29 @@ public class SignalRClient {
     /**
      * Gestion de l'événement "GameStarted".
      */
-    private void handleGameStarted(String base64Data, Integer imagePairId) {
+    private void handleGameStarted(String base64Data, Integer imagePairId, Integer TimerDuration) {
         byte[] imageData = Base64.decode(base64Data, Base64.DEFAULT);
         log("SignalRClient: Image reçue et décodée, taille : " + imageData.length + " imagePairId : " + imagePairId, null);
 
         if (gameStartedListener != null) {
-            gameStartedListener.onGameStarted(imageData, imagePairId);
+            gameStartedListener.onGameStarted(imageData, imagePairId, TimerDuration);
         } else {
             log("SignalRClient: GameStartedListener est null !", null);
         }
     }
 
     /**
-     * Gestion de l'événement "GameStarted".
+     * Gestion de l'événement "GameEnded".
      */
-    private void handleGameEnded() {
+    private void handleGameEnded(int totalAttempts, int missedAttempts, int timersExpired) {
         if (gameEndedListener != null) {
-            gameEndedListener.onGameEnded();
+            // Notifie l'écouteur de la fin de la partie
+            gameEndedListener.onGameEnded(totalAttempts , missedAttempts, timersExpired);
+
+            log("SignalRClient: Notification de fin de jeu envoyée avec succès.", null);
         } else {
-            log("SignalRClient: GameEndedListener est null !", null);
+            // Gère le cas où l'écouteur est null
+            log("SignalRClient: GameEndedListener est null ! Aucune action de fin de jeu n'a pu être effectuée.", null);
         }
     }
 
@@ -152,6 +161,33 @@ public class SignalRClient {
     private void handleConnectionIdReceived(String connectionId) {
         log("SignalRClient: ConnectionId reçu : " + connectionId, null);
     }
+
+    /**
+     * Gestion de l'événement "TimerStarted".
+     * Notifie le client que le timer a démarré ou redémarré.
+     *
+     * @param duration La durée totale du timer en secondes.
+     * @param startTime L'heure de début réelle du timer.
+     */
+    private void handleTimerStarted(Integer duration, String startTime) {
+        timerDurationSubject.onNext(duration);
+        Log.d("SignalRClient", "Timer démarré pour " + duration + " secondes à " + startTime);
+    }
+
+    /**
+     * Gestion de l'événement "GameStatisticsUpdated".
+     * Reçoit et met à jour les statistiques globales du jeu.
+     *
+     * @param attempts Nombre total de tentatives.
+     * @param missedAttempts Nombre de tentatives ratées.
+     * @param timersExpired Nombre de timers expirés.
+     */
+    private void handleGameStatisticsUpdated(Integer attempts, Integer missedAttempts, Integer timersExpired) {
+        gameStatisticsSubject.onNext(new int[]{attempts, missedAttempts, timersExpired});
+        Log.d("SignalRClient", "Statistiques mises à jour : Tentatives = " + attempts +
+                ", Ratés = " + missedAttempts + ", Timers expirés = " + timersExpired);
+    }
+
 
     /**
      * Définit un écouteur pour l'événement de début de jeu.
@@ -467,4 +503,13 @@ public class SignalRClient {
     public BehaviorSubject<String> getPlayerRemovedObservable() {
         return PlayerRemovedSubject;
     }
+
+    public BehaviorSubject<Integer> getTimerDurationObservable() {
+        return timerDurationSubject;
+    }
+
+    public BehaviorSubject<int[]> getGameStatisticsObservable() {
+        return gameStatisticsSubject;
+    }
+
 }

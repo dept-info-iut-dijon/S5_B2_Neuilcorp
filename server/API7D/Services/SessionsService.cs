@@ -175,5 +175,31 @@ namespace API7D.Services
                 throw;
             }
         }
+
+        /// <summary>
+        /// Notifie les joueurs qu'un timer est expiré.
+        /// </summary>
+        /// <param name="sessionId">ID de la session.</param>
+        /// <returns>Tâche asynchrone représentant l'opération de notification.</returns>
+        public async Task NotifyTimerExpired(string sessionId)
+        {
+            var session = GetSessionById(sessionId);
+            if (session == null)
+            {
+                _logger.LogError($"Session {sessionId} introuvable pour la notification d'expiration de timer.");
+                return;
+            }
+
+            try
+            {
+                await _hubContext.Clients.Group(sessionId).SendAsync("TimerExpired", session.TimersExpired);
+                _logger.LogInformation($"Notifié session {sessionId} d'un timer expiré. Total expirations : {session.TimersExpired}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la notification d'expiration de timer pour la session {sessionId}.");
+                throw;
+            }
+        }
     }
 }

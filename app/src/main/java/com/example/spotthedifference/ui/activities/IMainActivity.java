@@ -36,4 +36,6 @@ public interface IMainActivity {
      * @param isSuccess Indique si le résultat est un succès (true) ou un échec (false).
      */
     void showResultDialog(boolean isSuccess);
+
+    void showExpiredTimerDialog(Integer NombreExpiration);
 }

@@ -265,4 +265,28 @@ public class GameSessionController : ControllerBase
         return result;
     }
 
+    [HttpPost("{sessionId}/setTimerDuration")]
+    public IActionResult SetTimerDuration(string sessionId, [FromBody] int timerDuration)
+    {
+        ActionResult result;
+
+        if (timerDuration <= 0)
+        {
+            result = BadRequest("La durée du timer doit être supérieure à zéro.");
+        }
+
+        var session = _sessionService.GetSessionById(sessionId);
+        if (session == null)
+        {
+            result = NotFound($"Session avec l'ID {sessionId} introuvable.");
+        }
+
+        session.TimerDuration = timerDuration;
+        _sessionService.UpdateSession(session);
+
+        _logger.LogInformation($"Durée du timer définie pour la session {sessionId} : {timerDuration} secondes.");
+        result = Ok();
+
+        return result;
+    }
 }

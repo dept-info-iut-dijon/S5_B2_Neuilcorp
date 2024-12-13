@@ -151,83 +151,154 @@ namespace API7D.Metier
         /// Valide qu'une session ne peut démarrer que si au moins deux joueurs sont prêts.
         /// Notifie les joueurs de l'état de préparation mis à jour.
         /// </summary>
-        /// <param name="sessionId">ID de session</param>
-        /// <param name="playerId">ID des joueurs</param>
-        /// <param name="isReady">savoir si un joueur est prêt ou non</param>
-        /// <returns></returns>
-
-        //marche
+        /// <param name="sessionId">ID de session.</param>
+        /// <param name="playerId">ID du joueur.</param>
+        /// <param name="isReady">Statut "prêt" du joueur.</param>
         public async Task SetPlayerReadyStatus(string sessionId, string playerId, bool isReady)
         {
             _logger.LogInformation($"Received readiness update for player {playerId} in session {sessionId}. IsReady: {isReady}.");
 
-            // Récupération de la session
-            GameSession existingSession = _sessionService.GetSessionById(sessionId);
-            if (existingSession == null)
+            // Vérifie et récupère la session
+            var existingSession = ValidateSession(sessionId);
+            if (existingSession == null) return;
+
+            // Vérifie et récupère le joueur
+            var player = ValidatePlayer(existingSession, playerId);
+            if (player == null) return;
+
+            // Gestion de la logique de statut "prêt"
+            HandlePlayerReadiness(existingSession, player, isReady);
+
+            // Notifie les autres joueurs de la mise à jour
+            await NotifyPlayerReadinessUpdate(sessionId, playerId, isReady);
+
+            // Si tous les joueurs sont prêts, vérifie si le jeu peut démarrer
+            if (CanStartGame(existingSession))
             {
-                _logger.LogWarning($"Session {sessionId} not found.");
-                return;
-            }
-
-            // Récupération du joueur dans la session
-            Player thisplayer = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
-            if (thisplayer == null)
-            {
-                _logger.LogWarning($"Player {playerId} not found in session {sessionId}.");
-                return;
-            }
-
-            // Si un seul joueur dans la session on le force à ne pas etre pret
-            if (existingSession.Players.Count < 2)
-            {
-                _logger.LogInformation($"Player {playerId} cannot be ready alone in session {sessionId}.");
-                await Clients.Caller.SendAsync("ReadyNotAllowed", "Vous ne pouvez pas être prêt en étant seul.");
-                thisplayer.IsReady = false;
-                isReady = false;
-            }
-            else { 
-            thisplayer.IsReady = isReady;
-
-            }
-            _logger.LogInformation($"Player {playerId} readiness updated to {isReady} in session {sessionId}.");
-            await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
-
-            if (existingSession.Players.All(p => p.IsReady) && existingSession.ImagePairId!=0)
-            {
-                _logger.LogInformation($"All players in session {sessionId} are ready. Requesting ImageController to send images...");
-
-                //var imageController = new ImageControlleur(_hubContext, _sessionService, _imageService, _logger);
-                var image = _imageService.ReadyImageToPlayer(sessionId, _sessionService);
-
-                var GameSession = _sessionService.GetSessionById(sessionId);
-
-                var melangePlayers = GameSession.Players.OrderBy(_ => Guid.NewGuid()).ToList();
-
-                int imageSwitch = 0;
-                foreach (Player player in melangePlayers)
-                {
-                    var connectionId = await GetConnectionIdByPlayerId(player.PlayerId);
-                    var imageToSend = (imageSwitch % 2 == 0) ? image.Image1 : image.Image2;
-                    imageSwitch++;
-
-                    if (connectionId != null)
-                    {
-                        var imageDataBase64 = Convert.ToBase64String(imageToSend);
-                        await _hubContext.Clients.Client(connectionId).SendAsync("GameStarted", imageDataBase64 ,GameSession.ImagePairId);
-                        _logger.LogInformation($"image envoyer a : {player.PlayerId} avec {connectionId}.");
-                        _logger.LogInformation($"taille de l'image : {imageToSend.Length}.");
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"Failed to send image to player {connectionId}");
-                    }
-                }
+                await StartGame(sessionId, existingSession);
             }
             else if (existingSession.Players.All(p => p.IsReady) && existingSession.ImagePairId == 0)
             {
-                await Clients.Group(sessionId).SendAsync("ReadyNotAllowed", "La partie ne peut pas commencer, aucune image n'est choisie pour la partie");
-                thisplayer.IsReady = false;
-                isReady = false;
+                await NotifyMissingImage(sessionId, player);
+            }
+        }
+
+        /// <summary>
+        /// Valide l'existence d'une session.
+        /// </summary>
+        /// <param name="sessionId">ID de la session à valider.</param>
+        /// <returns>La session correspondante ou null si elle n'existe pas.</returns>
+        private GameSession ValidateSession(string sessionId)
+        {
+            var session = _sessionService.GetSessionById(sessionId);
+            if (session == null)
+            {
+                _logger.LogWarning($"Session {sessionId} not found.");
+            }
+            return session;
+        }
+
+        /// <summary>
+        /// Valide l'existence d'un joueur dans une session donnée.
+        /// </summary>
+        /// <param name="session">La session dans laquelle rechercher le joueur.</param>
+        /// <param name="playerId">ID du joueur à valider.</param>
+        /// <returns>Le joueur correspondant ou null s'il n'existe pas.</returns>
+        private Player ValidatePlayer(GameSession session, string playerId)
+        {
+            var player = session.Players.FirstOrDefault(p => p.PlayerId == playerId);
+            if (player == null)
+            {
+                _logger.LogWarning($"Player {playerId} not found in session {session.SessionId}.");
+            }
+            return player;
+        }
+
+        /// <summary>
+        /// Gère la mise à jour du statut "prêt" d'un joueur.
+        /// </summary>
+        /// <param name="session">La session dans laquelle le joueur est présent.</param>
+        /// <param name="player">Le joueur dont le statut est mis à jour.</param>
+        /// <param name="isReady">Nouveau statut "prêt" du joueur.</param>
+        private void HandlePlayerReadiness(GameSession session, Player player, bool isReady)
+        {
+            if (session.Players.Count < 2)
+            {
+                _logger.LogInformation($"Player {player.PlayerId} cannot be ready alone in session {session.SessionId}.");
+                player.IsReady = false;
+            }
+            else
+            {
+                player.IsReady = isReady;
+            }
+        }
+
+        /// <summary>
+        /// Notifie tous les joueurs d'une session de la mise à jour du statut "prêt" d'un joueur.
+        /// </summary>
+        /// <param name="sessionId">ID de session.</param>
+        /// <param name="playerId">ID du joueur.</param>
+        /// <param name="isReady">Statut "prêt" mis à jour.</param>
+        private async Task NotifyPlayerReadinessUpdate(string sessionId, string playerId, bool isReady)
+        {
+            await Clients.Group(sessionId).SendAsync("PlayerReadyStatusChanged", playerId, isReady);
+            _logger.LogInformation($"Player {playerId} readiness updated to {isReady} in session {sessionId}.");
+        }
+
+        /// <summary>
+        /// Vérifie si une session peut commencer.
+        /// </summary>
+        /// <param name="session">La session à vérifier.</param>
+        /// <returns>True si la session peut démarrer, sinon False.</returns>
+        private bool CanStartGame(GameSession session)
+        {
+            return session.Players.All(p => p.IsReady) && session.ImagePairId != 0;
+        }
+
+        /// <summary>
+        /// Notifie les joueurs qu'aucune image n'est définie pour la session.
+        /// </summary>
+        /// <param name="sessionId">ID de session.</param>
+        /// <param name="player">Le joueur à notifier.</param>
+        private async Task NotifyMissingImage(string sessionId, Player player)
+        {
+            await Clients.Group(sessionId).SendAsync("ReadyNotAllowed", "La partie ne peut pas commencer, aucune image n'est choisie pour la partie");
+            player.IsReady = false;
+        }
+
+        /// <summary>
+        /// Démarre le jeu pour une session donnée en envoyant les images et la durée du timer à tous les joueurs.
+        /// </summary>
+        /// <param name="sessionId">ID de session.</param>
+        /// <param name="session">La session à démarrer.</param>
+        private async Task StartGame(string sessionId, GameSession session)
+        {
+            _logger.LogInformation($"All players in session {sessionId} are ready. Starting game...");
+
+            var image = _imageService.ReadyImageToPlayer(sessionId, _sessionService);
+            var melangePlayers = session.Players.OrderBy(_ => Guid.NewGuid()).ToList();
+
+            int imageSwitch = 0;
+            foreach (var player in melangePlayers)
+            {
+                var connectionId = await GetConnectionIdByPlayerId(player.PlayerId);
+                if (!string.IsNullOrEmpty(connectionId))
+                {
+                    var imageToSend = (imageSwitch % 2 == 0) ? image.Image1 : image.Image2;
+                    imageSwitch++;
+
+                    var imageDataBase64 = Convert.ToBase64String(imageToSend);
+                    DifferanceChecker lancementTimer = new DifferanceChecker();
+                    await Clients.Client(connectionId).SendAsync("GameStarted", imageDataBase64, session.ImagePairId,session.TimerDuration);
+                    if (session.TimerDuration > 0) {
+                        lancementTimer.StartOrResetTimer(session);
+                    }
+                    _logger.LogInformation($"Image envoyée à {player.PlayerId} avec {session.TimerDuration}");
+                }
+                else
+                {
+                    _logger.LogWarning($"Failed to send image to player {player.PlayerId} (connection ID missing).");
+                }
             }
         }
 
@@ -246,7 +317,6 @@ namespace API7D.Metier
                 _logger.LogInformation($"Sync state sent to client {Context.ConnectionId} for session {sessionId}.");
             }
         }
-
         public async Task NotifyEnd(string sessionId)
         {
             if (string.IsNullOrEmpty(sessionId))
@@ -257,8 +327,18 @@ namespace API7D.Metier
 
             try
             {
+                // Récupère la session correspondante à partir d'une source (par exemple, un service ou un repository)
+                GameSession session = _sessionService.GetSessionById(sessionId);
+
+                if (session == null)
+                {
+                    _logger.LogError($"Session avec l'ID {sessionId} introuvable.");
+                    throw new InvalidOperationException($"La session {sessionId} n'existe pas.");
+                }
+
                 // Notifie tous les clients appartenant au groupe SignalR correspondant à la session
-                await _hubContext.Clients.Group(sessionId).SendAsync("GameEnded");
+                await _hubContext.Clients.Group(sessionId).SendAsync("GameEnded", session.Attempts , session.MissedAttempts);
+
                 _logger.LogInformation($"Tous les joueurs de la session {sessionId} ont été notifiés de la fin du jeu.");
             }
             catch (Exception ex)
@@ -269,5 +349,15 @@ namespace API7D.Metier
         }
 
 
+        public async Task NotifyTimerStart(string sessionId, int timerDuration)
+        {
+            _logger.LogInformation($"Notifiant le début du Timer ({timerDuration} secondes) pour la session {sessionId}.");
+            await Clients.Group(sessionId).SendAsync("TimerStarted", timerDuration);
+        }
+
+        public async Task NotifyTimerExpired(string sessionId)
+        {
+            await Clients.Group(sessionId).SendAsync("TimerExpired");
+        }
     }
 }

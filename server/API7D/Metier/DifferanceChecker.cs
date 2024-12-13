@@ -13,16 +13,14 @@ public class DifferanceChecker : IDifferanceChecker
 {
     private Dictionary<int, List<Coordonnees>> differences;
     private const int AcceptanceRadius = 100; // Rayon d'acceptation en pixels
-    private readonly ILogger<DifferanceChecker> _logger;
 
     private readonly object _lock = new object(); // Synchronisation
     private readonly Dictionary<string, TaskCompletionSource<bool>> _sessionTasks = new Dictionary<string, TaskCompletionSource<bool>>();
 
-    public DifferanceChecker(ILogger<DifferanceChecker> logger)
+    public DifferanceChecker()
     {
         IDifferanceCheckerDATA data = new DifferanceCheckerDATA();
         this.differences = data.getAllDifferance();
-        _logger = logger;
     }
 
     /// <summary>
@@ -36,11 +34,6 @@ public class DifferanceChecker : IDifferanceChecker
             if (!playerselec.ContainsKey(playerID))
             {
                 gameSession.PlayerSelections.Add(playerID, (coordinate.X, coordinate.Y));
-                _logger.LogInformation($"Coordonnées ajoutées pour le joueur {playerID}: ({coordinate.X}, {coordinate.Y}).");
-            }
-            else
-            {
-                _logger.LogWarning($"Le joueur {playerID} a déjà soumis des coordonnées.");
             }
         }
     }
@@ -72,19 +65,16 @@ public class DifferanceChecker : IDifferanceChecker
         var playerSelec = gameSession.PlayerSelections;
         foreach (var difference in pairDifferences)
         {
-            _logger.LogInformation($"Validation pour la différence centrée sur ({difference.X}, {difference.Y}).");
             if (AllPlayersSelectedSameDifference(playerSelec.Values, difference))
             {
                 if (!gameSession.DifferenceTrouver.Contains(difference))
                 {
                     gameSession.DifferenceTrouver.Add(difference);
-                    _logger.LogInformation("Tous les joueurs ont validé cette différence.");
                     isDifferenceValid = true;
 
                 }
                 else
                 {
-                    _logger.LogInformation("cette difference a deja été trouver");
                     isDifferenceValid = false;
                 }
 
@@ -109,11 +99,8 @@ public class DifferanceChecker : IDifferanceChecker
                 Math.Pow(difference.Y - selection.y, 2)
             );
 
-            _logger.LogInformation($"Distance calculée entre ({difference.X}, {difference.Y}) et ({selection.x}, {selection.y}): {distance} pixels.");
-
             if (distance > AcceptanceRadius)
             {
-                _logger.LogWarning($"Un joueur est en dehors de la zone d'acceptation (radius = {AcceptanceRadius}). Distance: {distance}.");
                 allPlayersValid = false;
                 break;
             }
@@ -128,7 +115,6 @@ public class DifferanceChecker : IDifferanceChecker
     {
         lock (_lock)
         {
-            _logger.LogInformation("Réinitialisation des sélections des joueurs.");
             gameSession.PlayerSelections.Clear();
             _sessionTasks.Remove(sessionId);
         }
@@ -138,44 +124,96 @@ public class DifferanceChecker : IDifferanceChecker
     /// Vérifie si les coordonnées fournies se situent dans une zone de différence
     /// pour une paire d'images spécifique.
     /// </summary>
-    public async Task<bool> IsWithinDifferenceAsync(
+    public async Task<int> IsWithinDifferenceAsync(
         Coordonnees coordinate,
         int idImagePaire,
         string sessionId,
         SessionService sessionService,
         string playerId)
     {
-        
-        _logger.LogInformation($"Vérification de la différence pour le joueur {playerId} dans la session {sessionId} avec les coordonnées ({coordinate.X}, {coordinate.Y}) et l'image paire {idImagePaire}.");
+        int result = 0;
         var gameSession = sessionService.GetSessionById(sessionId);
 
-        AddPlayerSelection(gameSession, playerId, coordinate);
+        if (gameSession == null)
+            throw new ArgumentException($"Session {sessionId} introuvable.");
 
-        var sessionTask = GetOrCreateSessionTask(sessionId);
-        var playerSelec = gameSession.PlayerSelections;
-        var playerSess = gameSession.Players;
-
-        if (playerSelec.Count == playerSess.Count())
+        if (IsTimerExpired(gameSession))
         {
-            _logger.LogInformation($"Toutes les sélections sont prêtes pour la session {sessionId}. Validation en cours...");
+            gameSession.TimersExpired++;
+            ResetPlayerSelections(gameSession, sessionId);
+            ResetTimer(gameSession);
+            result = 1;
+        }
+        else { 
+            AddPlayerSelection(gameSession, playerId, coordinate);
 
-            if (!differences.ContainsKey(idImagePaire))
+            var sessionTask = GetOrCreateSessionTask(sessionId);
+            var playerSelec = gameSession.PlayerSelections;
+            var playerSess = gameSession.Players;
+
+            if (playerSelec.Count == playerSess.Count())
             {
-                _logger.LogError($"Aucune différence trouvée pour l'image paire {idImagePaire}.");
-                throw new ArgumentException($"Aucune différence trouvée pour l'image paire {idImagePaire}.");
+                if (!differences.ContainsKey(idImagePaire))
+                {
+                    throw new ArgumentException($"Aucune différence trouvée pour l'image paire {idImagePaire}.");
+                }
+
+                var pairDifferences = differences[idImagePaire];
+                bool isDifferenceValid = ValidatePlayerSelections(gameSession, pairDifferences);
+
+                if (!isDifferenceValid)
+                {
+                    gameSession.MissedAttempts++;
+                }
+                gameSession.Attempts++;
+                ResetPlayerSelections(gameSession, sessionId);
+                sessionTask.SetResult(isDifferenceValid);
+                if (gameSession.DifferenceTrouver.Count() == differences[idImagePaire].Count())
+                {
+                    gameSession.GameCompleted = true;
+                }
+
+                ResetTimer(gameSession);
             }
 
-            var pairDifferences = differences[idImagePaire];
-            bool isDifferenceValid = ValidatePlayerSelections(gameSession, pairDifferences);
-
-            ResetPlayerSelections(gameSession, sessionId);
-            sessionTask.SetResult(isDifferenceValid);
-            if (gameSession.DifferenceTrouver.Count() == differences[idImagePaire].Count())
+            await sessionTask.Task;
+            if (sessionTask.Task.Result == true) {
+                result = 2;
+            }
+            else
             {
-                gameSession.GameCompleted = true;
+                result = 0;
             }
         }
+        return result;
+    }
 
-        return await sessionTask.Task;
+    /// <summary>
+    /// Initialise ou réinitialise le timer pour la session donnée.
+    /// </summary>
+    internal void ResetTimer(GameSession gameSession)
+    {
+        gameSession.TimerActive = true;
+        gameSession.TimerStartTime = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Méthode exposée pour réinitialiser le timer depuis l'extérieur (facultatif).
+    /// </summary>
+    public void StartOrResetTimer(GameSession session)
+    {
+        ResetTimer(session);
+    }
+
+    /// <summary>
+    /// Vérifie si le timer est écoulé pour une session donnée.
+    /// </summary>
+    private bool IsTimerExpired(GameSession gameSession)
+    {
+        if (!gameSession.TimerActive)
+            return false;
+
+        var elapsedTime = DateTime.UtcNow - gameSession.TimerStartTime;
+        return elapsedTime.TotalSeconds >= gameSession.TimerDuration;
     }
 }

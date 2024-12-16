@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.spotthedifference.R;
@@ -25,6 +26,8 @@ import java.util.List;
 import android.util.Log;
 import java.util.HashSet;
 import java.util.Set;
+import android.content.Intent;
+import android.app.Activity;
 
 /**
  * Activité permettant aux utilisateurs de sélectionner une image parmi une grille d'images
@@ -35,6 +38,7 @@ public class ImagesActivity extends AppCompatActivity {
 
     private GridLayout imageGrid;
     private Button confirmButton;
+    private ProgressBar progressBar;
     private ApiService apiService;
     private int selectedImagePairId = -1;
     private String sessionId;
@@ -66,6 +70,7 @@ public class ImagesActivity extends AppCompatActivity {
     private void initializeUI() {
         imageGrid = findViewById(R.id.image_grid);
         confirmButton = findViewById(R.id.confirmButton);
+        progressBar = findViewById(R.id.progressBar);
         sessionId = getIntent().getStringExtra("sessionId");
     }
 
@@ -107,6 +112,10 @@ public class ImagesActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("selectedImagePairId", selectedImagePairId);
+                    setResult(Activity.RESULT_OK, resultIntent);
+                    
                     showToast(getString(R.string.Images_Toast_ImageConfirmee));
                     finish();
                 } else {
@@ -134,10 +143,12 @@ public class ImagesActivity extends AppCompatActivity {
      * Récupère les paires d'images du serveur et les affiche dans la grille.
      */
     private void fetchImagesWithPairs() {
+        progressBar.setVisibility(View.VISIBLE);
         Call<List<ImageWithPair>> call = apiService.getAllImagesWithPairs();
         call.enqueue(new Callback<List<ImageWithPair>>() {
             @Override
             public void onResponse(Call<List<ImageWithPair>> call, Response<List<ImageWithPair>> response) {
+                progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
                     displayImages(response.body());
                 } else {
@@ -147,6 +158,7 @@ public class ImagesActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<ImageWithPair>> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(ImagesActivity.this, getString(R.string.Images_Toast_ErreurChargementImages) + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -168,7 +180,6 @@ public class ImagesActivity extends AppCompatActivity {
         for (ImageWithPair imageDto : imageList) {
             Log.d("ImagesActivity", "Image ID: " + imageDto.getImageId());
             Log.d("ImagesActivity", "Image Pair ID: " + imageDto.getImagePairId());
-            Log.d("ImagesActivity", "Base64 Image Length: " + (imageDto.getBase64Image() != null ? imageDto.getBase64Image().length() : "null"));
 
             if (displayedPairs.contains(imageDto.getImagePairId())) {
                 continue;

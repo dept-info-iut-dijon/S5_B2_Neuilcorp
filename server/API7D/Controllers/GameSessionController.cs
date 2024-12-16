@@ -94,12 +94,13 @@ public class GameSessionController : ControllerBase
                 else
                 {
                     existingSession.Players.Add(player);
-                    await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player.Name);
+                    _logger.LogInformation($"Player {player.Name} added to session {sessionId}.");
+                    
+                    await _hubContext.Clients.Group(sessionId).SendAsync("PlayerJoined", player);
                     result = Ok($"Le joueur {player.Name} a rejoint la session {sessionId}.");
                 }
             }
         }
-
         return result;
     }
 
@@ -209,4 +210,83 @@ public class GameSessionController : ControllerBase
         return result;
     }
 
+    /// <summary>
+    /// Supprime un joueur d'une session existante.
+    /// </summary>
+    /// <param name="sessionId">ID de la session.</param>
+    /// <param name="playerId">ID du joueur à retirer.</param>
+    /// <returns>Un message indiquant le résultat de l'opération.</returns>
+    [HttpDelete("{sessionId}/player/{playerId}/remove")]
+    public async Task<ActionResult> RemovePlayerFromSession(string sessionId, string playerId)
+    {
+        _logger.LogInformation($"Removing player {playerId} from session {sessionId}.");
+
+        ActionResult result;
+
+        // Vérifier si la session existe
+        GameSession existingSession = _sessionService.GetSessionById(sessionId);
+        if (existingSession == null)
+        {
+            _logger.LogWarning($"Session {sessionId} not found.");
+            result = NotFound($"La session avec l'ID {sessionId} n'a pas été trouvée.");
+        }
+        else
+        {
+            // Vérifier si le joueur est dans la session
+            Player playerToRemove = existingSession.Players.FirstOrDefault(p => p.PlayerId == playerId);
+            if (playerToRemove == null)
+            {
+                _logger.LogWarning($"Player {playerId} not found in session {sessionId}.");
+                result = NotFound($"Le joueur avec l'ID {playerId} n'est pas présent dans la session.");
+            }
+            else
+            {
+                // Si l'hôte est supprimé, supprimer la session
+                if (existingSession.Players[0].PlayerId == playerId)
+                {
+                    _sessionService.RemoveSession(sessionId);
+                    _logger.LogInformation($"Session {sessionId} deleted because the host was removed.");
+                    await _hubContext.Clients.Group(sessionId).SendAsync("SessionDeleted", sessionId);
+                    result = Ok($"La session {sessionId} a été supprimée car l'hôte a été retiré.");
+                }
+                else
+                {
+                    // Retirer le joueur
+                    existingSession.Players.Remove(playerToRemove);
+                    _sessionService.UpdateSession(existingSession);
+
+                    _logger.LogInformation($"Player {playerId} removed from session {sessionId}.");
+                    await _hubContext.Clients.Group(sessionId).SendAsync("PlayerRemoved", playerToRemove);
+                    result = Ok($"Le joueur {playerToRemove.Name} a été retiré de la session {sessionId}.");
+                }
+            }
+        }
+
+        return result;
+    }
+
+    [HttpPost("{sessionId}/setTimerDuration")]
+    public IActionResult SetTimerDuration(string sessionId, [FromBody] int timerDuration)
+    {
+        ActionResult result;
+
+        if (timerDuration <= 0)
+        {
+            result = BadRequest("La durée du timer doit être supérieure à zéro.");
+        }
+
+        var session = _sessionService.GetSessionById(sessionId);
+        if (session == null)
+        {
+            result = NotFound($"Session avec l'ID {sessionId} introuvable.");
+        }
+
+        session.TimerDuration = timerDuration;
+        _sessionService.UpdateSession(session);
+
+        _logger.LogInformation($"Durée du timer définie pour la session {sessionId} : {timerDuration} secondes.");
+        result = Ok();
+
+        return result;
+    }
 }

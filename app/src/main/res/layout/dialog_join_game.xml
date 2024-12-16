@@ -8,14 +8,14 @@
         android:id="@+id/sessionCodeEditText"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="@string/code_de_session"
+        android:hint="@string/Home_code_de_session"
         android:inputType="text" />
 
     <EditText
         android:id="@+id/playerNameEditText"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="@string/votre_nom"
+        android:hint="@string/Home_votre_nom"
         android:inputType="text" />
 </LinearLayout>
 

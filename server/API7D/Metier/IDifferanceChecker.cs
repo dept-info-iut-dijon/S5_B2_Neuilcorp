@@ -14,6 +14,6 @@ namespace API7D.Metier
         /// <param name="x"> coordonée X </param>
         /// <param name="y"> coordonée Y </param>
         /// <returns></returns>
-        public Task<bool> IsWithinDifferenceAsync(Coordonnees coordinate, int idImagePaire, string SessionID, SessionService _sessionService, string playerID);
+        public Task<int> IsWithinDifferenceAsync(Coordonnees coordinate, int idImagePaire, string SessionID, SessionService _sessionService, string playerID);
     }
 }

@@ -12,9 +12,11 @@ namespace API7D.objet
         private List<Player> players;
         private bool gameCompleted;
         private bool gameTimer;
+        private int timerDuration;
         private int imagePairId;
         private Dictionary<string, (int x, int y)> playerSelections;
         private Dictionary<string, bool> playerReadyStatus;
+        private List<Coordonnees> differenceTrouver = new List<Coordonnees>();
 
 
         /// <summary>
@@ -54,6 +56,41 @@ namespace API7D.objet
         }
 
         /// <summary>
+        /// Obtient ou définit la durée du Timer pour la session.
+        /// </summary>
+        public int TimerDuration
+        {
+            get { return timerDuration; }
+            set { timerDuration = value; }
+        }
+
+        /// <summary>
+        /// Indique si le timer est actuellement en cours pour la session.
+        /// </summary>
+        public bool TimerActive { get; set; }
+
+        /// <summary>
+        /// Nombre total de tentatives effectuées par les joueurs dans la session.
+        /// </summary>
+        public int Attempts { get; set; }
+
+        /// <summary>
+        /// Nombre de tentatives ratées (où aucune différence valide n'a été trouvée).
+        /// </summary>
+        public int MissedAttempts { get; set; }
+
+        /// <summary>
+        /// Nombre de fois où le timer a expiré sans qu'une action valide ne soit effectuée.
+        /// </summary>
+        public int TimersExpired { get; set; }
+
+        /// <summary>
+        /// Heure de démarrage actuelle du timer, utilisée pour calculer le temps écoulé.
+        /// </summary>
+        public DateTime TimerStartTime { get; set; }
+
+
+        /// <summary>
         /// Obient ou définit l'ID de la paire d'images
         /// </summary>
         public int ImagePairId
@@ -78,6 +115,12 @@ namespace API7D.objet
         {
             get { return playerReadyStatus; }
             set { playerReadyStatus = value; }
+        }
+
+        public List<Coordonnees> DifferenceTrouver
+        {
+            get { return differenceTrouver; }
+            set { differenceTrouver = value; }
         }
 
         /// <summary>
@@ -107,5 +150,18 @@ namespace API7D.objet
         {
             return playerSelections.Count == players.Count;
         }
+
+        // Méthode pour vérifier si un joueur est l'hôte de la session.
+        public bool IsHost(string playerId)
+        {
+            return Players.Count > 0 && Players[0].PlayerId == playerId;
+        }
+
+        // Méthode pour vérifier si un joueur existe dans la session.
+        public bool ContainsPlayer(string playerId)
+        {
+            return Players.Any(p => p.PlayerId == playerId);
+        }
+
     }
 }

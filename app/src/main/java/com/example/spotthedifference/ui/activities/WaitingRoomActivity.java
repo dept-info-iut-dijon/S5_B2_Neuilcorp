@@ -12,6 +12,11 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageView;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+import android.app.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
@@ -24,6 +29,7 @@ import com.example.spotthedifference.api.IRetrofitClient;
 import com.example.spotthedifference.api.RetrofitClient;
 import com.example.spotthedifference.models.GameSession;
 import com.example.spotthedifference.models.Player;
+import com.example.spotthedifference.models.ImageWithPair;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,6 +44,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+
+import android.widget.Switch;
+import android.widget.EditText;
+
 
 /**
  * La classe WaitingRoomActivity représente l'activité de la salle d'attente
@@ -58,82 +68,108 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
     private SignalRClient signalRClient;
     private CompositeDisposable disposables = new CompositeDisposable();
     private List<Player> players = new ArrayList<>();
+    private static final int SELECT_IMAGE_REQUEST = 1;
+    private ImageView selectedImageView;
+    private Switch timerSwitch;
+    private LinearLayout timerSettingsContainer;
+    private EditText timerDurationInput;
+    private Button validateTimerButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_waiting_room);
 
-        // Initialisation des éléments de l'interface utilisateur
+        // Initialisation des composants
+        initializeUI();
+        initializeRetrofit();
+        initializeSignalRClient();
+
+        // Charger les détails de la session et configurer les boutons
+        loadSessionDetails(sessionId);
+        setupButtons();
+
+        // Gérer les observables pour SignalR
+        setupSignalREvents();
+    }
+
+    /**
+     * Initialise les composants de l'interface utilisateur et récupère les données transmises via Intent.
+     * Configure les textes pour afficher le code de session et le nom du joueur dans l'interface.
+     */
+    private void initializeUI() {
         sessionCodeTextView = findViewById(R.id.sessionCode);
         partyNameTextView = findViewById(R.id.partyName);
         playerNameTextView = findViewById(R.id.playerName);
         playersContainer = findViewById(R.id.playersContainer);
+        selectedImageView = findViewById(R.id.imageSelection);
 
-        // Configuration de Retrofit pour les appels API
-        IRetrofitClient client = new RetrofitClient();
-        Retrofit retrofit = client.getUnsafeRetrofit();
-        apiService = retrofit.create(ApiService.class);
-
-        // Récupération des informations passées via Intent
         sessionId = getIntent().getStringExtra("sessionId");
         playerName = getIntent().getStringExtra("playerName");
         playerId = getIntent().getStringExtra("playerId");
 
-        // Initialisation du client SignalR et démarrage de la connexion
+        if (sessionId != null) {
+            sessionCodeTextView.setText(getString(R.string.Home_code_de_session) + " " + sessionId);
+        }
+
+        playerNameTextView.setText(getString(R.string.Waiting_nom_du_joueur) + " " + playerName);
+
+        timerSwitch = findViewById(R.id.timerSwitch);
+        timerSettingsContainer = findViewById(R.id.timerSettingsContainer);
+        timerDurationInput = findViewById(R.id.timerDurationInput);
+        validateTimerButton = findViewById(R.id.validateTimerButton);
+    }
+
+    /**
+     * Initialise la configuration Retrofit pour les appels API.
+     * Crée une instance de Retrofit via un client sécurisé ou non sécurisé
+     * et configure le service API.
+     */
+    private void initializeRetrofit() {
+        IRetrofitClient client = new RetrofitClient();
+        Retrofit retrofit = client.getUnsafeRetrofit();
+        apiService = retrofit.create(ApiService.class);
+    }
+
+    /**
+     * Initialise le client SignalR pour gérer la communication en temps réel.
+     * Configure les événements nécessaires et démarre la connexion au serveur.
+     * Rejoint le groupe de session et demande une synchronisation de l'état.
+     */
+    private void initializeSignalRClient() {
         signalRClient = new SignalRClient(playerId);
         signalRClient.setGameStartedListener(this);
         signalRClient.startConnection();
-
-        // Rejoindre le groupe de session SignalR
         signalRClient.joinSessionGroup(sessionId);
         signalRClient.requestSync(sessionId);
+    }
 
-        // Affichage du code de session
-        if (sessionId != null) {
-            sessionCodeTextView.setText(getString(R.string.code_de_session) + " " + sessionId);
-        }
-
-        // Affichage du nom du joueur
-        playerNameTextView.setText(getString(R.string.nom_du_joueur) + " " + playerName);
-
-        // Chargement des détails de la session
-        loadSessionDetails(sessionId);
-
-        // Configuration des boutons
-        Button exitButton = findViewById(R.id.exitButton);
-        Button readyButton = findViewById(R.id.readyButton);
-        Button copyButton = findViewById(R.id.copyButton);
-        Button chooseImageButton = findViewById(R.id.chooseImageButton);
-
-        chooseImageButton.setOnClickListener(v -> {
-            if (isHost()) {
-                Intent intent = new Intent(WaitingRoomActivity.this, ImagesActivity.class);
-                intent.putExtra("sessionId", sessionId);
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, "Seul l'hôte peut sélectionner une image.", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        readyButton.setOnClickListener(v -> toggleReadyStatus());
-        copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
-
-        // Gestion des événements de synchronisation
+    /**
+     * Configure les observables SignalR pour gérer les événements en temps réel.
+     * S'abonne aux différents événements tels que les changements d'état de session,
+     * les joueurs qui rejoignent/quittent, les messages de notification, etc.
+     * Met à jour l'interface utilisateur en fonction des événements reçus.
+     */
+    private void setupSignalREvents() {
         disposables.add(signalRClient.getSyncSessionStateObservable()
                 .subscribeOn(Schedulers.io())
-                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(session -> displayPlayers(session.getPlayers()),
                         throwable -> Log.e("WaitingRoomActivity", "Erreur SyncSessionState", throwable)));
 
-        // Gestion des événements PlayerJoined
         disposables.add(signalRClient.getPlayerJoinedObservable()
                 .subscribeOn(Schedulers.io())
-                .observeOn(io.reactivex.android.schedulers.AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(playerName -> loadSessionDetails(sessionId),
                         throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerJoined observable", throwable)));
 
-        // Gestion des événements PlayerReadyStatusChanged
+        disposables.add(signalRClient.getPlayerRemovedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(playerName -> loadSessionDetails(sessionId),
+                        throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerRemoved observable", throwable)));
+
         disposables.add(signalRClient.getPlayerReadyStatusChangedObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -142,7 +178,16 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                     loadSessionDetails(sessionId);
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur PlayerReadyStatusChanged observable", throwable)));
 
-        // Gestion des événements ReadyNotAllowed
+        disposables.add(signalRClient.getSessionDeletedObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(deletedSessionId -> {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "La session a été fermée par l'hôte.", Toast.LENGTH_SHORT).show();
+                        redirectToHome();
+                    });
+                }, throwable -> Log.e("WaitingRoomActivity", "Erreur SessionDeleted observable", throwable)));
+
         disposables.add(signalRClient.getReadyNotAllowedObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -154,7 +199,6 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                             .show();
                 }, throwable -> Log.e("WaitingRoomActivity", "Erreur lors de la gestion de ReadyNotAllowed", throwable)));
 
-        // Gestion des événements NotifyMessage
         disposables.add(signalRClient.getNotifyMessageObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -164,23 +208,81 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
     }
 
     /**
+     * Configure les boutons de l'interface utilisateur et leurs actions associées.
+     * - `chooseImageButton` : Permet à l'hôte de sélectionner une image.
+     * - `readyButton` : Permet de basculer le statut de préparation du joueur.
+     * - `copyButton` : Copie le code de session dans le presse-papiers.
+     * - `exitButton` : Permet de quitter la session ou de la supprimer si l'utilisateur est l'hôte.
+     */
+    private void setupButtons() {
+        Button exitButton = findViewById(R.id.exitButton);
+        Button readyButton = findViewById(R.id.readyButton);
+        Button copyButton = findViewById(R.id.copyButton);
+        Button chooseImageButton = findViewById(R.id.chooseImageButton);
+
+        chooseImageButton.setOnClickListener(v -> {
+            if (isHost()) {
+                Intent intent = new Intent(WaitingRoomActivity.this, ImagesActivity.class);
+                intent.putExtra("sessionId", sessionId);
+                startActivityForResult(intent, SELECT_IMAGE_REQUEST);
+            } else {
+                Toast.makeText(this, R.string.Waiting_Toast_NonHoteSelectImage, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+            timerSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isHost()) {
+                    if (isChecked) {
+                        timerSettingsContainer.setVisibility(View.VISIBLE);
+                    } else {
+                        timerSettingsContainer.setVisibility(View.GONE);
+                    }
+                }
+                else {
+                    Toast.makeText(this, "Seul l'hôte peut configurer le timer.", Toast.LENGTH_SHORT).show();
+                    timerSwitch.setChecked(false);
+                }
+            });
+
+            validateTimerButton.setOnClickListener(v -> {
+                if (isHost()) {
+                    String durationStr = timerDurationInput.getText().toString();
+                    if (!durationStr.isEmpty()) {
+                        int timerDuration = Integer.parseInt(durationStr);
+                        sendTimerDurationToServer(timerDuration);
+                    } else {
+                        Toast.makeText(this, "Veuillez entrer une durée valide.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else {
+                    Toast.makeText(this, "Seul l'hôte peut configurer le timer.", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        readyButton.setOnClickListener(v -> toggleReadyStatus());
+        copyButton.setOnClickListener(v -> copyToClipboard(sessionId));
+        exitButton.setOnClickListener(v -> deleteSessionAndExit());
+    }
+
+    /**
      * Méthode appelée lorsque le jeu commence, elle reçoit les données de l'image
      * L'image est ensuite envoyée à l'activité principale via un intent
      * l'ID de session est également passé à l'activité pour référence
      * @param imageData
      */
     @Override
-    public void onGameStarted(byte[] imageData, Integer imagePairId) {
+    public void onGameStarted(byte[] imageData, Integer imagePairId, Integer timerDuration) {
         Log.d("WaitingRoomActivity", "Image reçue via GameStartedCallback. Taille : " + imageData.length + " imagePairId : " + imagePairId);
+        Log.d("WaitingRoomActivity", "TimerDuration reçu : " + timerDuration);
 
         File imageFile = new File(getCacheDir(), "tempImage.jpg");
-
         try {
             if (!imageFile.getParentFile().exists()) {
                 boolean dirCreated = imageFile.getParentFile().mkdirs();
                 if (!dirCreated) {
                     Log.e("WaitingRoomActivity", "Impossible de créer le répertoire parent pour le fichier temporaire.");
-                    Toast.makeText(this, "Erreur : Impossible de créer le fichier temporaire.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.Waiting_Toast_ErreurCreationImageTemp, Toast.LENGTH_SHORT).show();
                     return;
                 }
             }
@@ -189,17 +291,20 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                 fos.write(imageData);
             }
 
+            // Passer le TimerDuration dans l'Intent
             Intent intent = new Intent(WaitingRoomActivity.this, MainActivity.class);
             intent.putExtra("imagePath", imageFile.getAbsolutePath());
             intent.putExtra("sessionId", sessionId);
             intent.putExtra("playerId", playerId);
             intent.putExtra("imagePairId", imagePairId.toString());
+            intent.putExtra("timerDuration", timerDuration);
             startActivity(intent);
             finish();
         } catch (IOException e) {
             Log.e("WaitingRoomActivity", "Erreur lors de l'écriture ou de l'accès au fichier temporaire : " + e.getMessage(), e);
-            Toast.makeText(this, "Erreur lors de la sauvegarde de l'image.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.Waiting_Toast_ErreurSauvegardeImageTemp, Toast.LENGTH_SHORT).show();
         }
+
     }
 
     /**
@@ -209,7 +314,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
     protected void onDestroy() {
         super.onDestroy();
         disposables.clear();  // Libère les observables quand l'activité est détruite
-        signalRClient.stopConnection();
+        signalRClient.stopConnection(sessionId, playerId);
     }
 
     /**
@@ -234,7 +339,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
 
             if (playerNameView.getTag().equals(playerId)) {
                 TextView playerStatusView = playerView.findViewById(R.id.playerStatus);
-                playerStatusView.setText(isReady ? R.string.pret : R.string.pas_pret);
+                playerStatusView.setText(isReady ? R.string.Waiting_pret : R.string.Waiting_pas_pret);
                 playerStatusView.setTextColor(isReady ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
                 break;
             }
@@ -255,7 +360,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
                     displayPlayers(players);
                     if (!players.isEmpty()) {
                         String hostName = players.get(0).getName();
-                        String fullTextParty = getString(R.string.nom_de_la_partie_nom) + " " + hostName;
+                        String fullTextParty = getString(R.string.Waiting_nom_de_la_partie_nom) + " " + hostName;
                         partyNameTextView.setText(fullTextParty);
                     }
                 } else {
@@ -284,7 +389,7 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
 
             playerNameView.setText(player.getName());
             playerNameView.setTag(player.getPlayerId()); // Associe l'ID du joueur à la vue
-            playerStatusView.setText(player.isReady() ? R.string.pret : R.string.pas_pret);
+            playerStatusView.setText(player.isReady() ? R.string.Waiting_pret : R.string.Waiting_pas_pret);
             playerStatusView.setTextColor(player.isReady() ? getResources().getColor(R.color.success_color) : getResources().getColor(R.color.error_color));
 
             playersContainer.addView(playerView);
@@ -301,31 +406,151 @@ public class WaitingRoomActivity extends AppCompatActivity implements IWaitingRo
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Session ID", text);
         clipboard.setPrimaryClip(clip);
-        Toast.makeText(this, "Code de session copié", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.Waiting_Toast_SessionCodeCopie, Toast.LENGTH_SHORT).show();
     }
 
     /**
-     * Supprime la session actuelle et retourne à l'écran d'accueil.
+     * Gère le départ d'un joueur ou la suppression d'une session si l'hôte quitte.
      */
     public void deleteSessionAndExit() {
-        apiService.destructiondeSession(sessionId).enqueue(new Callback<Void>() {
+        if (isHost()) {
+            // L'hôte quitte, supprimer la session
+            apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        redirectToHome();
+                    } else {
+                        Log.e("WaitingRoom", "Erreur lors de la suppression de la session : " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e("WaitingRoom", "Échec de la requête de suppression de la session : " + t.getMessage());
+                }
+            });
+        } else {
+            // Un joueur non-hôte quitte
+            apiService.removePlayerFromSession(sessionId, playerId).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        //signalRClient.notifyPlayerRemoved(sessionId, playerId);
+                        redirectToHome();
+                    } else {
+                        Log.e("WaitingRoom", "Erreur lors du retrait du joueur (code: " + response.code() + ") - playerId: " + playerId);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e("WaitingRoom", "Échec de la requête de retrait du joueur : " + t.getMessage());
+                }
+            });
+        }
+    }
+
+    /**
+     * Vérifie si le joueur actuel est hôte ou non.
+     * @return true si le joueur est hôte, false s'il ne l'est pas.
+     */
+    private boolean isHost() {
+        return !players.isEmpty() && playerId.equals(players.get(0).getPlayerId());
+    }
+
+    /**
+     * Redirige vers l'activité HomeActivity.
+     */
+    private void redirectToHome() {
+        Intent intent = new Intent(WaitingRoomActivity.this, HomeActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    /**
+     * Récupère l'id de l'image sélectionnée dans ImagesActivity afin de pouvoir l'afficher
+     * dans le lobby avec fetchAndDisplayImage.
+     *
+     * @param requestCode Le code de requête entier initialement fourni à
+     *                    startActivityForResult(), permettant d'identifier d'où provient
+     *                    ce résultat.
+     * @param resultCode Le code de résultat entier retourné par l'activité enfant
+     *                   via son setResult().
+     * @param data Un Intent contenant l'ID de la paire d'images sélectionnée dans
+     *             ImagesActivity.
+     *
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == SELECT_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            int selectedImagePairId = data.getIntExtra("selectedImagePairId", -1);
+            if (selectedImagePairId != -1) {
+                Log.d("WaitingRoomActivity", "Image sélectionnée avec l'ID : " + selectedImagePairId);
+                fetchAndDisplayImage(selectedImagePairId);
+            }
+        }
+    }
+
+    /**
+     * Récupère l'image depuis le serveur grâce à son id puis l'affiche sur le lobby
+     *
+     * @param imagePairId L'id de l'image sélectionnée
+     */
+    private void fetchAndDisplayImage(int imagePairId) {
+        Call<List<ImageWithPair>> call = apiService.getAllImagesWithPairs();
+        call.enqueue(new Callback<List<ImageWithPair>>() {
+            @Override
+            public void onResponse(Call<List<ImageWithPair>> call, Response<List<ImageWithPair>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    for (ImageWithPair image : response.body()) {
+                        if (image.getImagePairId() == imagePairId) {
+                            // Convertir et afficher l'image
+                            String base64Image = image.getBase64Image();
+                            if (base64Image != null && !base64Image.isEmpty()) {
+                                byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+                                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                                
+                                runOnUiThread(() -> {
+                                    selectedImageView.setVisibility(View.VISIBLE);
+                                    selectedImageView.setImageBitmap(bitmap);
+                                });
+                            }
+                            break;
+                        }
+                    }
+                } else {
+                    Log.e("WaitingRoomActivity", "Erreur lors de la récupération de l'image");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ImageWithPair>> call, Throwable t) {
+                Log.e("WaitingRoomActivity", "Échec de la requête : " + t.getMessage());
+            }
+        });
+    }
+
+    private void sendTimerDurationToServer(int duration) {
+        // Appel API pour envoyer la durée du timer
+        apiService.setTimerDuration(sessionId, duration).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    startActivity(new Intent(WaitingRoomActivity.this, HomeActivity.class));
+                    Toast.makeText(WaitingRoomActivity.this, "Durée du timer définie à " + duration + " secondes.", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(WaitingRoomActivity.this, "Erreur lors de la suppression de la session", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(WaitingRoomActivity.this, "Erreur lors de l'envoi de la durée du timer.", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(WaitingRoomActivity.this, "Échec de la requête : " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(WaitingRoomActivity.this, "Échec de la connexion au serveur.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private boolean isHost() {
-        return !players.isEmpty() && playerId.equals(players.get(0).getPlayerId());
-    }
 }

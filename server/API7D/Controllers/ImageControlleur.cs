@@ -4,6 +4,7 @@ using API7D.objet;
 using API7D.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System.Text.Json;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace API7D.Controllers
@@ -26,7 +27,7 @@ namespace API7D.Controllers
         /// <param name="sessionService">Service de session de jeu</param>
         /// <param name="imageService">Service de gestion d'image </param>
         /// <param name="logger">Service de log </param>
-        public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService, IImage imageService , ILogger<GameSessionHub> logger)
+        public ImageControlleur(IHubContext<GameSessionHub> hubContext, SessionService sessionService, IImage imageService, ILogger<GameSessionHub> logger)
         {
             _hubContext = hubContext;
             _sessionService = sessionService;
@@ -161,6 +162,96 @@ namespace API7D.Controllers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Compare deux images représentées sous forme de tableaux de bytes.
+        /// </summary>
+        /// <param name="image1">Premier tableau de bytes représentant une image.</param>
+        /// <param name="image2">Deuxième tableau de bytes représentant une image.</param>
+        /// <returns>
+        /// 200 OK : Si les deux images sont identiques.
+        /// 400 BadRequest : Si les images diffèrent ou si une erreur survient.
+        /// </returns>
+        /// <summary>
+        /// Compare deux images représentées sous forme de tableaux de bytes.
+        /// </summary>
+        /// <param name="image1">Premier tableau de bytes représentant une image.</param>
+        /// <param name="image2">Deuxième tableau de bytes représentant une image.</param>
+        /// <returns>
+        /// 200 OK : Si les deux images sont identiques.
+        /// 400 BadRequest : Si les images diffèrent ou si une erreur survient.
+        /// </returns>
+        [HttpPost("compare")]
+        public async Task<IActionResult> AddImage([FromForm] IFormFile image1, [FromForm] IFormFile image2, [FromForm] string name, [FromForm] string differences)
+        {
+            _logger.LogInformation("Requête reçue dans AddImage.");
+
+            IActionResult response;
+
+            // Validation des paramètres
+            if (image1 == null || image2 == null || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(differences))
+            {
+                _logger.LogWarning("Requête invalide : paramètres manquants ou nulles.");
+                response = BadRequest("Tous les paramètres (image1, image2, name, differences) sont requis.");
+            }
+            else
+            {
+                try
+                {
+                    // Lire les données des fichiers images
+                    byte[] imageData1;
+                    byte[] imageData2;
+
+                    using (var stream1 = new MemoryStream())
+                    {
+                        await image1.CopyToAsync(stream1);
+                        imageData1 = stream1.ToArray();
+                    }
+
+                    using (var stream2 = new MemoryStream())
+                    {
+                        await image2.CopyToAsync(stream2);
+                        imageData2 = stream2.ToArray();
+                    }
+
+                    // Désérialiser les différences
+                    List<Coordonnees> differencesList;
+                    try
+                    {
+                        var tempList = JsonSerializer.Deserialize<List<Dictionary<string, double>>>(differences);
+                        differencesList = tempList.Select(item => new Coordonnees(
+                            (int)Math.Round(item["x"]),
+                            (int)Math.Round(item["y"])
+                        )).ToList();
+
+                        if (differencesList == null || !differencesList.Any())
+                        {
+                            _logger.LogWarning("Aucune différence valide n'a été trouvée.");
+                            response = BadRequest("La liste des différences est vide ou invalide.");
+                        }
+                        else
+                        {
+                            // Appeler le service pour sauvegarder les données
+                            _imageService.SetImages(imageData1, imageData2, name, differencesList);
+                            _logger.LogInformation("Images et différences sauvegardées avec succès.");
+                            response = Ok("Données ajoutées avec succès.");
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError("Erreur lors de la désérialisation des différences.", ex);
+                        response = BadRequest("Le format des différences est invalide.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Erreur lors du traitement de la requête AddImage.", ex);
+                    response = StatusCode(500, "Une erreur est survenue lors du traitement de la requête.");
+                }
+            }
+
+            return response;
         }
 
     }

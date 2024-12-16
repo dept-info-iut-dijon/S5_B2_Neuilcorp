@@ -4,6 +4,8 @@
     <string name="Home_Annuler">Annuler</string>
     <string name="Home_RejoindrePartie">Rejoindre une partie</string>
     <string name="Home_RejoindreBouton">Rejoindre</string>
+    <string name="Home_code_de_session">Code de session : </string>
+    <string name="Home_votre_nom">Votre nom</string>
     <string name="Home_ToastNomVide">Veuillez entrer un nom de joueur.</string>
     <string name="Home_ToastCodeNomVide">Veuillez entrer un code de session et un nom de joueur.</string>
     <string name="Home_ErreurConnexion">Erreur de connexion : %1$s</string>
@@ -19,27 +21,26 @@
     <string name="Images_Toast_ImpossibleChargerImages">Impossible de charger les images</string>
     <string name="Images_Toast_ErreurChargementImages">Erreur : %1$s</string>
 
+    <string name="Waiting_parametres_de_la_partie"><u>Paramètres de la partie :</u></string>
+    <string name="Waiting_nom_du_joueur">Votre nom :</string>
+    <string name="Waiting_nom_de_la_partie_nom">Partie de : </string>
+    <string name="Waiting_Image_choisie">Image choisie : </string>
+    <string name="Waiting_copier">Copier</string>
+    <string name="Waiting_pret">Prêt</string>
+    <string name="Waiting_pas_pret">Pas prêt</string>
+    <string name="Waiting_choisir_image">Choisir une image</string>
+    <string name="Waiting_Toast_NonHoteSelectImage">Seul l\'hôte peut sélectionner une image</string>
+    <string name="Waiting_Toast_ErreurCreationImageTemp">Erreur : Impossible de créer le fichier image</string>
+    <string name="Waiting_Toast_ErreurSauvegardeImageTemp">Erreur : "Impossible sauvegarder l'image."</string>
+    <string name="Waiting_Toast_SessionCodeCopie">Code de session copié</string>
+
+    <string name="Waiting_nom_joueur_hote">Nom du joueur Hôte : </string>
+    <string name="Waiting_mode_chronometre">Mode chronométré</string>
     <string name="app_name">SpotTheDifference</string>
-    <string name="valider_la_difference">Valider</string>
-    <string name="copier">Copier</string>
-    <string name="code_de_session">Code de session : </string>
-    <string name="nom_de_la_partie_nom">Partie de : </string>
-    <string name="nom_du_joueur">Votre nom :</string>
-    <string name="error_no_session_id">Error: No session ID</string>
-    <string name="error_no_party_name">Error: No party name</string>
-    <string name="error_no_player_name">Error: No player name</string>
-    <string name="error_no_host_name">Error: No host name</string>
-    <string name="nom_joueur_hote">Nom du joueur Hôte : </string>
-    <string name="parametres_de_la_partie"><u>Paramètres de la partie :</u></string>
-    <string name="mode_chronometre">Mode chronométré</string>
-    <string name="nombre_de_joueurs">Nombre de joueurs :</string>
-    <string name="pret">Prêt</string>
-    <string name="pas_pret">Pas prêt</string>
+
+    <string name="Main_valider_la_difference">Valider</string>
+    <string name="Main_success_message">Bravo vous avez trouvé une différence !</string>
+    <string name="Main_failure_message">Aïe... Au moins un des joueur semble s\'être trompé</string>
 
     <string name="quitter_la_partie">Quitter</string>
-    <string name="nombre_de_joueurs_titre">Nombre de joueurs :</string>
-    <string name="nombre_de_joueurs_hint">Saisir un nombre entre 2 et 10</string>
-    <string name="choisir_image">Choisir une image</string>
-    <string name="votre_nom">Votre nom</string>
-
 </resources>
